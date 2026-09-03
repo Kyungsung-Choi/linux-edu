@@ -1,0 +1,33 @@
+---
+// Starlight Sidebar 오버라이드.
+// 기본은 "과정 안내 + 챕터별 교재" 두 그룹을 그대로 보여주되, 현재 열어본 챕터의
+// 링크 밑에 그 챕터의 목차(H2·H3)를 곧바로 펼쳐 보여준다. 오른쪽 "목차" 칼럼은
+// astro.config.mjs 에서 tableOfContents: false 로 꺼서 이 왼쪽 트리 하나로 합쳤다.
+import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
+import SidebarPersister from '@astrojs/starlight/components/SidebarPersister.astro';
+import ChapterSublist from './ChapterSublist.astro';
+
+const { sidebar, headings } = Astro.locals.starlightRoute;
+
+/** 현재 페이지의 H2·H3 제목을 Starlight 기본 목차와 같은 규칙으로 중첩 트리로 만든다. */
+function buildPageToc() {
+  const filtered = (headings ?? []).filter((h) => h.depth === 2 || h.depth === 3);
+  const roots: { depth: number; slug: string; text: string; children: typeof filtered }[] = [];
+  for (const h of filtered) {
+    const node = { ...h, children: [] as typeof filtered };
+    const last = roots.at(-1);
+    if (!last || last.depth >= node.depth) roots.push(node);
+    else (last.children as typeof filtered).push(node as never);
+  }
+  return roots;
+}
+const pageToc = buildPageToc();
+---
+
+<SidebarPersister>
+  <ChapterSublist sublist={sidebar} pageToc={pageToc} />
+</SidebarPersister>
+
+<div class="md:sl-hidden">
+  <MobileMenuFooter />
+</div>

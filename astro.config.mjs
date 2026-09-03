@@ -27,6 +27,12 @@ export default defineConfig({
       locales: { root: { label: '한국어', lang: 'ko' } },
       customCss: ['./src/styles/tokens.css'],
       favicon: '/favicon.svg',
+      // 오른쪽 "목차" 칼럼을 없애고, 대신 왼쪽 사이드바의 현재 챕터 밑에
+      // 그 챕터의 목차를 바로 펼쳐 보여준다 (components.Sidebar 오버라이드).
+      tableOfContents: false,
+      components: {
+        Sidebar: './src/components/Sidebar.astro',
+      },
       // Starlight는 og:title·og:description·og:url·og:site_name 을 페이지마다 자동 생성한다.
       // 여기서는 이미지와 트위터 카드, 아이콘만 보탠다.
       head: [
