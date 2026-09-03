@@ -1,0 +1,32 @@
+---
+interface Props { id: string; title: string; time?: string }
+const { id, title, time } = Astro.props;
+---
+<section class="lab">
+  <div class="lab__h">
+    <span class="lab__k">Lab {id}</span>
+    <span class="lab__t">{title}{time && <span class="lab__time"> · 예상 소요 {time}</span>}</span>
+  </div>
+  <div class="lab__b"><slot /></div>
+</section>
+<style>
+  .lab{
+    border:1px solid var(--accent-line); border-radius:13px; overflow:hidden;
+    margin:0 0 1.8rem; background:var(--surface);
+  }
+  .lab__h{
+    background:var(--accent-soft); padding:15px 24px; display:flex;
+    align-items:baseline; gap:13px; border-bottom:1px solid var(--accent-line); flex-wrap:wrap;
+  }
+  .lab__k{
+    font-family:var(--mono); font-size:.68rem; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent); white-space:nowrap;
+  }
+  .lab__t{font-weight:600; font-size:.98rem}
+  .lab__time{font-weight:400; color:var(--ink3); font-size:.88rem}
+  .lab__b{padding:22px 26px}
+  .lab__b :global(p){max-width:none}
+  .lab__b :global(ol){margin:0; padding-left:20px}
+  .lab__b :global(ol > li){margin-bottom:1rem; padding-left:4px; max-width:none}
+  .lab__b :global(ol > li::marker){font-family:var(--mono); font-weight:600; color:var(--accent)}
+</style>

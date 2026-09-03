@@ -1,0 +1,33 @@
+---
+/** 절별 미니 실습. 각 절 끝에 붙는 3~4줄짜리 확인용 실습. */
+interface Props { title: string }
+const { title } = Astro.props;
+---
+<section class="mini">
+  <div class="mini__h">
+    <span class="mini__k">직접 해보기</span>
+    <span class="mini__t">{title}</span>
+  </div>
+  <div class="mini__b"><slot /></div>
+</section>
+<style>
+  .mini{
+    border:1px solid var(--ok); background:var(--ok-soft);
+    border-radius:12px; margin:2.2rem 0 1.6rem; overflow:hidden;
+  }
+  .mini__h{
+    padding:13px 22px; display:flex; align-items:baseline; gap:13px;
+    border-bottom:1px solid var(--ok); flex-wrap:wrap;
+  }
+  .mini__k{
+    font-family:var(--mono); font-size:.66rem; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ok); white-space:nowrap;
+  }
+  .mini__t{font-weight:600; font-size:.92rem}
+  .mini__b{padding:18px 24px; background:var(--surface)}
+  .mini__b :global(ol),.mini__b :global(ul){margin:0; padding-left:20px}
+  .mini__b :global(li){margin-bottom:.55rem; font-size:.93rem; line-height:1.72; max-width:none}
+  .mini__b :global(li:last-child){margin-bottom:0}
+  .mini__b :global(li::marker){font-family:var(--mono); font-weight:600; color:var(--ok)}
+  .mini__b :global(p){max-width:none; font-size:.92rem}
+</style>

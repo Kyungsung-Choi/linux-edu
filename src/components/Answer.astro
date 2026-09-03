@@ -1,0 +1,19 @@
+---
+interface Props { label?: string }
+const { label = '답 확인' } = Astro.props;
+---
+<details class="ans">
+  <summary>{label}</summary>
+  <div class="ans__b"><slot /></div>
+</details>
+<style>
+  .ans{margin-top:16px; border-top:1px dashed var(--rule2); padding-top:13px}
+  .ans summary{
+    cursor:pointer; font-family:var(--mono); font-size:.73rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ok); font-weight:600;
+  }
+  .ans summary::marker{color:var(--ok)}
+  .ans__b{padding-top:12px}
+  .ans__b :global(p){margin:0 0 .7rem; font-size:.9rem; color:var(--ink2); max-width:none}
+  .ans__b :global(p:last-child){margin:0}
+</style>

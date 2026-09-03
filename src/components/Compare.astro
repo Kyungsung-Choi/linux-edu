@@ -1,0 +1,8 @@
+---
+/** 윈도우 ↔ 리눅스 2단 비교. 이 사이트의 시그니처 컴포넌트. */
+---
+<div class="xwin"><slot /></div>
+<style>
+  .xwin{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:0 0 1.6rem}
+  @media (max-width:820px){ .xwin{grid-template-columns:1fr} }
+</style>

@@ -1,0 +1,23 @@
+---
+interface Props { label?: string }
+const { label = 'Linux' } = Astro.props;
+---
+<div class="xw xw--lin">
+  <div class="xw__h"><span class="dollar">$</span>{label}</div>
+  <div class="xw__b"><slot /></div>
+</div>
+<style>
+  .xw{
+    background:var(--surface); border:1px solid var(--accent-line); border-radius:11px;
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .xw__h{
+    display:flex; align-items:center; gap:10px; padding:11px 16px;
+    background:var(--accent-soft); border-bottom:1px solid var(--accent-line);
+    font-size:.78rem; font-weight:600; color:var(--accent);
+  }
+  .xw__b{padding:14px 18px; font-size:.9rem; line-height:1.75; color:var(--ink2); flex:1}
+  .xw__b :global(p){margin:0 0 .7rem; max-width:none}
+  .xw__b :global(p:last-child){margin:0}
+  .dollar{font-family:var(--mono); font-weight:600; color:var(--accent)}
+</style>

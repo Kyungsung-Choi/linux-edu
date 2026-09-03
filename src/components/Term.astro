@@ -1,0 +1,63 @@
+---
+/**
+ * 터미널 블록.
+ * 줄 접두사로 입력/출력/주석을 자동 판별한다.
+ *   "student@host:~$ uname -r"  → 프롬프트 + 명령 (입력)
+ *   "$ uname -r"                → 프롬프트 + 명령 (입력)
+ *   "PS C:\\Users\\me> dir"      → 프롬프트 + 명령 (윈도우)
+ *   "# 주석"                    → 주석
+ *   그 외                        → 시스템 출력
+ *
+ * MDX 슬롯은 내용을 <p>로 감싸 줄 파싱이 깨지므로 code prop을 쓴다.
+ */
+interface Props { code: string; title?: string; }
+const { code, title = 'terminal' } = Astro.props;
+
+type Line = { kind: 'in' | 'out' | 'cmt'; prompt?: string; text: string };
+
+const PROMPT = /^((?:PS\s+)?\S*[$#>])\s(.*)$/;
+
+const lines: Line[] = code.replace(/^\n+|\n+$/g, '').split('\n').map((raw) => {
+  if (/^#\s/.test(raw) || /^#$/.test(raw)) return { kind: 'cmt', text: raw };
+  const m = raw.match(PROMPT);
+  if (m && m[1] !== '#') return { kind: 'in', prompt: m[1], text: m[2] };
+  return { kind: 'out', text: raw };
+});
+---
+<div class="term">
+  <div class="term__h">
+    <span class="term__d"><i></i><i></i><i></i></span>
+    <span class="term__t">{title}</span>
+  </div>
+  <pre><code>{lines.map((l) => (
+    l.kind === 'in'  ? <><span class="p">{l.prompt}</span>{' ' + l.text + '\n'}</> :
+    l.kind === 'cmt' ? <span class="cm">{l.text + '\n'}</span> :
+                       <span class="o">{l.text + '\n'}</span>
+  ))}</code></pre>
+</div>
+
+<style>
+  .term{
+    background:var(--term-bg); border-radius:10px; margin:0 0 1.5rem;
+    overflow:hidden; box-shadow:var(--shadow);
+  }
+  .term__h{
+    display:flex; align-items:center; gap:9px; padding:9px 15px;
+    border-bottom:1px solid rgba(255,255,255,.09);
+  }
+  .term__d{display:flex; gap:5px}
+  .term__d i{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.18); display:block}
+  .term__t{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--term-dim);
+  }
+  .term pre{
+    margin:0; padding:16px 18px; overflow-x:auto; background:transparent;
+    font-family:var(--mono); font-size:.83rem; line-height:1.75;
+    color:var(--term-ink); border:0; tab-size:4;
+  }
+  .term code{background:none; border:0; padding:0; font-size:inherit; color:inherit}
+  .term :global(.p){color:var(--term-prompt); font-weight:600; user-select:none}
+  .term :global(.o){color:var(--term-dim)}
+  .term :global(.cm){color:var(--term-cmt); font-style:italic}
+</style>

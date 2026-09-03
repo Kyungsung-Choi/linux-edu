@@ -1,0 +1,104 @@
+@import url("https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap");
+
+/* ==========================================================================
+   Starlight 규약: :root = 다크, :root[data-theme="light"] = 라이트
+   (일반 웹페이지와 반대 방향이다. 이 순서를 뒤집지 말 것)
+   ========================================================================== */
+
+:root {
+  /* 자체 컴포넌트 토큰 — 다크 */
+  --ground:#181014; --surface:#211820; --surface2:#2A1F27; --surface3:#342630;
+  --ink:#F3EAEE; --ink2:#BFAAB5; --ink3:#8F7B86;
+  --rule:#372932; --rule2:#4A3743;
+  --accent:#F2825A; --accent-soft:#3B2018; --accent-line:#5C3325;
+  --plum:#CC85AC; --plum-soft:#31202A; --plum-line:#4B3140;
+  --term-bg:#120B10; --term-ink:#F0E5EB; --term-dim:#95818C;
+  --term-prompt:#F2825A; --term-cmt:#6E5C68;
+  --ok:#63C398; --ok-soft:#16281F;
+  --warn:#DFA352; --warn-soft:#2C2114;
+  --danger:#F0796B; --danger-soft:#2F1613;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.8);
+
+  /* Starlight 매핑 */
+  --sl-color-accent:#F2825A;
+  --sl-color-accent-low:#3B2018;
+  --sl-color-accent-high:#FBEAE2;
+  --sl-color-white:#FFFFFF;
+  --sl-color-gray-1:#F3EAEE;
+  --sl-color-gray-2:#BFAAB5;
+  --sl-color-gray-3:#8F7B86;
+  --sl-color-gray-4:#4A3743;
+  --sl-color-gray-5:#2A1F27;
+  --sl-color-gray-6:#211820;
+  --sl-color-black:#181014;
+  --sl-color-bg:#181014;
+  --sl-color-bg-nav:#211820;
+  --sl-color-bg-sidebar:#211820;
+  --sl-color-bg-inline-code:#2A1F27;
+  --sl-color-text:#F3EAEE;
+  --sl-color-text-accent:#F2825A;
+  --sl-color-hairline:#372932;
+  --sl-color-hairline-light:#4A3743;
+  --sl-color-hairline-shade:#2A1F27;
+
+  --sl-font:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --sl-font-mono:"IBM Plex Mono","SFMono-Regular",Consolas,"D2Coding",monospace;
+  --serif:"Gowun Batang","Nanum Myeongjo",Georgia,serif;
+  --sans:var(--sl-font);
+  --mono:var(--sl-font-mono);
+}
+
+:root[data-theme="light"] {
+  --ground:#FBF8FA; --surface:#FFFFFF; --surface2:#F4EFF2; --surface3:#EDE5EA;
+  --ink:#241A20; --ink2:#5E4B55; --ink3:#8D7883;
+  --rule:#E5DCE1; --rule2:#D3C6CD;
+  --accent:#C93F10; --accent-soft:#FBEAE2; --accent-line:#F0C8B6;
+  --plum:#772953; --plum-soft:#F3E7EE; --plum-line:#DFC3D3;
+  --term-bg:#2B1A26; --term-ink:#F4EAEF; --term-dim:#A8919E;
+  --term-prompt:#F0855A; --term-cmt:#7E6B77;
+  --ok:#1C6B4E; --ok-soft:#E4F1EA;
+  --warn:#8E5400; --warn-soft:#FBF0DC;
+  --danger:#A32519; --danger-soft:#FBE7E4;
+  --shadow:0 1px 2px rgba(36,26,32,.05), 0 8px 24px -14px rgba(36,26,32,.22);
+
+  --sl-color-accent:#C93F10;
+  --sl-color-accent-low:#FBEAE2;
+  --sl-color-accent-high:#241A20;
+  --sl-color-white:#241A20;
+  --sl-color-gray-1:#241A20;
+  --sl-color-gray-2:#5E4B55;
+  --sl-color-gray-3:#8D7883;
+  --sl-color-gray-4:#D3C6CD;
+  --sl-color-gray-5:#F4EFF2;
+  --sl-color-gray-6:#FBF8FA;
+  --sl-color-gray-7:#FFFFFF;
+  --sl-color-black:#FFFFFF;
+  --sl-color-bg:#FBF8FA;
+  --sl-color-bg-nav:#F4EFF2;
+  --sl-color-bg-sidebar:#F4EFF2;
+  --sl-color-bg-inline-code:#F4EFF2;
+  --sl-color-text:#241A20;
+  --sl-color-text-accent:#C93F10;
+  --sl-color-hairline:#E5DCE1;
+  --sl-color-hairline-light:#D3C6CD;
+  --sl-color-hairline-shade:#EDE5EA;
+}
+
+/* ── 한글 본문 가독성 ─────────────────────────────────────── */
+.sl-markdown-content { line-height:1.85; }
+.sl-markdown-content p,
+.sl-markdown-content li { max-width:66ch; }
+.sl-markdown-content h2 { letter-spacing:-.015em; text-wrap:balance; margin-top:2.6rem; }
+.sl-markdown-content h3 { letter-spacing:-.005em; text-wrap:balance; }
+.sl-markdown-content :not(pre) > code {
+  font-family:var(--mono); font-size:.86em;
+  border:1px solid var(--rule); border-radius:5px; padding:1px 6px;
+}
+
+/* 표: 넘칠 때만 가로 스크롤, 본문은 절대 밀리지 않게 */
+.sl-markdown-content table { display:block; overflow-x:auto; border-collapse:collapse; width:100%; }
+.sl-markdown-content th { white-space:nowrap; }
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important; transition:none!important;}
+}

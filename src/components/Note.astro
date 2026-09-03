@@ -1,0 +1,26 @@
+---
+interface Props { type?: 'tip' | 'warn' | 'danger' | 'why'; title?: string }
+const { type = 'tip', title } = Astro.props;
+---
+<aside class={`note note--${type}`}>
+  {title && <span class="note__t">{title}</span>}
+  <div class="note__b"><slot /></div>
+</aside>
+<style>
+  .note{border-radius:10px; padding:18px 24px; margin:0 0 1.6rem; max-width:72ch}
+  .note__t{
+    font-family:var(--mono); font-size:.68rem; font-weight:600; letter-spacing:.13em;
+    text-transform:uppercase; margin-bottom:9px; display:block;
+  }
+  .note__b :global(p){margin:0 0 .7rem; max-width:none; font-size:.94rem; line-height:1.78}
+  .note__b :global(p:last-child){margin:0}
+  .note--tip{background:var(--ok-soft); border-left:2px solid var(--ok)}
+  .note--tip .note__t{color:var(--ok)}
+  .note--warn{background:var(--warn-soft); border-left:2px solid var(--warn)}
+  .note--warn .note__t{color:var(--warn)}
+  .note--danger{background:var(--danger-soft); border-left:2px solid var(--danger)}
+  .note--danger .note__t{color:var(--danger)}
+  .note--why{background:var(--plum-soft)}
+  .note--why .note__t{color:var(--plum)}
+  .note--why .note__b{font-family:var(--serif); line-height:1.9}
+</style>

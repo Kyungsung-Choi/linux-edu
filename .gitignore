@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+.env
+astro.verify.mjs
+_to_delete/
+.omc/

@@ -1,0 +1,31 @@
+---
+interface Props { year: string; title: string; now?: boolean }
+const { year, title, now = false } = Astro.props;
+---
+<li class={now ? 'ev ev--now' : 'ev'}>
+  <span class="ev__y">{year}</span>
+  <div class="ev__c">
+    <div class="ev__t">{title}</div>
+    <div class="ev__d"><slot /></div>
+  </div>
+</li>
+<style>
+  .ev{
+    display:grid; grid-template-columns:60px 1fr; gap:0 30px;
+    padding:0 0 22px; position:relative; margin:0; max-width:none;
+  }
+  .ev:last-child{padding-bottom:0}
+  .ev__y{
+    font-family:var(--mono); font-size:.82rem; font-weight:600; color:var(--accent);
+    text-align:right; font-variant-numeric:tabular-nums; padding-top:1px;
+  }
+  .ev__c{position:relative}
+  .ev__c::before{
+    content:""; position:absolute; left:-33px; top:8px; width:9px; height:9px;
+    border-radius:50%; background:var(--sl-color-bg); border:2px solid var(--accent);
+  }
+  .ev--now .ev__c::before{background:var(--accent)}
+  .ev__t{font-weight:600; font-size:.96rem; margin-bottom:3px}
+  .ev__d{font-size:.89rem; color:var(--ink2); line-height:1.7}
+  .ev__d :global(p){margin:0; max-width:none; font-size:inherit}
+</style>
