@@ -2,6 +2,10 @@
 import { projects } from '../data/projects';
 import '../styles/tokens.css';
 
+const SITE = 'https://linux-edu.vercel.app';
+const TITLE = '최경성 · 포트폴리오';
+const DESC = '교육 커리큘럼과 기술 문서를 만듭니다. 무엇을 하는지 나열하는 대신 왜 그렇게 만들어졌는지부터 설명합니다.';
+
 const solo = projects.length === 1;
 ---
 <!doctype html>
@@ -9,8 +13,27 @@ const solo = projects.length === 1;
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>최경성 · 포트폴리오</title>
-  <meta name="description" content="교육 커리큘럼과 기술 문서를 만듭니다." />
+  <title>{TITLE}</title>
+  <meta name="description" content={DESC} />
+  <link rel="canonical" href={SITE + '/'} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="최경성" />
+  <meta property="og:locale" content="ko_KR" />
+  <meta property="og:title" content={TITLE} />
+  <meta property="og:description" content={DESC} />
+  <meta property="og:url" content={SITE + '/'} />
+  <meta property="og:image" content={SITE + '/og.png'} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="배우는 사람이 이해할 수 있는 자료를 만듭니다 — 최경성 포트폴리오" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={TITLE} />
+  <meta name="twitter:description" content={DESC} />
+  <meta name="twitter:image" content={SITE + '/og.png'} />
 </head>
 <body>
   <header class="mast">

@@ -34,15 +34,36 @@ src/styles/tokens.css          디자인 토큰 + Starlight 변수 매핑
 | `Timeline` / `Event` | 연표 |
 | `Anatomy` | 인터랙티브 해부도 (프롬프트, 권한 비트 등) |
 
-### 주의: Term 안의 백슬래시
+### 주의: Term code prop 의 두 가지 함정
 
-`code` prop은 JS 템플릿 리터럴이라 `\U` 같은 이스케이프가 소실됩니다.
-윈도우 경로가 들어가면 반드시 `String.raw`를 씁니다.
+`code` prop 은 JS 템플릿 리터럴입니다. 두 문자를 조심해야 합니다.
+
+**① 백슬래시** — `\U`, `\s` 같은 이스케이프로 해석돼 사라집니다.
+윈도우 경로가 들어가면 `String.raw` 를 씁니다.
 
 ```mdx
 <Term code={String.raw`
 PS C:\Users\me> dir
 `} />
+```
+
+**② 백틱** — 템플릿 리터럴을 그 자리에서 끝내버려 **빌드가 깨집니다.**
+터미널 출력에 백틱이 나오는 도구가 있습니다(`fail2ban-client status` 의 트리 문자 등).
+반드시 `` \` `` 로 이스케이프하세요.
+
+```mdx
+<Term code={`
+$ fail2ban-client status sshd
+|- Total failed:     847
+\`- Currently banned: 3
+`} />
+```
+
+주차 원고를 추가한 뒤에는 아래로 전체를 점검할 수 있습니다.
+
+```bash
+grep -n '^[^|]*`- ' src/content/docs/linux/*.mdx   # 트리 문자 백틱 의심 줄
+npm run build                                       # 최종 확인
 ```
 
 ## 주차 추가

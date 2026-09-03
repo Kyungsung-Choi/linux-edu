@@ -1,0 +1,661 @@
+---
+title: 네트워크 기초와 원격 접속
+description: TCP/IP와 포트, Netplan 설정, 진단 도구, SSH 공개키 인증과 하드닝 7항목, fail2ban
+sidebar:
+  label: 7주차 · 네트워크와 SSH
+  order: 7
+---
+
+import Term from '../../../components/Term.astro';
+import Compare from '../../../components/Compare.astro';
+import Win from '../../../components/Win.astro';
+import Lin from '../../../components/Lin.astro';
+import Hist from '../../../components/Hist.astro';
+import Note from '../../../components/Note.astro';
+import Mini from '../../../components/Mini.astro';
+import Answer from '../../../components/Answer.astro';
+import Lab from '../../../components/Lab.astro';
+import Anatomy from '../../../components/Anatomy.astro';
+
+Part 3이 시작됩니다. 지금까지는 서버 한 대 안에서만 놀았습니다. 이제 **밖과 연결**합니다.
+
+그리고 연결하는 순간 서버는 공격 대상이 됩니다. 이번 주에 여러분은 인터넷에 노출된 서버의 `auth.log`가 어떻게 생겼는지 직접 보게 될 겁니다. **이 과정에서 가장 중요한 보안 주제 하나가 여기 있습니다.**
+
+<Note type="why" title="이 주차를 마치면">
+- IP·서브넷·게이트웨이·DNS·포트가 각각 무엇을 하는지 설명할 수 있다
+- Netplan으로 고정 IP를 설정하고 적용할 수 있다
+- 통신이 안 될 때 어느 계층이 문제인지 순서대로 좁혀나갈 수 있다
+- SSH 공개키 인증을 설정하고 패스워드 로그인을 끌 수 있다
+- **SSH 하드닝 7항목을 이유와 함께 적용할 수 있다**
+- fail2ban으로 무차별 대입 공격을 차단하고 그 효과를 로그로 확인할 수 있다
+</Note>
+
+## 7.1 최소한의 TCP/IP
+
+| 개념 | 하는 일 | 비유 |
+|---|---|---|
+| **IP 주소** | 네트워크상의 집 주소 | 건물 주소 |
+| **서브넷 마스크** | 어디까지가 같은 동네인지 | 같은 아파트 단지 범위 |
+| **게이트웨이** | 동네 밖으로 나가는 출구 | 단지 정문 |
+| **DNS** | 이름을 주소로 바꿔주는 안내소 | 전화번호부 |
+| **포트** | 한 서버 안의 여러 서비스 구분 | 건물 안의 호수 |
+
+<Term code={`
+$ ip addr show
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic enp0s3
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP
+    inet 192.168.56.10/24 brd 192.168.56.255 scope global enp0s8
+
+$ ip route
+default via 10.0.2.2 dev enp0s3 proto dhcp
+192.168.56.0/24 dev enp0s8 proto kernel scope link
+`} />
+
+`10.0.2.15/24`에서 **`/24`가 서브넷 마스크**입니다. 앞 24비트(`10.0.2.`)가 같으면 같은 동네이고, 그 밖으로 나갈 때는 게이트웨이(`10.0.2.2`)를 거칩니다.
+
+1주차에서 어댑터를 두 개 만든 이유가 여기서 드러납니다. **`enp0s3`(NAT)는 인터넷용, `enp0s8`(호스트 전용)은 내 PC에서 서버로 SSH 접속하는 용도**입니다.
+
+### 포트 — 한 주소에 여러 서비스
+
+| 포트 | 서비스 | 비고 |
+|---|---|---|
+| 22 | SSH | 이번 주의 주인공 |
+| 80 | HTTP | 8주차 |
+| 443 | HTTPS | 8주차 |
+| 3306 | MySQL/MariaDB | 8주차 — **외부에 열면 안 된다** |
+| 5432 | PostgreSQL | 8주차 |
+
+<Term code={`
+# 지금 열려 있는 포트와 그 주인 — 보안 점검의 출발점
+$ sudo ss -tulpn
+Netid State  Local Address:Port   Process
+tcp   LISTEN 0.0.0.0:22           users:(("sshd",pid=1041))
+tcp   LISTEN 127.0.0.1:631        users:(("cupsd",pid=902))
+`} />
+
+<Note type="danger" title="0.0.0.0 과 127.0.0.1 의 차이 — 지금 외우세요">
+`ss` 출력에서 **Local Address**를 반드시 보세요. 여기가 보안의 갈림길입니다.
+
+- **`127.0.0.1:631`** — 이 서버 안에서만 접근 가능. 외부에서는 아예 닿지 않습니다
+- **`0.0.0.0:22`** — **모든 네트워크 인터페이스에서 접근 가능.** 즉 인터넷에 열려 있습니다
+
+데이터베이스를 `0.0.0.0`에 열어두는 것이 실제 유출 사고의 흔한 원인입니다. 8주차에서 MySQL을 설치할 때 이 값을 `127.0.0.1`로 묶는 이유가 여기 있습니다.
+
+**서버를 점검할 때 가장 먼저 하는 일이 `ss -tulpn`으로 무엇이 열려 있는지 보는 것입니다.** 내가 모르는 것이 열려 있다면 그것부터 조사해야 합니다.
+</Note>
+
+<Mini title="내 서버의 문 확인하기">
+1. `ip addr show`로 인터페이스와 IP를 확인하세요. 몇 개인가요?
+2. `ip route`로 기본 게이트웨이를 찾으세요.
+3. `sudo ss -tulpn`으로 열린 포트를 모두 확인하고, **`0.0.0.0`으로 열린 것과 `127.0.0.1`로 묶인 것**을 나눠 적으세요.
+4. 3번의 각 포트가 어떤 프로세스인지 확인하고, **바깥에 열려 있어야 할 이유가 있는지** 판단해 보세요.
+
+<Answer>
+<Term code={`
+$ sudo ss -tulpn
+Netid  State   Local Address:Port    Process
+udp    UNCONN  127.0.0.53%lo:53      users:(("systemd-resolve",pid=712))
+tcp    LISTEN  0.0.0.0:22            users:(("sshd",pid=1041))
+tcp    LISTEN  127.0.0.53%lo:53      users:(("systemd-resolve",pid=712))
+`} />
+
+기본 설치 상태에서는 대개 **SSH(22)만 외부에 열려 있습니다.** DNS(53)는 `127.0.0.53`이라 로컬 전용이고요.
+
+이것이 좋은 출발점입니다. **열린 문이 적을수록 안전합니다.** 8주차에서 웹 서버를 올리면 80·443이 추가되는데, 그때도 DB 포트는 열지 않을 겁니다. 10주차 하드닝에서 이 목록을 방화벽 정책의 기준으로 씁니다.
+</Answer>
+</Mini>
+
+## 7.2 네트워크 설정 — Netplan
+
+<Hist year="2010s" title="ifconfig 는 왜 사라졌나">
+오래된 문서에는 `ifconfig`와 `route`가 나옵니다. 지금 우분투에서 치면 **명령을 찾을 수 없다**고 합니다.
+
+이 도구들은 `net-tools`라는 묶음에 속했는데, **1990년대 후반 이후 사실상 유지보수가 멈췄습니다.** 그 사이 리눅스 커널의 네트워크 기능은 크게 발전했습니다 — 인터페이스 하나에 IP를 여러 개 붙이고, 출발지에 따라 다른 경로로 보내고, 네임스페이스로 네트워크를 격리하는 일들이 가능해졌죠. `ifconfig`는 이런 것들을 **표현할 방법 자체가 없었습니다.**
+
+그래서 `iproute2`라는 새 묶음이 나왔고, 명령이 `ip` 하나로 통합됐습니다. `ip addr`, `ip route`, `ip link`처럼 하위 명령으로 나뉘는 구조입니다.
+
+**인터넷에서 `ifconfig`가 나오는 안내를 보면 그 문서가 오래됐다는 신호입니다.** 다른 내용도 낡았을 가능성이 높으니 최신 자료를 찾으세요. `netstat` 대신 `ss`를 쓰는 것도 같은 이유입니다.
+</Hist>
+
+<Term code={`
+$ ls /etc/netplan/
+50-cloud-init.yaml
+
+$ sudo vi /etc/netplan/99-static.yaml
+`} />
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    enp0s8:
+      dhcp4: false
+      addresses:
+        - 192.168.56.10/24
+      nameservers:
+        addresses: [8.8.8.8, 1.1.1.1]
+```
+
+<Term code={`
+$ sudo chmod 600 /etc/netplan/99-static.yaml   # 경고를 없애려면 권한을 조인다
+$ sudo netplan try        # 120초 후 자동 롤백 — 원격 작업 시 필수
+$ sudo netplan apply
+`} />
+
+<Note type="danger" title="원격 서버에서는 netplan try 를 쓰세요">
+네트워크 설정을 잘못 적용하면 **그 즉시 접속이 끊기고 다시 들어갈 수 없습니다.** 물리적으로 접근할 수 없는 클라우드 서버라면 콘솔로 들어가거나 인스턴스를 다시 만들어야 합니다.
+
+`netplan try`는 설정을 적용한 뒤 **120초 안에 확인을 받지 못하면 자동으로 되돌립니다.** 접속이 끊겨도 2분 뒤 원상복구되므로 안전합니다.
+
+YAML은 **들여쓰기에 민감하고 탭을 허용하지 않습니다.** 반드시 공백을 쓰세요.
+</Note>
+
+## 7.3 통신이 안 될 때 — 순서대로 좁히기
+
+무작정 이것저것 해보지 말고, **아래에서 위로** 올라가며 확인합니다.
+
+| 순서 | 확인할 것 | 명령 |
+|---|---|---|
+| 1 | 인터페이스가 살아 있나 | `ip addr` — `state UP`인가 |
+| 2 | 같은 동네와 통하나 | `ping 게이트웨이` |
+| 3 | 바깥과 통하나 | `ping 1.1.1.1` (IP로) |
+| 4 | 이름이 풀리나 | `ping google.com` · `dig google.com` |
+| 5 | 그 포트가 열려 있나 | `nc -zv 호스트 포트` |
+| 6 | 서비스가 응답하나 | `curl -I https://호스트` |
+
+<Note type="tip" title="3번과 4번의 차이가 결정적입니다">
+`ping 1.1.1.1`은 되는데 `ping google.com`이 안 된다면, **네트워크는 멀쩡하고 DNS만 고장 난 것**입니다. 원인을 절반으로 좁힌 셈이죠.
+
+반대로 3번부터 안 되면 DNS를 아무리 만져도 소용없습니다. 게이트웨이나 방화벽을 봐야 합니다.
+
+**증상을 보고 추측하지 말고, 계층을 하나씩 확인해 범위를 좁히는 것** — 이것이 장애 대응의 기본기이고 11주차 사고 대응에서 다시 강조합니다.
+</Note>
+
+<Term code={`
+$ ping -c 4 1.1.1.1
+$ traceroute google.com          # 어느 구간에서 막히는지
+$ dig google.com +short          # DNS 조회
+$ dig @8.8.8.8 google.com        # 특정 DNS 서버에 직접 물어보기
+$ nc -zv 192.168.56.10 22        # 포트가 열려 있나
+$ curl -I https://example.com    # HTTP 헤더만
+$ sudo tcpdump -i enp0s8 port 22 -n   # 실제 패킷 관찰
+`} />
+
+<Hist year="1983" title="ping 은 잠수함 소나에서 왔다">
+마이크 무스가 1983년 하룻밤에 만든 프로그램입니다. 이름은 **잠수함 소나**에서 따왔습니다 — 음파를 쏘고 되돌아오는 시간으로 물체까지의 거리를 재는 그 방식이죠.
+
+`ping`이 하는 일도 똑같습니다. 상대에게 작은 패킷을 보내고 **되돌아오는 데 걸린 시간**을 잽니다. 응답이 오면 살아 있고, 시간이 길면 멀거나 혼잡한 것입니다.
+
+무스는 나중에 이렇게 썼습니다 — 자신이 만든 것 중 가장 널리 쓰이는 프로그램이 **한 페이지짜리 진단 도구**일 줄은 몰랐다고. 40년이 지난 지금도 네트워크 문제를 만나면 모두가 가장 먼저 치는 명령입니다.
+</Hist>
+
+<Mini title="장애 진단 순서 연습">
+1. 위 표의 1~4번을 순서대로 실행해 각 결과를 기록하세요.
+2. **일부러 DNS를 고장 내 보세요.** `/etc/resolv.conf`를 백업한 뒤 잘못된 DNS 주소로 바꿉니다.
+3. 다시 3번(`ping 1.1.1.1`)과 4번(`ping google.com`)을 실행해 **증상이 어떻게 다른지** 확인하세요.
+4. 원상복구하세요.
+
+<Answer>
+<Term code={`
+$ ping -c 2 1.1.1.1
+64 bytes from 1.1.1.1: icmp_seq=1 ttl=55 time=12.3 ms      ← 네트워크는 정상
+
+$ ping -c 2 google.com
+ping: google.com: Temporary failure in name resolution      ← DNS만 고장
+`} />
+
+**"이름 확인 실패"**라는 메시지가 핵심입니다. 이 한 줄만 보면 네트워크 전체를 뒤질 필요 없이 DNS만 보면 된다는 것을 알 수 있습니다.
+
+에러 메시지를 정확히 읽는 것이 진단의 절반입니다. 1주차에서 **설치 언어를 English로 하라**고 한 이유가 여기 있습니다 — 이 메시지를 그대로 검색하면 답이 나오지만, 한국어 메시지로는 자료가 거의 없습니다.
+</Answer>
+</Mini>
+
+## 7.4 SSH — 원격 관리의 표준
+
+<Hist year="1995" title="패스워드를 훔쳐본 사건이 SSH 를 만들었다">
+1995년 이전에는 원격 접속에 `telnet`, `rlogin`, `rsh`를 썼습니다. 이 프로토콜들에는 공통점이 하나 있었습니다 — **모든 것을 평문으로 보냈습니다.** 패스워드까지 포함해서요.
+
+같은 네트워크에 있는 누구든 패킷을 들여다보면 남의 계정과 패스워드를 그대로 읽을 수 있었습니다. 당시에는 네트워크가 대체로 신뢰할 수 있는 환경이라 여겨졌기에 큰 문제로 보지 않았습니다.
+
+그러다 헬싱키 공과대학 네트워크에서 **패스워드를 대량으로 수집하는 공격**이 발견됩니다. 연구원이던 타투 윌뢴엔은 이 사건을 겪고 몇 달 만에 암호화된 원격 접속 프로토콜을 만들었습니다. 이것이 **SSH(Secure Shell)**입니다.
+
+그는 IANA에 포트 번호를 신청했고, `telnet`(23)과 `ftp`(21) 사이에 비어 있던 **22번**을 받았습니다. 오늘날 전 세계 서버가 22번 포트를 쓰는 이유가 이 신청 한 건입니다.
+
+**보안 기능의 상당수가 이런 식으로 태어났습니다.** 사고가 먼저 있었고, 대응이 뒤따랐죠. 여러분이 이번 주에 배우는 모든 설정에도 각각 그런 사건이 하나씩 있습니다.
+</Hist>
+
+<Compare>
+  <Win>원격 데스크톱(RDP)으로 **화면을 통째로** 가져옵니다. 직관적이지만 대역폭을 많이 쓰고, 회선이 느리면 작업이 어렵습니다.</Win>
+  <Lin>SSH는 **글자만** 주고받습니다. 3G 회선에서도 쾌적하고, 명령을 스크립트로 묶어 자동화할 수 있습니다. 화면이 아니라 명령이 오가기 때문입니다.</Lin>
+</Compare>
+
+### 기본 접속과 파일 전송
+
+<Term code={`
+$ ssh student@192.168.56.10
+$ ssh -p 2222 student@서버              # 포트 지정
+$ ssh student@서버 'df -h'              # 명령 하나만 실행하고 끊기
+
+# 파일 전송
+$ scp file.txt student@서버:/home/student/
+$ scp -r 폴더/ student@서버:/tmp/
+$ sftp student@서버
+$ rsync -avz -e ssh /var/www/ student@서버:/backup/    # 6주차 rsync + SSH
+`} />
+
+<Note type="warn" title="처음 접속할 때 나오는 지문 확인">
+```
+The authenticity of host '192.168.56.10' can't be established.
+ED25519 key fingerprint is SHA256:xK3...
+Are you sure you want to continue connecting (yes/no)?
+```
+
+대부분 무심코 `yes`를 칩니다. 하지만 이 질문의 의미는 **"이 서버가 진짜 그 서버인지 확인할 방법이 나에게 없다"**입니다.
+
+`yes`를 치면 그 지문이 `~/.ssh/known_hosts`에 저장되고, **다음부터는 지문이 바뀌면 경고가 뜹니다.** 서버를 재설치했다면 정상이지만, 그렇지 않은데 지문이 바뀌었다면 **중간자 공격을 의심해야 합니다.**
+
+클라우드 서버는 대개 콘솔에서 서버의 지문을 미리 확인할 수 있습니다. 중요한 서버라면 첫 접속 전에 대조하세요.
+</Note>
+
+### 공개키 인증 — 패스워드를 없애는 방법
+
+<Term code={`
+# 1) 내 PC에서 키 쌍 생성 (ed25519 권장)
+$ ssh-keygen -t ed25519 -C "student@laptop"
+Enter passphrase (empty for no passphrase):     ← 반드시 설정하세요
+
+# 개인키: ~/.ssh/id_ed25519      (절대 밖으로 내보내지 않는다)
+# 공개키: ~/.ssh/id_ed25519.pub  (서버에 등록한다)
+
+# 2) 서버에 공개키 등록
+$ ssh-copy-id student@192.168.56.10
+
+# 3) 확인 — 패스워드를 묻지 않아야 한다
+$ ssh student@192.168.56.10
+`} />
+
+<Note type="tip" title="왜 패스워드보다 안전한가">
+| | 패스워드 | 공개키 |
+|---|---|---|
+| 서버에 저장되는 것 | 해시 | **공개키** (유출돼도 무해) |
+| 네트워크로 전달되는 것 | 패스워드 자체 | 아무것도 (서명만 주고받음) |
+| 무차별 대입 | **가능** | 사실상 불가능 |
+| 유출 시 | 그 계정 즉시 뚫림 | 개인키 + 패스프레이즈 둘 다 필요 |
+
+핵심은 **개인키가 절대 네트워크로 흐르지 않는다**는 점입니다. 서버는 "이 문제를 네 개인키로 풀어봐라"고 문제를 내고, 클라이언트가 서명을 만들어 보내면 공개키로 검증합니다. 개인키 자체는 내 컴퓨터를 떠나지 않습니다.
+
+**패스프레이즈를 꼭 거세요.** 노트북을 도난당했을 때 개인키 파일만으로는 쓸 수 없게 만드는 마지막 방어선입니다. 매번 입력하기 번거로우면 `ssh-agent`가 세션 동안 기억해 줍니다.
+</Note>
+
+<Note type="danger" title="개인키 권한이 600 이 아니면 SSH 가 거부합니다">
+```
+$ chmod 600 ~/.ssh/id_ed25519
+$ chmod 700 ~/.ssh
+$ chmod 600 ~/.ssh/authorized_keys
+```
+
+권한이 느슨하면 SSH가 **아예 키를 무시하고 접속을 거부합니다.** 4주차에서 `chmod 600 ~/.ssh/id_ed25519`를 예로 들었던 것이 바로 이것입니다.
+
+친절한 오류 메시지가 나오지 않아 원인을 못 찾고 헤매기 쉽습니다. 키 인증이 안 되면 **가장 먼저 권한부터 확인**하세요.
+</Note>
+
+### SSH 설정 파일로 편해지기
+
+<Term code={`
+$ vi ~/.ssh/config
+`} />
+
+```
+Host lab
+    HostName 192.168.56.10
+    User student
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519
+```
+
+이제 `ssh lab` 한 마디면 접속됩니다.
+
+<Mini title="공개키 인증 설정하기">
+VM 두 대가 있으면 좋지만, 한 대에서 자기 자신에게 접속해도 원리는 같습니다.
+
+1. `ssh-keygen -t ed25519`로 키 쌍을 만드세요. **패스프레이즈를 설정합니다.**
+2. `ls -l ~/.ssh/`로 개인키와 공개키의 권한을 확인하세요.
+3. `ssh-copy-id student@localhost`로 자기 자신에게 등록하세요.
+4. `ssh student@localhost`로 접속해 패스워드를 묻지 않는지 확인하세요.
+5. `cat ~/.ssh/authorized_keys`로 등록된 공개키를 확인하세요.
+
+<Answer>
+<Term code={`
+$ ls -l ~/.ssh/
+-rw------- 1 student student  464 Sep  3 14:00 id_ed25519       ← 600
+-rw-r--r-- 1 student student  102 Sep  3 14:00 id_ed25519.pub   ← 644
+-rw------- 1 student student  102 Sep  3 14:02 authorized_keys  ← 600
+
+$ ssh student@localhost
+Enter passphrase for key '/home/student/id_ed25519':
+`} />
+
+권한을 보세요. **개인키는 `600`, 공개키는 `644`**입니다. 공개키는 이름 그대로 공개해도 되니 누구나 읽을 수 있어도 무방합니다.
+
+그리고 패스워드 대신 **패스프레이즈**를 물었습니다. 이건 네트워크로 가지 않고 **내 컴퓨터에서 개인키를 여는 데만** 쓰입니다. 차이가 중요합니다.
+</Answer>
+</Mini>
+
+## 7.5 🔒 SSH 하드닝 7항목
+
+이번 주의 핵심입니다. 서버를 인터넷에 노출하는 순간 **자동화된 공격이 몇 분 안에 도착합니다.** 사람이 노리는 게 아니라 봇이 전 세계 IP를 훑고 다닙니다.
+
+<Term code={`
+$ sudo grep "Failed password" /var/log/auth.log | wc -l
+2847
+
+$ sudo grep "Failed password" /var/log/auth.log | awk '{print $(NF-3)}' | sort | uniq -c | sort -rn | head -5
+    412 61.177.173.xx
+    287 218.92.0.xx
+    193 141.98.10.xx
+`} />
+
+3주차에서 배운 파이프라인으로 **어디서 얼마나 공격이 왔는지**를 뽑았습니다. 인터넷에 노출된 서버라면 하루에 수천 건이 쌓입니다.
+
+설정 파일을 고칩니다.
+
+<Term code={`
+$ sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak    # 백업 먼저
+$ sudo vi /etc/ssh/sshd_config
+`} />
+
+```
+# ① 패스워드 인증 끄기 — 무차별 대입을 원천 차단
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PubkeyAuthentication yes
+
+# ② root 직접 로그인 금지
+PermitRootLogin no
+
+# ③ 접속 가능한 계정 제한
+AllowUsers student deploy
+
+# ④ 인증 시도 제한
+MaxAuthTries 3
+LoginGraceTime 30
+
+# ⑤ 빈 패스워드 거부
+PermitEmptyPasswords no
+
+# ⑥ 안 쓰는 기능 끄기
+X11Forwarding no
+AllowAgentForwarding no
+
+# ⑦ 유휴 세션 자동 종료
+ClientAliveInterval 300
+ClientAliveCountMax 2
+```
+
+<Term code={`
+$ sudo sshd -t                    # 문법 검사 — 반드시 먼저
+$ sudo systemctl reload ssh
+`} />
+
+<Note type="danger" title="설정을 적용하기 전에 반드시 — 두 번째 창을 열어두세요">
+SSH 설정을 잘못 적용하면 **다시 접속할 수 없게 됩니다.** 원격 서버라면 그 순간 끝입니다.
+
+안전한 절차입니다.
+
+1. `sudo sshd -t`로 **문법 검사**
+2. **현재 접속을 끊지 말고 그대로 둔 채** 새 터미널에서 접속을 시도
+3. 새 접속이 성공하면 그때 안심하고 원래 창을 닫는다
+
+특히 `PasswordAuthentication no`를 켜기 전에 **공개키 접속이 실제로 되는지 먼저 확인**하세요. 키 등록이 안 된 상태에서 패스워드를 막으면 아무도 못 들어갑니다. 실무에서 가장 흔한 자책 사고 중 하나입니다.
+</Note>
+
+### 각 항목이 막는 것
+
+| 항목 | 막는 공격 |
+|---|---|
+| ① 패스워드 인증 끄기 | **무차별 대입 전체.** 가장 효과가 큽니다 |
+| ② root 로그인 금지 | 계정 이름을 추측할 필요가 없는 공격. `root`는 어디에나 있습니다 |
+| ③ AllowUsers | 서비스 계정이나 잊고 있던 계정으로의 침입 |
+| ④ 시도 제한 | 한 연결에서 여러 번 시도하는 것 |
+| ⑤ 빈 패스워드 | 설정 실수로 생긴 구멍 |
+| ⑥ 전달 기능 끄기 | 침입 후 그 서버를 발판으로 내부망에 들어가는 것 |
+| ⑦ 유휴 종료 | 자리를 비운 사이 열린 세션의 탈취 |
+
+<Note type="tip" title="포트를 바꾸는 것은 어떤가">
+`Port 2222`처럼 기본 포트를 바꾸라는 조언을 자주 봅니다. **효과는 있지만 제한적입니다.**
+
+- **효과** — 22번만 훑는 단순한 봇을 거릅니다. `auth.log`가 훨씬 조용해지고, 진짜 위협을 찾기 쉬워집니다
+- **한계** — 전 포트를 훑는 스캐너에게는 소용없습니다. **암호학적 보안이 아니라 소음 감소**입니다
+
+바꾼다면 1024 이상을 고르고, 방화벽 규칙과 팀 문서를 함께 고쳐야 합니다. **①번(패스워드 끄기)이 포트 변경보다 훨씬 중요합니다.** 순서를 헷갈리지 마세요.
+</Note>
+
+### fail2ban — 반복 실패하는 IP 차단
+
+<Term code={`
+$ sudo apt install fail2ban
+$ sudo vi /etc/fail2ban/jail.local
+`} />
+
+```ini
+[DEFAULT]
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+backend  = systemd
+
+[sshd]
+enabled = true
+```
+
+<Term code={`
+$ sudo systemctl enable --now fail2ban
+$ sudo fail2ban-client status sshd
+Status for the jail: sshd
+|- Currently failed: 2
+|- Total failed:     847
+\`- Currently banned: 3
+   \`- Banned IP list: 61.177.173.xx 218.92.0.xx 141.98.10.xx
+`} />
+
+<Note type="warn" title="자기 자신을 차단하지 않도록">
+설정을 시험하다 **본인 IP가 차단되는** 일이 자주 생깁니다. 사무실 고정 IP가 있다면 예외로 등록하세요.
+
+```
+[DEFAULT]
+ignoreip = 127.0.0.1/8 192.168.56.0/24
+```
+
+이미 차단됐다면 `sudo fail2ban-client set sshd unbanip 내IP`로 풀 수 있습니다. 다만 그러려면 **서버에 들어갈 수 있어야** 하므로, VM 콘솔 접근이 가능한 실습 환경에서 미리 겪어보는 것이 좋습니다.
+</Note>
+
+<Mini title="하드닝 적용하고 효과 확인하기">
+**스냅샷을 먼저 찍으세요.** 그리고 VM 콘솔(VirtualBox 창)로 직접 접근할 수 있는 상태에서 진행하세요.
+
+1. `/etc/ssh/sshd_config`를 백업하세요.
+2. 위 7항목 중 **②·④·⑤·⑦** 네 가지를 먼저 적용하세요. (①은 공개키 확인 후)
+3. `sudo sshd -t`로 검사하고 `reload` 하세요.
+4. **현재 창을 닫지 말고** 새 터미널에서 접속을 시도해 확인하세요.
+5. 공개키 접속이 되는 것을 확인한 뒤에만 `PasswordAuthentication no`를 켜세요.
+6. `sudo ssh -o PasswordAuthentication=yes student@localhost`로 패스워드 접속이 거부되는지 확인하세요.
+
+<Answer>
+<Term code={`
+$ sudo sshd -t          # 출력이 없으면 정상
+
+$ ssh -o PreferredAuthentications=password student@localhost
+student@localhost: Permission denied (publickey).
+`} />
+
+**`(publickey)`**만 남았습니다. 서버가 "공개키 말고는 받지 않는다"고 말하는 것이고, 이 상태에서는 패스워드를 아무리 시도해도 소용없습니다. **하루 수천 건씩 오던 무차별 대입이 통째로 무력화됩니다.**
+
+4번의 "현재 창을 닫지 말고"가 형식적인 주의가 아니라는 것을 기억하세요. 이 절차 하나로 서버를 잃는 사고를 막습니다.
+</Answer>
+</Mini>
+
+## 7.6 tmux — 접속이 끊겨도 살아남는 세션
+
+3주차에서 미뤄뒀던 이야기입니다.
+
+<Term code={`
+$ sudo apt install tmux
+$ tmux new -s work            # 새 세션
+# ... 작업 ...
+# Ctrl+b 누른 뒤 d  → 세션을 두고 나옴(detach)
+
+$ tmux ls                     # 세션 목록
+work: 1 windows (created Wed Sep  3 14:30:00 2026)
+
+$ tmux attach -t work         # 다시 붙기
+`} />
+
+| 키 | 동작 |
+|---|---|
+| <kbd>Ctrl</kbd>+<kbd>b</kbd> → <kbd>d</kbd> | 세션 두고 나오기 |
+| <kbd>Ctrl</kbd>+<kbd>b</kbd> → <kbd>c</kbd> | 새 창 |
+| <kbd>Ctrl</kbd>+<kbd>b</kbd> → <kbd>%</kbd> / <kbd>"</kbd> | 세로 / 가로 분할 |
+| <kbd>Ctrl</kbd>+<kbd>b</kbd> → 화살표 | 분할된 창 이동 |
+
+<Note type="tip" title="긴 작업 전에는 항상 tmux 안에서">
+5주차에서 배운 대로, SSH 접속이 끊기면 그 아래 프로세스가 전부 죽습니다. **tmux 세션은 서버에 남아 있으므로** 접속이 끊겨도 작업이 계속됩니다.
+
+`apt upgrade`, 큰 파일 복사, 데이터베이스 마이그레이션처럼 **중간에 끊기면 곤란한 작업은 반드시 tmux 안에서** 하세요. 실무에서 이 습관이 없어 업그레이드 중 접속이 끊겨 시스템이 반쯤 망가지는 사고가 실제로 일어납니다.
+</Note>
+
+## 중간 점검 2
+
+1. `ss -tulpn` 출력에서 `0.0.0.0:3306`을 봤다면 무엇이 문제이고 어떻게 고쳐야 하는가?
+2. `ping 1.1.1.1`은 되는데 `ping google.com`이 안 된다면 어디를 봐야 하는가?
+3. SSH 공개키 인증이 패스워드보다 안전한 이유를 **네트워크로 무엇이 흐르는지**로 설명할 수 있는가?
+4. `PasswordAuthentication no`를 적용하기 전에 반드시 확인해야 할 것은?
+5. `~/.ssh/id_ed25519`의 권한이 `644`이면 어떻게 되는가?
+
+## 실습 과제 W7
+
+<Lab id="W7" title="원격 접속 서버 구축과 하드닝" time="150분">
+**VM을 하나 복제해 두 대로 만들어 진행하세요.** 한 대는 서버, 한 대는 클라이언트입니다. 여의치 않으면 호스트 PC를 클라이언트로 써도 됩니다. **시작 전 스냅샷 필수.**
+
+1. **네트워크 확인** — 두 VM의 호스트 전용 어댑터 IP를 확인하고, 서로 `ping`이 되는지 확인하세요.
+2. **고정 IP 설정** — 서버 쪽 `enp0s8`에 Netplan으로 고정 IP를 설정하세요. **`netplan try`를 먼저 쓴 과정을 함께 제출**합니다.
+3. **열린 포트 조사** — 서버에서 `ss -tulpn`을 실행해 열린 포트를 전부 목록화하고, 각각 **외부에 열려 있어야 하는지 판단**해 적으세요.
+4. **공개키 인증** — 클라이언트에서 키를 만들어(패스프레이즈 포함) 서버에 등록하고, 패스워드 없이 접속되는 것을 확인하세요. `~/.ssh/config`에 별칭도 설정합니다.
+5. **하드닝 7항목** — 본문의 7항목을 모두 적용하세요. **각 항목이 무엇을 막는지 한 줄씩 적습니다.** 적용 전후로 `sshd -t` 검사와 두 번째 창 확인 절차를 반드시 거치세요.
+6. **차단 확인** — 다음 세 가지가 실제로 막히는지 시험하고 결과를 기록하세요.
+   - 패스워드로 접속 시도
+   - `root`로 접속 시도
+   - `AllowUsers`에 없는 계정으로 접속 시도
+7. **fail2ban** — 설치하고 `maxretry 3`, `bantime 10m`으로 설정하세요. **일부러 3회 이상 실패시켜** 차단되는 것을 확인하고, `fail2ban-client status sshd` 출력을 제출합니다. 그 뒤 `unbanip`으로 해제하세요.
+8. **로그 분석** — 3주차 파이프라인으로 `auth.log`에서 다음을 뽑으세요.
+   - 실패한 로그인 시도 총 횟수
+   - 시도한 IP별 횟수 상위 5개
+   - 시도된 **계정 이름** 상위 5개 (`root`, `admin`, `test` 같은 것들이 보일 겁니다)
+9. **tmux** — tmux 세션 안에서 `sleep 300`을 실행하고, SSH 접속을 끊었다가 다시 접속해 **그 작업이 살아 있는지** 확인하세요.
+
+**제출물** — 각 문항의 명령과 출력, 5번의 항목별 설명, 6~7번의 차단 확인 결과, 8번의 파이프라인과 결과.
+</Lab>
+
+<Note type="tip" title="채점 기준">
+6번과 7번이 핵심입니다. **설정을 넣는 것과 그 설정이 실제로 막는지 확인하는 것은 다릅니다.** 4주차 권한 실습에서 강조했던 것과 같은 원칙입니다 — 허용을 확인하는 것보다 **차단을 확인하는 것**이 중요합니다.
+
+8번은 이 과정 전체를 잇는 문항입니다. 3주차의 `grep`·`awk`·`sort`·`uniq` 파이프라인이 7주차의 보안 로그 분석 도구가 되었습니다. 시도된 계정 이름 목록을 보면 공격자가 무엇을 노리는지 눈에 보일 겁니다.
+</Note>
+
+## 부록 A · 7주차 명령어
+
+### 네트워크 조회
+
+| 명령 | 하는 일 |
+|---|---|
+| `ip addr` | 인터페이스와 IP |
+| `ip route` | 라우팅 테이블 (기본 게이트웨이) |
+| `ip link set enp0s8 up/down` | 인터페이스 켜기/끄기 |
+| `ss -tulpn` | **열린 포트와 프로세스** (가장 자주 씀) |
+| `ss -tn state established` | 현재 연결된 세션 |
+| `hostname -I` | 내 IP만 빠르게 |
+
+### 진단
+
+| 명령 | 하는 일 |
+|---|---|
+| `ping -c 4 대상` | 도달 여부와 지연 |
+| `traceroute 대상` | 경로 추적 |
+| `dig 도메인 +short` | DNS 조회 |
+| `dig @8.8.8.8 도메인` | 특정 DNS 서버에 질의 |
+| `nc -zv 호스트 포트` | 포트 열림 확인 |
+| `curl -I URL` | HTTP 헤더만 |
+| `tcpdump -i 인터페이스 port 22 -n` | 패킷 관찰 |
+
+### SSH
+
+| 명령 | 하는 일 |
+|---|---|
+| `ssh user@host` | 접속 |
+| `ssh -p 포트 user@host` | 포트 지정 |
+| `ssh user@host '명령'` | 원격에서 명령 하나 실행 |
+| `ssh-keygen -t ed25519` | 키 쌍 생성 |
+| `ssh-copy-id user@host` | 공개키 등록 |
+| `scp 파일 user@host:경로` | 파일 전송 |
+| `sftp user@host` | 대화형 전송 |
+| `sudo sshd -t` | **설정 문법 검사 (적용 전 필수)** |
+| `sudo systemctl reload ssh` | 설정 반영 |
+
+### 파일과 권한
+
+| 경로 | 권한 | 용도 |
+|---|---|---|
+| `~/.ssh` | `700` | |
+| `~/.ssh/id_ed25519` | `600` | 개인키 |
+| `~/.ssh/id_ed25519.pub` | `644` | 공개키 |
+| `~/.ssh/authorized_keys` | `600` | 서버에 등록된 공개키 |
+| `~/.ssh/known_hosts` | `644` | 접속한 서버의 지문 |
+| `/etc/ssh/sshd_config` | `600` | 서버 설정 |
+
+### fail2ban
+
+| 명령 | 하는 일 |
+|---|---|
+| `fail2ban-client status` | 활성 jail 목록 |
+| `fail2ban-client status sshd` | 차단 현황 |
+| `fail2ban-client set sshd unbanip IP` | 차단 해제 |
+
+### tmux
+
+| 키 | 동작 |
+|---|---|
+| `tmux new -s 이름` | 새 세션 |
+| <kbd>Ctrl</kbd>+<kbd>b</kbd> <kbd>d</kbd> | 두고 나오기 |
+| `tmux ls` / `tmux attach -t 이름` | 목록 / 다시 붙기 |
+
+## 부록 B · 윈도우 대응
+
+| 윈도우 | 리눅스 | 비고 |
+|---|---|---|
+| `ipconfig` | `ip addr` | `ifconfig`는 폐기됨 |
+| `route print` | `ip route` | |
+| `netstat -ano` | `ss -tulpn` | `netstat`도 폐기 수순 |
+| `nslookup` | `dig` | |
+| `tracert` | `traceroute` | |
+| `Test-NetConnection` | `nc -zv` | |
+| 원격 데스크톱 (RDP) | SSH | 텍스트 기반, 훨씬 가볍다 |
+| PuTTY | `ssh` (기본 내장) | 윈도우도 이제 ssh 내장 |
+| 네트워크 어댑터 설정 | Netplan (`/etc/netplan/*.yaml`) | |
+
+## 부록 C · 이번 주 용어의 유래
+
+| 이름 | 유래 |
+|---|---|
+| **SSH** | Secure Shell. 1995년 헬싱키 공과대학의 패스워드 스니핑 사건 후 타투 윌뢴엔이 만들었다 |
+| **포트 22** | 윌뢴엔이 IANA에 신청해 받았다. ftp(21)와 telnet(23) 사이가 비어 있었다 |
+| **ping** | 잠수함 소나. 신호를 보내고 되돌아오는 시간을 잰다. 1983년 마이크 무스가 하룻밤에 만들었다 |
+| **telnet이 사라진 이유** | 패스워드를 포함한 모든 것을 평문으로 보냈다 |
+| **ifconfig 폐기** | `net-tools`가 유지보수를 멈춰 현대 커널 기능을 표현할 수 없게 됐다. `iproute2`의 `ip`로 대체 |
+| **`0.0.0.0`** | "모든 인터페이스". 여기 묶인 서비스는 외부에서 접근 가능하다 |
+| **`127.0.0.1`** | 루프백. 자기 자신만 접근 가능 |
+| **known_hosts** | 접속한 서버의 지문 저장소. 지문이 바뀌면 경고하는 것이 중간자 공격 방어의 기본 |
+| **fail2ban** | 실패(fail)한 시도를 2(to) 차단(ban)한다는 말장난 |
+| **tmux** | terminal multiplexer. 하나의 접속에 여러 터미널을 얹는다 |
+
+---
+
+**다음 주차 · 8주차 웹 서버와 데이터베이스** — 드디어 서비스를 올립니다. Nginx로 웹 서버를 세우고, Let's Encrypt로 HTTPS를 적용하고, 데이터베이스를 연결합니다. 이번 주에 배운 **"DB 포트를 외부에 열지 않는다"**는 원칙이 거기서 실제 설정이 됩니다.

@@ -7,3 +7,5 @@ dist/
 astro.verify.mjs
 _to_delete/
 .omc/
+.vercel
+.env*

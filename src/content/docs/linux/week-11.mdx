@@ -1,0 +1,764 @@
+---
+title: 탐지, 감사, 사고 대응
+description: CVE와 취약점 관리, Lynis 감사, AIDE 무결성 검사, auditd, 모니터링, 침해사고 대응 6단계
+sidebar:
+  label: 11주차 · 탐지와 사고대응
+  order: 11
+---
+
+import Term from '../../../components/Term.astro';
+import Compare from '../../../components/Compare.astro';
+import Win from '../../../components/Win.astro';
+import Lin from '../../../components/Lin.astro';
+import Hist from '../../../components/Hist.astro';
+import Note from '../../../components/Note.astro';
+import Mini from '../../../components/Mini.astro';
+import Answer from '../../../components/Answer.astro';
+import Lab from '../../../components/Lab.astro';
+import Anatomy from '../../../components/Anatomy.astro';
+
+10주차가 **막는 것**이었다면 이번 주는 **뚫렸을 때 알아채고 대응하는 것**입니다.
+
+이 순서에는 이유가 있습니다. **완벽한 방어는 없습니다.** 아무리 하드닝을 해도 알려지지 않은 취약점, 유출된 자격증명, 내부자 실수는 남습니다. 그래서 현실적인 목표는 무결점이 아니라 **탐지 가능한 상태**입니다.
+
+<Note type="why" title="이 주차를 마치면">
+- CVE와 CVSS를 읽고 우리 시스템에 해당하는지 판단할 수 있다
+- 자동 보안 업데이트를 설정하고 그 한계를 안다
+- Lynis로 시스템을 감사하고 지적 항목을 근거와 함께 처리할 수 있다
+- AIDE로 파일 무결성 기준선을 만들고 변화를 탐지할 수 있다
+- `auditd`로 "누가 무엇을 언제 건드렸는가"를 기록하게 만들 수 있다
+- 침해 의심 상황에서 **무엇을 먼저 하고 무엇을 하면 안 되는지** 안다
+</Note>
+
+## 11.1 취약점 관리 — CVE 읽는 법
+
+<Term code={`
+CVE-2024-6387
+    ^    ^    ^
+   구분  연도  일련번호
+`} />
+
+**CVE**는 공개된 취약점에 붙는 전 세계 공통 식별번호입니다. 같은 취약점을 두고 벤더마다 다른 이름을 쓰던 혼란을 없애기 위해 만들어졌습니다.
+
+**CVSS**는 그 심각도를 0~10으로 매긴 점수입니다.
+
+| 점수 | 등급 | 대응 |
+|---|---|---|
+| 9.0~10.0 | Critical | **즉시** |
+| 7.0~8.9 | High | 빠르게 (수일 내) |
+| 4.0~6.9 | Medium | 정기 패치 주기에 |
+| 0.1~3.9 | Low | 여유 있을 때 |
+
+<Note type="warn" title="CVSS 점수만 보고 판단하지 마세요">
+점수 9.8짜리 취약점이라도 **우리 환경에 해당하지 않으면 위험이 아닙니다.** 반대로 점수 5짜리가 우리 구성에서는 치명적일 수 있습니다.
+
+판단할 때 함께 봐야 할 것들입니다.
+
+- **그 소프트웨어를 쓰고 있나?** 안 깔려 있으면 해당 없음
+- **그 기능을 켜뒀나?** 기본 비활성 기능의 취약점이라면 위험이 낮습니다
+- **네트워크로 접근 가능한가?** `127.0.0.1`에만 열린 서비스라면(8주차) 외부에서 못 건드립니다
+- **인증이 필요한가?** 인증 후 악용 가능한 것과 인증 없이 되는 것은 다릅니다
+- **실제 악용 사례가 있나?** 공개된 공격 코드가 도는지가 실질적인 긴급도를 정합니다
+
+**10주차의 계층 방어가 여기서 값을 합니다.** 방화벽과 로컬 바인드가 있으면, 취약점이 발표돼도 패치할 시간을 벌 수 있습니다.
+</Note>
+
+<Hist year="1999" title="같은 취약점에 이름이 다섯 개였다">
+1990년대에는 보안 취약점을 부를 공통 이름이 없었습니다. 벤더마다, 보안 회사마다 자기 방식으로 이름을 붙였죠.
+
+그래서 이런 일이 벌어졌습니다. A사 제품은 "이 취약점은 우리 데이터베이스에 없다"고 하고, B사는 "이미 탐지한다"고 합니다. **같은 취약점인데 이름이 달라 대조할 수 없었습니다.** 관리자는 자기 시스템이 안전한지 판단할 방법이 없었습니다.
+
+1999년 MITRE의 연구자들이 이 문제를 지적하며 **공통 식별번호 체계**를 제안했습니다. 취약점 하나에 `CVE-연도-번호` 하나. 논문 발표 당시 등록된 항목은 300여 개였습니다. 지금은 20만 개가 넘습니다.
+
+단순해 보이지만 효과는 컸습니다. 스캐너·패치 관리 도구·보안 공지가 **같은 언어로 말하게** 됐고, "우리 시스템에 CVE-2024-XXXX가 해당되나?"라는 질문이 기계적으로 답할 수 있는 것이 됐습니다.
+
+**표준화 자체가 보안 기술이었던 사례입니다.**
+</Hist>
+
+### 우분투 보안 정보 추적
+
+<Term code={`
+# 설치된 패키지 중 업그레이드 대기
+$ apt list --upgradable
+
+# 보안 업데이트만 골라 보기
+$ apt list --upgradable 2>/dev/null | grep -i security
+
+# 특정 패키지의 변경 이력
+$ apt changelog openssh-server | head -20
+
+# 우분투 보안 공지(USN) 확인 도구
+$ sudo apt install ubuntu-advantage-tools
+$ pro security-status
+`} />
+
+### 자동 보안 업데이트
+
+<Term code={`
+$ sudo apt install unattended-upgrades
+$ sudo dpkg-reconfigure -plow unattended-upgrades
+$ sudo vi /etc/apt/apt.conf.d/50unattended-upgrades
+`} />
+
+```
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}-security";
+};
+Unattended-Upgrade::Automatic-Reboot "false";
+Unattended-Upgrade::Mail "admin@example.com";
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+```
+
+<Term code={`
+$ sudo unattended-upgrade --dry-run --debug | tail -20
+$ systemctl list-timers | grep apt
+`} />
+
+<Note type="tip" title="자동 업데이트의 한계 — 재부팅과 재시작">
+자동 업데이트를 켜도 **두 가지는 자동으로 안 됩니다.**
+
+**① 커널 업데이트는 재부팅이 필요합니다.** 패키지는 갱신됐는데 돌고 있는 커널은 옛것이라, 취약점이 그대로 남습니다.
+
+```
+$ ls /var/run/reboot-required 2>/dev/null && cat /var/run/reboot-required.pkgs
+```
+
+**② 라이브러리 업데이트는 그 라이브러리를 쓰는 서비스의 재시작이 필요합니다.** OpenSSL이 갱신돼도 이미 떠 있는 Nginx는 옛 라이브러리를 메모리에 들고 있습니다.
+
+```
+$ sudo apt install needrestart
+$ sudo needrestart -b
+```
+
+**"업데이트했으니 됐다"가 아니라 "적용됐는지 확인"까지가 한 세트입니다.** 실무에서 패치했다고 보고했는데 실제로는 적용 안 된 사례가 정말 많습니다.
+</Note>
+
+<Mini title="내 서버의 취약점 상태 확인">
+1. `apt list --upgradable`로 대기 중인 업데이트를 확인하세요. 보안 관련은 몇 개인가요?
+2. `ls /var/run/reboot-required`로 재부팅이 필요한 상태인지 확인하세요.
+3. `needrestart`를 설치하고 `sudo needrestart -b`로 **재시작이 필요한 서비스**가 있는지 보세요.
+4. `unattended-upgrades`를 설정하고 `--dry-run`으로 시험하세요.
+
+<Answer>
+<Term code={`
+$ sudo needrestart -b
+NEEDRESTART-VER: 3.6
+NEEDRESTART-SVC: systemd-logind.service
+NEEDRESTART-SVC: ssh.service
+
+$ cat /var/run/reboot-required.pkgs
+linux-image-6.8.0-45-generic
+`} />
+
+3번 결과가 중요합니다. **패키지는 이미 업데이트됐는데 서비스가 옛 라이브러리를 쓰고 있다**는 뜻입니다. 재시작하기 전까지 그 취약점은 살아 있습니다.
+
+커널 업데이트가 있다면 재부팅 계획을 잡아야 합니다. 서비스 중단이 부담스러워 미루다가 **몇 달째 취약한 커널로 도는** 서버가 실제로 흔합니다.
+</Answer>
+</Mini>
+
+## 11.2 Lynis — 시스템 감사
+
+<Term code={`
+$ sudo apt install lynis
+$ sudo lynis audit system
+`} />
+
+<Term code={`
+  Hardening index : 67 [############        ]
+
+  Warnings (3):
+  ! Reboot of system is most likely needed [KRNL-5830]
+  ! No password set for single user mode [AUTH-9308]
+  ! iptables module loaded, but no rules active [FIRE-4512]
+
+  Suggestions (28):
+  * Install a file integrity tool [FINT-4350]
+  * Configure password aging limits [AUTH-9286]
+  * Harden compilers like restricting access to root user only [HRDN-7222]
+
+  Files:
+  - Log file : /var/log/lynis.log
+  - Report data : /var/log/lynis-report.dat
+`} />
+
+<Note type="warn" title="Hardening index 100 을 목표로 삼지 마세요">
+점수는 참고 지표일 뿐입니다. Lynis의 제안 중에는 **우리 환경에 맞지 않는 것**도 많습니다.
+
+예를 들어 "컴파일러 접근을 root로 제한하라"는 제안은 서버에서는 타당하지만 개발 서버에서는 업무를 막습니다. 점수를 올리려고 무작정 적용하면 서비스가 깨집니다.
+
+올바른 사용법은 10주차의 CIS Benchmark와 같습니다.
+
+1. 각 항목의 **테스트 ID**(`AUTH-9286` 등)로 문서를 찾아 무엇을 왜 지적했는지 이해한다
+2. 우리 환경에 **해당하는 것만** 적용한다
+3. 적용하지 않기로 한 것은 **사유를 기록**한다
+
+**감사 도구는 판단을 대신해 주지 않습니다.** 빠뜨린 것을 알려줄 뿐입니다.
+</Note>
+
+### nmap — 외부에서 본 내 서버
+
+<Term code={`
+# 다른 VM 또는 호스트에서 실행 — 공격자가 보는 시점
+$ sudo nmap -sV -p- 192.168.56.10
+PORT    STATE SERVICE VERSION
+22/tcp  open  ssh     OpenSSH 9.6p1 Ubuntu
+80/tcp  open  http    nginx
+443/tcp open  ssl/http nginx
+`} />
+
+<Note type="danger" title="🔒 스캔은 내 자산에만 하세요">
+`nmap`으로 **남의 서버를 허가 없이 스캔하는 것은 국내에서 정보통신망법 위반**이 될 수 있습니다. 실제 처벌 사례도 있습니다.
+
+- 내가 소유·관리하는 시스템
+- 서면으로 명시적 허가를 받은 시스템
+- 스캔이 허용된 학습용 환경
+
+이 세 가지 밖에서는 하지 마세요. **호기심으로 남의 IP를 스캔하는 것이 경력을 끝내는 가장 빠른 방법입니다.** 이 과정의 실습은 전부 여러분 소유의 VM 안에서만 이뤄집니다.
+</Note>
+
+<Note type="tip" title="8주차의 server_tokens 가 여기서 값을 합니다">
+위 출력에서 `OpenSSH 9.6p1 Ubuntu`, `nginx`라는 버전 정보가 보입니다. 8주차에서 `server_tokens off`를 적용했다면 nginx 쪽은 버전이 안 나옵니다.
+
+공격자 입장에서 이 정보는 **"어떤 취약점을 시도할지"**를 정하는 근거입니다. 버전을 숨긴다고 취약점이 사라지진 않지만, 자동화된 표적 선정을 어렵게 만듭니다. 10주차의 "공격 표면 줄이기"가 정보 노출에도 적용되는 것입니다.
+</Note>
+
+## 11.3 무결성 검사 — 기준선과의 차이
+
+4주차와 5주차에 저장해 둔 기준선들이 드디어 쓰입니다.
+
+<Hist year="1992" title="Tripwire — 무엇이 바뀌었는지만 알면 된다">
+1988년 모리스 웜(10주차) 이후, 침입자들은 흔적을 감추기 위해 **시스템 명령 자체를 바꿔치기**하기 시작했습니다. `ls`를 자기 파일만 숨기도록 고치고, `ps`를 자기 프로세스만 안 보이게 고치는 식이었죠. 관리자가 아무리 들여다봐도 정상으로 보였습니다.
+
+퍼듀 대학의 진 스패퍼드와 대학원생 진 김은 여기서 발상을 뒤집었습니다. **"침입을 탐지하려 하지 말고, 파일이 바뀌었는지만 보자."**
+
+정상 상태에서 모든 시스템 파일의 해시를 기록해 두고, 주기적으로 다시 계산해 비교합니다. `ls`가 바뀌었다면 이유가 있어야 하고, 설명할 수 없다면 그것이 신호입니다. 이 도구가 **Tripwire**였고, 지금의 AIDE는 그 계보를 잇는 자유 소프트웨어 구현입니다.
+
+**"침입을 찾는 것"보다 "변화를 찾는 것"이 훨씬 쉽고 확실하다** — 이 통찰이 오늘날 파일 무결성 모니터링(FIM)의 출발점입니다.
+</Hist>
+
+<Term code={`
+$ sudo apt install aide aide-common
+
+# 기준선 생성 — 깨끗한 상태에서 해야 의미가 있다
+$ sudo aideinit
+$ sudo mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db
+
+# 검사
+$ sudo aide --check
+`} />
+
+<Term code={`
+Summary:
+  Total number of entries:	42891
+  Added entries:		1
+  Removed entries:		0
+  Changed entries:		2
+
+---------------------------------------------------
+Added entries:
+---------------------------------------------------
+f++++++++++++++++: /usr/local/bin/update.sh
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+f   ...    .C... : /etc/ssh/sshd_config
+`} />
+
+<Note type="danger" title="기준선은 '깨끗한 상태'에서 만들어야 합니다">
+이미 침해된 시스템에서 기준선을 만들면, **공격자가 심어둔 파일까지 정상으로 기록**됩니다. 그 뒤로는 아무리 검사해도 이상이 안 나옵니다.
+
+그래서 기준선은 **설치 직후, 네트워크에 노출되기 전**에 만드는 것이 원칙입니다. 1주차에서 `clean-install` 스냅샷을 찍은 것과 같은 발상입니다.
+
+그리고 **기준선 데이터베이스 자체를 보호**해야 합니다. 공격자가 그 파일을 지우거나 다시 만들면 무력화되니까요. 읽기 전용 매체나 다른 서버에 사본을 두는 것이 이상적입니다.
+</Note>
+
+<Term code={`
+# rootkit 탐지
+$ sudo apt install rkhunter chkrootkit
+$ sudo rkhunter --propupd        # 기준선 갱신 (깨끗할 때만)
+$ sudo rkhunter --check --sk
+$ sudo chkrootkit | grep -i infected
+`} />
+
+<Note type="warn" title="오탐이 많습니다">
+`rkhunter`는 정상 파일에도 경고를 자주 냅니다. 패키지 업데이트로 파일이 바뀌면 전부 지적하기 때문입니다.
+
+그래서 **패키지를 업데이트한 뒤에는 `--propupd`로 기준선을 갱신**해야 하고, 갱신하기 전에 **그 변경이 정당한 것인지 확인**해야 합니다. `dpkg -S 파일경로`로 그 파일이 어느 패키지에 속하는지, `apt changelog`로 최근 업데이트가 있었는지 대조하는 식입니다(6주차).
+
+**경고를 습관적으로 무시하기 시작하면 도구가 무의미해집니다.** 이것을 경보 피로(alert fatigue)라 하고, 실제 침해를 놓치는 흔한 원인입니다.
+</Note>
+
+<Mini title="기준선 만들고 변화 탐지하기">
+1. `aideinit`으로 기준선을 만드세요. (수 분 걸립니다)
+2. `sudo aide --check`를 실행해 **변화가 없는지** 확인하세요.
+3. **일부러 변화를 만드세요.** `sudo touch /usr/local/bin/suspicious.sh` 와 `/etc/ssh/sshd_config`에 주석 한 줄 추가.
+4. 다시 `aide --check`를 실행해 **두 변화가 모두 잡히는지** 확인하세요.
+5. 4주차의 `~/setuid-baseline.txt`와 현재를 `diff`로 비교하세요.
+
+<Answer>
+<Term code={`
+$ sudo aide --check
+Added entries:
+f++++++++++++++++: /usr/local/bin/suspicious.sh
+
+Changed entries:
+f   ...    .C... : /etc/ssh/sshd_config
+`} />
+
+**둘 다 잡혔습니다.** 파일 추가와 내용 변경이 각각 다른 표시로 나옵니다.
+
+여기서 중요한 것은 **"이 변화가 정당한가?"**를 판단하는 일입니다. `sshd_config` 변경은 여러분이 방금 했으니 정상입니다. 하지만 아무도 건드린 적 없는데 이 파일이 바뀌었다면, 그것은 **즉시 조사해야 할 신호**입니다.
+
+무결성 검사는 답을 주지 않습니다. **질문을 던져줄 뿐입니다.** 답은 사람이 판단합니다.
+</Answer>
+</Mini>
+
+## 11.4 auditd — 누가, 무엇을, 언제
+
+로그는 프로그램이 남기고 싶은 것만 남깁니다. `auditd`는 **커널 수준에서 시스템 콜을 감시**하므로 프로그램의 협조가 필요 없습니다.
+
+<Term code={`
+$ sudo apt install auditd audispd-plugins
+$ sudo systemctl enable --now auditd
+$ sudo vi /etc/audit/rules.d/hardening.rules
+`} />
+
+```
+# 계정 파일 변경 감시
+-w /etc/passwd -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/group  -p wa -k identity
+-w /etc/sudoers -p wa -k sudoers
+-w /etc/sudoers.d/ -p wa -k sudoers
+
+# SSH 설정 변경
+-w /etc/ssh/sshd_config -p wa -k sshd_config
+
+# 권한 변경 시스템 콜
+-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=-1 -k perm_change
+-a always,exit -F arch=b64 -S chown,fchown,lchown -F auid>=1000 -F auid!=-1 -k owner_change
+
+# 권한 상승 실행
+-a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -k privilege_escalation
+
+# 규칙 자체를 잠근다 (재부팅 전까지 변경 불가)
+-e 2
+```
+
+<Term code={`
+$ sudo augenrules --load
+$ sudo auditctl -l
+
+# 조회
+$ sudo ausearch -k identity -i | tail -20
+$ sudo ausearch -k sudoers --start today -i
+$ sudo aureport --auth --summary
+$ sudo aureport --failed --summary
+`} />
+
+<Note type="tip" title="-e 2 가 하는 일">
+마지막 줄 `-e 2`는 **감사 규칙을 잠급니다.** 재부팅 전까지는 root라도 규칙을 바꾸거나 지울 수 없습니다.
+
+침입자가 가장 먼저 하는 일 중 하나가 **로그와 감사를 끄는 것**입니다. 규칙을 잠가두면 그것을 막을 수 있고, 규칙을 바꾸려는 시도 자체가 기록에 남습니다.
+
+물론 재부팅하면 풀립니다. 그래서 **로그를 다른 서버로 실시간 전송**하는 것이 함께 필요합니다(11.5절).
+</Note>
+
+<Note type="warn" title="감사 로그는 디스크를 빠르게 채웁니다">
+규칙을 너무 넓게 잡으면 **하루에 수 GB가 쌓입니다.** 6주차에서 배운 로그 관리가 여기서 중요해집니다.
+
+```
+$ sudo vi /etc/audit/auditd.conf
+# max_log_file = 50
+# num_logs = 10
+# max_log_file_action = ROTATE
+# space_left_action = SYSLOG
+# admin_space_left_action = SUSPEND
+```
+
+특히 `-S execve`로 모든 프로그램 실행을 기록하면 폭증합니다. **꼭 필요한 것만 감시하세요.** 위 예시처럼 `-C uid!=euid`로 권한 상승이 일어난 실행만 잡는 식으로 좁히는 것이 실무적입니다.
+</Note>
+
+## 11.5 로그 중앙화와 모니터링
+
+<Note type="danger" title="로컬 로그는 침입자가 지웁니다">
+침해사고 대응에서 가장 흔한 좌절이 **"로그가 지워져 있다"**입니다. root를 얻은 공격자는 `/var/log`를 정리하고 나갑니다.
+
+그래서 로그는 **생성되는 즉시 다른 서버로 보내야** 합니다. 공격자가 그 서버까지 장악하지 않는 한 흔적이 남습니다.
+
+```
+$ sudo vi /etc/rsyslog.d/90-remote.conf
+# *.* @@logserver.example.com:6514    # @@ 는 TCP, @ 는 UDP
+```
+
+6주차에서 syslog가 **"프로그램은 메시지만 보내고 저장 위치는 syslog가 정한다"**는 구조라고 했죠. 그 분리 덕분에 **설정 한 줄로 원격 전송**이 됩니다. 1980년대의 설계 결정이 오늘날 침해 대응의 기반이 된 셈입니다.
+</Note>
+
+<Compare>
+  <Win>이벤트 뷰어에 시스템·보안·응용 프로그램 로그가 **구조화된 형태**로 모입니다. GUI로 필터링하기 편하지만, 다른 도구로 넘기려면 내보내기가 필요합니다.</Win>
+  <Lin>`journald`가 구조화 로그를, `rsyslog`가 텍스트 로그를, `auditd`가 커널 수준 감사를 담당합니다. 전부 **파이프로 다른 도구에 넘길 수 있어**, 3주차의 `grep`·`awk` 파이프라인이 그대로 분석 도구가 됩니다.</Lin>
+</Compare>
+
+<Hist year="2000s" title="로그를 모으기 시작한 이유">
+2000년대 초까지 로그는 각 서버에 그대로 두는 것이 보통이었습니다. 서버가 몇 대뿐이던 시절에는 문제가 없었죠.
+
+두 가지가 이 관행을 바꿨습니다.
+
+첫째, **서버가 수백 대가 됐습니다.** 장애가 나면 어느 서버를 봐야 할지 모르고, 여러 서버에 걸친 흐름은 각각의 로그를 시각으로 맞춰가며 재구성해야 했습니다.
+
+둘째, **침입자가 로그를 지운다는 것**이 분명해졌습니다. root를 얻으면 `/var/log`부터 정리하고 나가니, 정작 사고가 나면 볼 것이 없었습니다.
+
+그래서 로그를 **생성 즉시 다른 서버로 보내는** 구조가 표준이 됐습니다. 공격자가 그 서버까지 장악하지 않는 한 흔적이 남고, 여러 서버의 로그를 시간순으로 합쳐 볼 수 있습니다. 여기에 검색과 상관분석을 붙인 것이 오늘날의 SIEM입니다.
+
+이 모든 것이 가능한 것은 **1980년대 syslog가 "프로그램은 메시지만 보내고 저장 위치는 syslog가 정한다"고 분리해 뒀기 때문**입니다(6주차). 40년 전의 설계 결정 하나가 현대 보안 운영의 토대가 된 셈입니다.
+</Hist>
+
+### 자원 모니터링
+
+<Term code={`
+$ vmstat 1 5              # CPU·메모리·IO 요약
+$ iostat -x 1 3           # 디스크별 상세 (sysstat 패키지)
+$ sar -u 1 3              # 과거 데이터까지 (sysstat)
+$ ss -s                   # 소켓 요약
+$ uptime                  # 부하 평균
+`} />
+
+<Note type="tip" title="부하 평균 읽는 법">
+`uptime`의 `load average: 0.52, 0.58, 0.59`는 **1분·5분·15분 평균 대기 프로세스 수**입니다.
+
+**CPU 코어 수와 비교**해야 의미가 있습니다. 4코어 서버에서 4.0이면 딱 포화, 8.0이면 심각한 과부하입니다. 1코어에서 4.0은 훨씬 심각하죠.
+
+세 숫자의 추세도 중요합니다. `10.0, 3.0, 1.0`이면 방금 뭔가 터진 것이고, `1.0, 3.0, 10.0`이면 상황이 나아지는 중입니다.
+
+`nproc`로 코어 수를 확인하고 비교하는 습관을 들이세요.
+</Note>
+
+### Prometheus + Grafana (개요)
+
+| 구성요소 | 역할 |
+|---|---|
+| **node_exporter** | 서버에서 지표를 노출 |
+| **Prometheus** | 지표를 주기적으로 수집·저장 |
+| **Alertmanager** | 임계치 초과 시 알림 |
+| **Grafana** | 대시보드로 시각화 |
+
+<Note type="tip" title="모니터링과 보안은 이어져 있습니다">
+"CPU가 갑자기 100%"는 성능 문제로 보이지만, **암호화폐 채굴 악성코드의 가장 흔한 증상**이기도 합니다.
+
+- 새벽에 갑자기 오른 CPU
+- 평소 없던 외부 연결
+- 늘어나는 디스크 쓰기
+
+성능 모니터링이 곧 이상 탐지입니다. 임계치 알림을 설정해 두면 **사람이 안 보고 있을 때 알려줍니다.** 9주차에서 배운 컨테이너로 이 스택을 띄우는 것이 요즘 방식입니다.
+</Note>
+
+## 11.6 침해사고 대응 — 6단계
+
+<Note type="danger" title="가장 먼저 알아야 할 것 — 하지 말아야 할 행동">
+침해가 의심될 때 **반사적으로 하는 행동이 증거를 없앱니다.**
+
+| 하지 말 것 | 왜 |
+|---|---|
+| **재부팅** | 메모리에만 있던 악성코드와 증거가 사라집니다 |
+| **의심 파일 삭제** | 유일한 증거를 없애는 것입니다 |
+| **서비스 재시작** | 프로세스 상태와 열린 연결 정보가 날아갑니다 |
+| **패치부터 적용** | 침입 경로를 확인하기 전에 덮으면 원인을 못 찾습니다 |
+| **혼자 조용히 처리** | 보고 의무가 있을 수 있고, 나중에 은폐로 문제가 됩니다 |
+| **로그 정리** | 말할 것도 없습니다 |
+
+**먼저 할 것은 기록입니다.** 화면을 캡처하고, 명령과 출력을 저장하고, 시각을 남기세요. 판단은 그다음입니다.
+</Note>
+
+### 6단계
+
+| 단계 | 하는 일 |
+|---|---|
+| **1. 준비** | 기준선·로그 중앙화·연락 체계를 **사고 전에** 갖춰둔다 |
+| **2. 탐지·분석** | 무슨 일이 일어났는지 확인하고 범위를 파악한다 |
+| **3. 격리** | 확산을 막는다. 네트워크 차단 우선, 전원은 마지막 |
+| **4. 근절** | 침입 경로를 막고 백도어를 제거한다 |
+| **5. 복구** | 서비스를 정상화하고 감시를 강화한다 |
+| **6. 사후분석** | 무엇이 부족했는지 정리하고 재발을 막는다 |
+
+### 초동 증거 수집
+
+<Term code={`
+# 결과를 반드시 다른 매체에 저장한다 (로컬은 조작됐을 수 있다)
+$ OUT=/mnt/usb/ir-$(date +%F_%H%M)
+$ mkdir -p "$OUT"
+
+# 휘발성이 높은 것부터
+$ date > "$OUT/00-time.txt"
+$ ps auxf > "$OUT/01-processes.txt"
+$ ss -tulpanp > "$OUT/02-connections.txt"
+$ lsof -n > "$OUT/03-openfiles.txt"
+$ last -20 > "$OUT/04-logins.txt"
+$ w > "$OUT/05-current-users.txt"
+
+# 지속성 확보 지점 — 5주차의 기준선과 비교할 것들
+$ systemctl list-unit-files --state=enabled > "$OUT/06-services.txt"
+$ crontab -l > "$OUT/07-crontab.txt" 2>/dev/null
+$ sudo ls -la /etc/cron.d/ /etc/cron.daily/ > "$OUT/08-cron-dirs.txt"
+$ cat ~/.ssh/authorized_keys > "$OUT/09-ssh-keys.txt" 2>/dev/null
+
+# 4주차 기준선과 비교
+$ sudo find / -perm -4000 -type f 2>/dev/null | sort > "$OUT/10-setuid.txt"
+$ diff ~/setuid-baseline.txt "$OUT/10-setuid.txt" > "$OUT/11-setuid-diff.txt"
+
+# 로그 보존
+$ sudo tar -czf "$OUT/12-logs.tar.gz" /var/log/
+`} />
+
+<Note type="tip" title="휘발성 순서 — 사라지기 쉬운 것부터">
+증거는 **사라지기 쉬운 순서**로 수집합니다.
+
+1. 메모리·실행 중인 프로세스·네트워크 연결 (재부팅하면 소멸)
+2. 임시 파일 (`/tmp`는 재부팅 시 삭제)
+3. 디스크의 파일과 로그
+4. 백업·아카이브
+
+그래서 위 스크립트도 `ps`·`ss`·`lsof`가 앞에 있습니다. **재부팅은 이 모든 것을 지웁니다.** 그래서 "재부팅하지 말라"가 첫 번째 원칙인 것입니다.
+</Note>
+
+### 흔한 침해 시나리오
+
+<Term code={`
+# ① 암호화폐 채굴 — CPU 100%, 낯선 프로세스
+$ ps aux --sort=-%cpu | head -5
+$ ls -l /proc/PID/exe          # 실행 파일의 실제 경로
+$ ls -l /proc/PID/cwd          # 작업 디렉터리
+$ sudo lsof -p PID
+
+# ② 외부로 나가는 낯선 연결
+$ ss -tunp state established
+$ sudo netstat -antp | grep ESTAB
+
+# ③ 최근에 바뀐 파일 — 웹셸 탐색
+$ sudo find /var/www -type f -mmin -60 -ls
+$ sudo find /var/www -name "*.php" -newer /etc/passwd
+
+# ④ 지속성 확보 지점 점검
+$ for u in $(cut -d: -f1 /etc/passwd); do sudo crontab -l -u "$u" 2>/dev/null | grep -v '^#' && echo "  ↑ $u"; done
+$ sudo find /home -name authorized_keys -exec ls -l {} \;
+`} />
+
+<Note type="warn" title="프로세스 이름은 위장됩니다">
+공격자는 프로세스 이름을 `[kworker/0:2]`처럼 커널 스레드로 위장합니다. `ps`만 보면 정상으로 보입니다.
+
+확인 방법은 **실행 파일의 실제 경로**를 보는 것입니다.
+
+```
+$ sudo ls -l /proc/PID/exe
+lrwxrwxrwx 1 root root 0 Sep  3 16:00 /proc/1234/exe -> /tmp/.x/miner
+```
+
+진짜 커널 스레드는 `exe` 링크가 없습니다. **`/tmp`나 `/dev/shm`에서 실행되는 프로세스는 거의 항상 문제**입니다. 2주차에서 배운 `/proc`이 여기서 조사 도구가 됩니다.
+</Note>
+
+<Mini title="침해 시나리오 조사 연습">
+실제 악성코드 없이, **정상 프로세스로 조사 절차를 연습**합니다.
+
+1. `sleep 3600 &` 를 실행하고 PID를 확인하세요.
+2. `ls -l /proc/PID/exe` 로 실행 파일 경로를 확인하세요.
+3. `ls -l /proc/PID/cwd` 로 작업 디렉터리를 확인하세요.
+4. `sudo lsof -p PID` 로 열린 파일을 확인하세요.
+5. 위 초동 수집 명령 중 **다섯 개를 골라** 실행하고 결과를 파일로 저장하세요.
+6. 5주차에 저장한 `~/baseline-w5.txt`와 현재 서비스 목록을 `diff`로 비교하세요.
+
+<Answer>
+<Term code={`
+$ sleep 3600 &
+[1] 6210
+$ ls -l /proc/6210/exe
+lrwxrwxrwx 1 student student 0 Sep  3 16:10 /proc/6210/exe -> /usr/bin/sleep
+
+$ diff <(sort ~/baseline-w5.txt) <(systemctl list-unit-files --state=enabled | sort)
+> fail2ban.service    enabled
+> docker.service      enabled
+`} />
+
+`exe` 링크가 `/usr/bin/sleep`을 가리킵니다 — **패키지가 설치한 정상 경로**입니다. 만약 `/tmp/.hidden/x`를 가리켰다면 즉시 조사 대상입니다.
+
+6번의 `diff`에서 나온 것들은 7·9주차에 여러분이 직접 설치한 것이라 설명이 됩니다. **설명할 수 없는 항목이 나오는 것**이 위험 신호입니다.
+
+기준선을 만들어두는 습관의 값이 여기서 드러납니다. 비교할 대상이 없으면 지금 상태가 정상인지 아닌지 판단할 방법이 없습니다.
+</Answer>
+</Mini>
+
+## 11.7 컴플라이언스 — 법이 요구하는 것
+
+| 기준 | 서버 운영자에게 요구하는 것 |
+|---|---|
+| **개인정보보호법** | 접근 권한 관리, 접속 기록 보관, 암호화, 접근 통제 |
+| **ISMS-P** | 관리체계 + 보호대책 + 개인정보 처리 단계별 요구사항 |
+| **전자금융감독규정** | 금융 분야 추가 요구 |
+
+<Note type="tip" title="접속 기록 보관 — 이 과정에서 배운 것들의 법적 근거">
+개인정보를 다루는 시스템은 **접속 기록을 일정 기간 보관하고 정기적으로 점검**해야 합니다. 위·변조 방지도 요구됩니다.
+
+지금까지 배운 것들이 그대로 대응됩니다.
+
+| 요구사항 | 이 과정에서 배운 것 |
+|---|---|
+| 접속 기록 보관 | `auth.log`, `journald`, `auditd` (6·11주차) |
+| 위·변조 방지 | 로그 원격 전송, 권한 `640` (6·11주차) |
+| 접근 권한 관리 | 계정·그룹·최소 권한 (4주차) |
+| 접근 통제 | 방화벽, SSH 제한 (7·10주차) |
+| 암호화 | TLS, LUKS (8·10주차) |
+| 정기 점검 | Lynis, AIDE, 기준선 비교 (11주차) |
+
+**보안 설정은 기술적 선택이기도 하지만 법적 의무이기도 합니다.** 감사 때 "어떻게 통제하고 있는지"를 증명해야 하고, 그 증거가 바로 이 로그와 설정들입니다.
+</Note>
+
+## 🔒 이번 주의 결론
+
+<Note type="warn" title="완벽한 보안이 아니라 탐지 가능한 상태">
+10주차에서 아무리 하드닝을 해도 뚫릴 수 있습니다. 알려지지 않은 취약점, 유출된 자격증명, 내부자 실수는 막을 방법이 없습니다.
+
+그래서 현실적인 목표는 이렇습니다.
+
+- **뚫리기 어렵게** 만든다 (10주차)
+- 뚫렸을 때 **빨리 안다** (기준선·감사·모니터링)
+- 알았을 때 **무엇이 일어났는지 재구성할 수 있다** (로그·증거 보존)
+- **다시 같은 방법으로는 못 들어오게** 한다 (사후분석)
+
+침해를 당한 조직과 당하지 않은 조직으로 나뉘는 것이 아니라, **알아챈 조직과 아직 모르는 조직으로 나뉩니다.** 평균 탐지 기간이 수개월이라는 통계가 매년 나옵니다.
+
+이번 주에 만든 기준선과 감사 규칙이, 그 수개월을 며칠로 줄이는 장치입니다.
+</Note>
+
+## 실습 과제 W11
+
+<Lab id="W11" title="탐지 체계 구축과 사고 대응 훈련" time="180분">
+**스냅샷 필수.** 이번 과제는 일부러 시스템을 어지럽힙니다.
+
+1. **취약점 상태 점검** — `apt list --upgradable`, `needrestart -b`, `/var/run/reboot-required`를 확인해 현재 패치 상태를 정리하세요. 재시작이 필요한 서비스가 있다면 **왜 그런지** 설명합니다.
+2. **자동 업데이트** — `unattended-upgrades`를 보안 업데이트만 적용하도록 설정하고 `--dry-run`으로 검증하세요.
+3. **Lynis 감사** — `lynis audit system`을 실행하고 **Warning 전부와 Suggestion 중 5개**를 골라 표로 정리하세요. 각각에 대해 **적용 / 미적용(사유)**을 판단합니다.
+4. **개선과 재감사** — 3번에서 적용하기로 한 항목을 실제로 조치하고 Lynis를 다시 돌려 **Hardening index 변화**를 기록하세요.
+5. **AIDE 기준선** — 기준선을 만들고 `--check`로 변화가 없음을 확인하세요.
+6. **무결성 탐지 시험** — 다음 세 가지를 일부러 만든 뒤 AIDE로 **모두 탐지되는지** 확인하세요.
+   - `/usr/local/bin/`에 새 파일 생성
+   - `/etc/ssh/sshd_config` 내용 변경
+   - 아무 시스템 파일의 권한 변경
+7. **auditd 규칙** — 본문의 규칙을 적용하고, `/etc/passwd`를 수정한 뒤 `ausearch -k identity`로 **누가 언제 무엇을 했는지** 기록되는지 확인하세요.
+8. **초동 수집 스크립트** — 본문의 명령들을 모아 `ir-collect.sh` 스크립트로 만드세요. 9주차의 `set -euo pipefail`과 안전장치를 반드시 포함합니다.
+9. **침해 시나리오 조사** — 다음을 조사 대상으로 삼아 절차를 연습하세요.
+   - `/tmp`에 실행 파일을 하나 만들어 백그라운드로 실행
+   - `ps`, `/proc/PID/exe`, `lsof`, `ss`로 조사
+   - `find /tmp -mmin -10`으로 최근 변경 파일 탐색
+   - 조사 결과를 보고서 형태로 정리
+10. **기준선 비교** — 4주차(`setuid-baseline.txt`)와 5주차(`baseline-w5.txt`)의 기준선을 현재와 각각 `diff`하고, **차이가 난 항목마다 정당한 변경인지 판단**해 적으세요.
+11. **사후분석 문서** — 9번의 "사고"에 대해 다음을 포함한 한 페이지 보고서를 쓰세요. 발견 경위 / 조사 과정 / 무엇을 확인했는지 / 실제 침해였다면 다음에 무엇을 개선할지.
+
+**제출물** — 3·4번의 감사 표와 점수 변화, 6·7번의 탐지 결과, 스크립트 전문, 10번의 판단, 11번의 보고서.
+</Lab>
+
+<Note type="tip" title="채점 기준">
+**3번과 10번, 11번이 핵심입니다.**
+
+3번은 판단력을 봅니다. Lynis 제안을 전부 적용한 사람보다, **"이 항목은 우리 환경에서 해당 없음, 이유는 이것"**이라고 쓴 사람이 높은 점수를 받습니다. 10주차의 위험 수용과 같은 맥락입니다.
+
+10번은 이 과정 전체를 관통합니다. 4주차와 5주차에 기준선을 저장해 둔 것이 여기서 값을 합니다. **차이를 발견하는 것보다 그 차이를 설명하는 것**이 중요합니다.
+
+11번은 실무 문서 작성 연습입니다. 침해사고 보고서는 기술 문서이면서 동시에 **경영진과 규제기관이 읽는 문서**입니다. 무엇을 알고 무엇을 모르는지 정직하게 구분해 쓰는 훈련입니다.
+</Note>
+
+## 부록 A · 11주차 명령어
+
+### 취약점 관리
+
+| 명령 | 하는 일 |
+|---|---|
+| `apt list --upgradable` | 업그레이드 대기 목록 |
+| `pro security-status` | 우분투 보안 상태 요약 |
+| `needrestart -b` | 재시작 필요한 서비스 |
+| `ls /var/run/reboot-required` | 재부팅 필요 여부 |
+| `unattended-upgrade --dry-run --debug` | 자동 업데이트 시험 |
+| `apt changelog 패키지` | 변경 이력 |
+
+### 감사
+
+| 명령 | 하는 일 |
+|---|---|
+| `lynis audit system` | 전체 시스템 감사 |
+| `lynis show details 테스트ID` | 특정 항목 상세 |
+| `nmap -sV -p- 대상` | 포트·서비스 스캔 (**내 자산에만**) |
+
+### 무결성
+
+| 명령 | 하는 일 |
+|---|---|
+| `aideinit` | 기준선 생성 |
+| `aide --check` | 변화 검사 |
+| `aide --update` | 기준선 갱신 |
+| `rkhunter --propupd` | rootkit 기준선 갱신 |
+| `rkhunter --check --sk` | 검사 |
+| `chkrootkit` | 대체 도구 |
+
+### auditd
+
+| 명령 | 하는 일 |
+|---|---|
+| `auditctl -l` | 활성 규칙 목록 |
+| `augenrules --load` | 규칙 파일 적용 |
+| `ausearch -k 키워드 -i` | 키워드로 검색 (사람이 읽는 형식) |
+| `ausearch -k 키 --start today` | 오늘 것만 |
+| `aureport --auth --summary` | 인증 요약 |
+| `aureport --failed --summary` | 실패 요약 |
+
+### 모니터링
+
+| 명령 | 하는 일 |
+|---|---|
+| `vmstat 1 5` | CPU·메모리·IO |
+| `iostat -x 1 3` | 디스크 상세 |
+| `sar -u 1 3` | 과거 데이터 포함 |
+| `uptime` | 부하 평균 (**코어 수와 비교**) |
+| `nproc` | CPU 코어 수 |
+
+### 사고 대응 조사
+
+| 목적 | 명령 |
+|---|---|
+| 프로세스 트리 | `ps auxf` |
+| 실행 파일 실제 경로 | `ls -l /proc/PID/exe` |
+| 작업 디렉터리 | `ls -l /proc/PID/cwd` |
+| 열린 파일 | `lsof -p PID` |
+| 네트워크 연결 | `ss -tunp state established` |
+| 최근 변경 파일 | `find 경로 -mmin -60 -ls` |
+| 로그인 기록 | `last`, `lastlog`, `w` |
+| 지속성 지점 | `systemctl list-unit-files --state=enabled`, `crontab -l`, `authorized_keys` |
+| SetUID 변화 | `diff 기준선 <(find / -perm -4000 -type f 2>/dev/null \| sort)` |
+
+## 부록 B · 윈도우 대응
+
+| 윈도우 | 리눅스 | 비고 |
+|---|---|---|
+| Windows Update | `unattended-upgrades` | |
+| 이벤트 뷰어 보안 로그 | `auditd`, `auth.log` | |
+| 감사 정책 (auditpol) | `auditd` 규칙 | |
+| Sysmon | `auditd` + 로그 전송 | |
+| Defender | ClamAV, rkhunter | 리눅스는 무결성 검사 중심 |
+| 파일 무결성 (SFC) | AIDE, Tripwire | |
+| Autoruns | `systemctl list-unit-files`, cron 점검 | |
+| 성능 모니터 | `vmstat`, `sar`, Prometheus | |
+
+## 부록 C · 이번 주 용어의 유래
+
+| 이름 | 유래 |
+|---|---|
+| **CVE** | Common Vulnerabilities and Exposures. 벤더마다 다른 이름을 쓰던 혼란을 없애기 위한 공통 식별번호 |
+| **CVSS** | 취약점 심각도 점수. **점수만으로 우선순위를 정하면 안 된다** |
+| **Tripwire** | 1992년 퍼듀 대학. "침입을 찾지 말고 변화를 찾자"는 발상 전환. AIDE가 그 계보를 잇는다 |
+| **FIM** | File Integrity Monitoring. 파일 무결성 모니터링 |
+| **rootkit** | root 권한을 유지하기 위한 도구 모음(kit). 시스템 명령을 바꿔치기해 자기를 숨긴다 |
+| **경보 피로** | alert fatigue. 오탐이 많아 경고를 습관적으로 무시하게 되는 현상. 실제 침해를 놓치는 흔한 원인 |
+| **휘발성 순서** | 증거는 사라지기 쉬운 것부터 수집한다. 메모리 → 임시 파일 → 디스크 → 백업 |
+| **지속성** | persistence. 재부팅 후에도 살아남기 위해 공격자가 심어두는 장치. 서비스·cron·SSH 키가 단골 |
+| **평균 탐지 기간** | 침해가 일어나고 알아채기까지 걸린 시간. 매년 수개월 단위로 보고된다 |
+
+---
+
+**다음 주차 · 12주차 최종 프로젝트와 마무리** — 12주 동안 배운 모든 것을 하나의 서버로 조립합니다. 새로 시작하는 것이 아니라 **1~11주차의 산출물을 모으는** 작업입니다. 그리고 이 과정 이후 어디로 갈지 이야기합니다.

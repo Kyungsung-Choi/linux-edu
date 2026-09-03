@@ -1,0 +1,699 @@
+---
+title: 패키지, 스토리지, 로그
+description: 저장소 기반 패키지 관리와 서명 검증, 파티션·파일시스템·LVM, journald와 logrotate, tar와 rsync 백업
+sidebar:
+  label: 6주차 · 패키지·스토리지·로그
+  order: 6
+---
+
+import Term from '../../../components/Term.astro';
+import Compare from '../../../components/Compare.astro';
+import Win from '../../../components/Win.astro';
+import Lin from '../../../components/Lin.astro';
+import Hist from '../../../components/Hist.astro';
+import Note from '../../../components/Note.astro';
+import Mini from '../../../components/Mini.astro';
+import Answer from '../../../components/Answer.astro';
+import Lab from '../../../components/Lab.astro';
+import Anatomy from '../../../components/Anatomy.astro';
+
+Part 2의 마지막 주입니다. 서버를 운영하며 계속 부딪히는 세 가지 — **소프트웨어를 어떻게 설치하고, 디스크가 부족하면 어떻게 하고, 무슨 일이 있었는지 어떻게 알아내는가**를 다룹니다.
+
+1주차에서 미뤄둔 "25GB를 줬는데 11G만 잡힌" 문제도 여기서 해결합니다.
+
+<Note type="why" title="이 주차를 마치면">
+- 설치 파일을 내려받지 않고 소프트웨어를 설치하는 방식과 그 이유를 설명할 수 있다
+- 저장소의 GPG 서명이 무엇을 보장하는지 안다
+- 디스크를 파티션으로 나누고 파일시스템을 만들어 마운트할 수 있다
+- LVM으로 서비스를 멈추지 않고 용량을 늘릴 수 있다
+- `journalctl`로 원하는 시점·서비스·심각도의 로그만 뽑아낼 수 있다
+- 로그가 디스크를 채우지 않도록 로테이션을 설정할 수 있다
+- `tar`와 `rsync`로 증분 백업 스크립트를 만들 수 있다
+</Note>
+
+## 6.1 패키지 — 설치 파일을 받지 않는 문화
+
+<Compare>
+  <Win>웹사이트를 찾아가 `setup.exe`를 내려받고, 실행하고, "다음"을 여러 번 누릅니다. 업데이트는 프로그램마다 각자 알아서 합니다.</Win>
+  <Lin>**중앙 저장소**에 등록된 목록에서 이름으로 설치합니다. 의존성은 자동으로 딸려오고, **시스템 전체 업데이트가 명령 한 줄**입니다.</Lin>
+</Compare>
+
+<Term code={`
+$ sudo apt update              # 저장소 목록 갱신 (설치가 아니다)
+$ sudo apt install nginx       # 설치 — 의존 패키지도 함께
+$ sudo apt upgrade             # 설치된 것 전부 최신으로
+$ sudo apt remove nginx        # 삭제 (설정은 남김)
+$ sudo apt purge nginx         # 설정까지 삭제
+$ sudo apt autoremove          # 이제 아무도 안 쓰는 의존 패키지 정리
+
+$ apt list --installed | wc -l
+$ apt search nginx
+$ apt show nginx
+`} />
+
+<Note type="warn" title="update 와 upgrade 는 다릅니다">
+- `apt update` — **목록만** 갱신합니다. 아무것도 설치하지 않습니다
+- `apt upgrade` — 실제로 업그레이드합니다
+
+`update` 없이 `upgrade`하면 낡은 목록을 기준으로 하므로 최신 보안 패치를 놓칩니다. 그래서 항상 `sudo apt update && sudo apt upgrade` 로 붙여 씁니다.
+</Note>
+
+<Hist year="1998" title="의존성 지옥에서 벗어나기 위해">
+초기 리눅스에서 소프트웨어 설치는 고통이었습니다. 프로그램 A를 설치하려면 라이브러리 B가 필요하고, B는 C를 요구하고, 그런데 C의 새 버전은 이미 깔린 D와 충돌하는 식이었습니다. 이것을 **의존성 지옥(dependency hell)**이라 불렀습니다.
+
+Debian은 여기에 두 가지로 답했습니다. 첫째, 패키지마다 **무엇을 필요로 하고 무엇과 충돌하는지 선언**하게 했습니다(`dpkg`). 둘째, 그 선언을 읽고 **필요한 것을 알아서 찾아 순서대로 설치하는 도구**를 만들었습니다(`apt`).
+
+이 조합은 대단히 성공적이어서, 오늘날 거의 모든 언어 생태계가 같은 구조를 씁니다. `npm`, `pip`, `cargo` 모두 "선언 + 해결기" 모델의 후손입니다. **리눅스 패키지 관리자가 현대 소프트웨어 배포의 원형인 셈입니다.**
+</Hist>
+
+### 저장소와 서명 — 왜 안전한가
+
+`apt install`은 인터넷 어딘가에서 파일을 받아 실행 권한을 주고 시스템에 설치합니다. 이게 어떻게 안전할까요?
+
+<Term code={`
+$ ls /etc/apt/sources.list.d/
+ubuntu.sources
+
+$ cat /etc/apt/sources.list.d/ubuntu.sources
+Types: deb
+URIs: http://archive.ubuntu.com/ubuntu/
+Suites: noble noble-updates noble-security
+Components: main restricted universe multiverse
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+`} />
+
+마지막 줄이 핵심입니다. **`Signed-By`** — 이 저장소가 배포하는 목록은 그 키로 서명되어 있어야 하고, 서명이 맞지 않으면 `apt`가 거부합니다.
+
+<Note type="tip" title="서명이 보장하는 것과 보장하지 않는 것">
+GPG 서명은 두 가지를 보장합니다.
+
+- **무결성** — 내려받는 중에 내용이 바뀌지 않았다
+- **출처** — 그 키를 가진 주체가 만든 것이 맞다
+
+보장하지 **않는** 것도 분명합니다. **그 주체가 믿을 만한지는 보장하지 않습니다.** 공격자가 자기 저장소를 만들고 자기 키로 서명하면 서명 검증은 통과합니다. 그래서 저장소를 추가하는 행위 자체가 **"이 사람을 시스템 관리자만큼 신뢰한다"**는 선언입니다.
+</Note>
+
+<Note type="danger" title="🔒 보안 포인트 · 저장소를 함부로 추가하지 마세요">
+인터넷 설치 안내에 이런 명령이 자주 등장합니다.
+
+```
+$ curl -fsSL https://어딘가/key.gpg | sudo apt-key add -
+$ sudo add-apt-repository ppa:모르는사람/저장소
+```
+
+이걸 실행하면 그 저장소는 **여러분 시스템의 어떤 패키지든 덮어쓸 수 있게 됩니다.** `openssh-server`를 자기 버전으로 바꿔치기하는 것도 가능합니다. 그 시점부터 시스템은 그 사람의 것입니다.
+
+판단 기준은 이렇습니다.
+
+- **공식 저장소로 충분한가?** 대부분 충분합니다. 최신 버전이 꼭 필요한지 먼저 따지세요
+- **저장소 주인이 누구인가?** 소프트웨어 제작사 공식인가, 개인인가
+- **키를 어디서 받는가?** HTTPS로 제작사 공식 도메인에서 받는가
+
+참고로 `apt-key`는 폐기된 명령입니다. 모든 저장소를 하나의 신뢰 목록에 넣어버리는 구조라, 지금은 저장소별로 키를 분리하는 `Signed-By` 방식을 씁니다. **`apt-key add`가 나오는 문서는 오래된 것이니 최신 안내를 찾으세요.**
+</Note>
+
+### apt · snap · 소스 컴파일
+
+| 방식 | 장점 | 단점 | 언제 |
+|---|---|---|---|
+| **apt** | 의존성 자동, 보안 업데이트 통합 | 버전이 다소 낡을 수 있음 | **기본 선택** |
+| **snap** | 최신 버전, 격리 실행 | 용량 크고 시작이 느림 | apt에 없거나 최신이 꼭 필요할 때 |
+| **소스 컴파일** | 완전한 제어 | **보안 업데이트를 직접 챙겨야 함** | 최후 수단 |
+
+<Note type="warn" title="소스 컴파일의 숨은 비용">
+`make install`로 설치한 것은 **패키지 관리자가 모릅니다.** 그 말은 취약점이 발표돼도 `apt upgrade`가 고쳐주지 않는다는 뜻입니다. 직접 추적하고, 직접 다시 빌드해야 합니다.
+
+서버에 소스 컴파일로 설치한 소프트웨어가 있다면 **그 목록을 문서로 관리**해야 합니다. 11주차 취약점 관리에서 이 문제를 다시 만납니다.
+</Note>
+
+### RHEL 계열 대응
+
+| 목적 | Debian/Ubuntu | RHEL/Rocky |
+|---|---|---|
+| 목록 갱신 | `apt update` | (자동) |
+| 설치 | `apt install 이름` | `dnf install 이름` |
+| 삭제 | `apt remove 이름` | `dnf remove 이름` |
+| 전체 업그레이드 | `apt upgrade` | `dnf upgrade` |
+| 검색 | `apt search` | `dnf search` |
+| 설치된 목록 | `dpkg -l` | `rpm -qa` |
+| 파일이 속한 패키지 | `dpkg -S 경로` | `rpm -qf 경로` |
+
+<Mini title="패키지 다뤄보기">
+1. `apt list --installed | wc -l` 로 몇 개가 설치돼 있는지 세어 보세요.
+2. `apt show htop` 으로 설치 전에 정보를 확인하고, 설치하세요.
+3. `dpkg -L htop` 으로 이 패키지가 **어떤 파일들을 어디에 설치했는지** 보세요.
+4. `dpkg -S /usr/bin/ls` 로 `ls`가 어느 패키지에 속하는지 찾으세요.
+5. `cat /etc/apt/sources.list.d/ubuntu.sources` 에서 `Signed-By` 줄을 확인하세요.
+
+<Answer>
+<Term code={`
+$ dpkg -L htop | head -6
+/usr/bin/htop
+/usr/share/applications/htop.desktop
+/usr/share/doc/htop/copyright
+/usr/share/man/man1/htop.1.gz
+
+$ dpkg -S /usr/bin/ls
+coreutils: /usr/bin/ls
+`} />
+
+3번에서 2주차의 FHS가 그대로 보입니다. 실행 파일은 `/usr/bin`, 문서는 `/usr/share/doc`, 매뉴얼은 `/usr/share/man` — **용도별로 흩어 놓는다**는 원칙이 패키지 단위로 지켜지고 있습니다.
+
+4번의 `coreutils`는 `ls`·`cp`·`mv` 같은 기본 명령을 모아둔 GNU 패키지입니다. 1주차에서 본 "GNU 도구 + 리눅스 커널"의 그 GNU입니다.
+</Answer>
+</Mini>
+
+## 6.2 디스크와 파일시스템
+
+디스크를 쓰려면 세 단계를 거칩니다. **파티션으로 나누고 → 파일시스템을 만들고 → 마운트합니다.**
+
+<Term code={`
+$ lsblk
+NAME                      MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda                         8:0    0   25G  0 disk
+├─sda1                      8:1    0    1M  0 part
+├─sda2                      8:2    0    2G  0 part /boot
+└─sda3                      8:3    0   23G  0 part
+  └─ubuntu--vg-ubuntu--lv 252:0    0   11G  0 lvm  /
+sdb                         8:16   0   10G  0 disk        ← 새로 붙인 디스크
+`} />
+
+### 파일시스템 고르기
+
+| 종류 | 특징 | 언제 |
+|---|---|---|
+| **ext4** | 안정적, 검증됨, 우분투 기본 | **잘 모르겠으면 이것** |
+| **XFS** | 대용량·대용량 파일에 강함, RHEL 기본 | 큰 파일을 많이 다룰 때 |
+| **Btrfs** | 스냅샷·압축 내장 | 스냅샷이 꼭 필요할 때 |
+| **swap** | 메모리 부족 시 디스크를 임시 활용 | 물리 메모리 보조 |
+
+<Hist year="1990s" title="저널링 — 정전으로 파일시스템이 깨지던 시절">
+옛 파일시스템은 전원이 갑자기 끊기면 **구조 자체가 깨질 수 있었습니다.** 파일을 만드는 작업은 여러 단계로 이뤄지는데, 중간에 멈추면 앞뒤가 안 맞는 상태가 되기 때문입니다.
+
+그래서 부팅할 때마다 `fsck`로 디스크 전체를 검사해야 했고, 대용량 디스크에서는 **몇 시간이 걸렸습니다.** 서버가 정전 후 복구되는 데 반나절이 걸리는 일이 흔했습니다.
+
+**저널링**은 이 문제를 우아하게 해결했습니다. 실제 작업을 하기 전에 **"이제 이런 일을 할 것이다"를 먼저 기록**해 둡니다. 중간에 멈춰도 그 기록만 보고 마무리하거나 되돌리면 되므로, 디스크 전체를 검사할 필요가 없습니다.
+
+`ext3`가 `ext2`에 저널링을 더한 것이었고, 지금 쓰는 `ext4`는 그 개선판입니다. 여러분의 서버가 정전 후 몇 초 만에 부팅되는 것은 이 설계 덕분입니다.
+</Hist>
+
+### 새 디스크 붙이기
+
+<Term code={`
+# 1) 파티션 만들기
+$ sudo fdisk /dev/sdb
+# n(새 파티션) → p(주 파티션) → 엔터 3번(기본값) → w(저장)
+
+# 2) 파일시스템 만들기 — 되돌릴 수 없다
+$ sudo mkfs.ext4 /dev/sdb1
+
+# 3) 마운트 지점을 만들고 붙이기
+$ sudo mkdir -p /data
+$ sudo mount /dev/sdb1 /data
+$ df -h /data
+`} />
+
+<Note type="danger" title="mkfs 는 디스크를 지웁니다">
+`mkfs`는 **그 파티션의 내용을 전부 날리고** 새 파일시스템을 만듭니다. 확인 질문은 없습니다.
+
+장치 이름을 잘못 적으면 **엉뚱한 디스크가 지워집니다.** `/dev/sdb1`로 쓸 것을 `/dev/sda1`로 쓰면 시스템 디스크가 날아갑니다. 실행 전에 반드시 `lsblk`로 대상을 확인하세요. 2주차의 "지우기 전에 `ls`" 습관과 같은 원칙입니다.
+</Note>
+
+### 재부팅해도 유지하려면 — `/etc/fstab`
+
+`mount` 명령은 **지금만** 유효합니다. 재부팅하면 사라집니다.
+
+<Term code={`
+# 장치 이름은 순서가 바뀔 수 있으므로 UUID 를 쓴다
+$ sudo blkid /dev/sdb1
+/dev/sdb1: UUID="a1b2c3d4-..." TYPE="ext4"
+
+$ sudo vi /etc/fstab
+# 맨 아래 추가
+UUID=a1b2c3d4-...  /data  ext4  defaults,nofail  0  2
+
+# 문법 검증 — 재부팅 전에 반드시
+$ sudo mount -a
+`} />
+
+<Note type="danger" title="fstab 오류는 부팅을 막습니다">
+`/etc/fstab`에 잘못된 줄이 있으면 **부팅이 중단되고 복구 모드로 떨어집니다.** 원격 서버라면 접속조차 안 됩니다.
+
+두 가지로 막습니다.
+
+1. **`sudo mount -a`로 반드시 검증**하고 재부팅하세요. 오류가 있으면 여기서 나옵니다
+2. **`nofail` 옵션을 넣으세요.** 그 장치를 못 찾아도 부팅은 계속됩니다
+
+장치 이름(`/dev/sdb1`) 대신 **UUID를 쓰는 이유**도 같습니다. 디스크를 추가하거나 순서가 바뀌면 `sdb`가 `sdc`가 될 수 있고, 그러면 엉뚱한 디스크가 마운트되거나 부팅이 실패합니다.
+</Note>
+
+<Mini title="가상 디스크 붙여보기">
+VirtualBox에서 VM 설정 → 저장소 → 새 가상 하드디스크(5GB)를 추가하고 부팅한 뒤 진행하세요. **스냅샷을 먼저 찍는 것을 잊지 마세요.**
+
+1. `lsblk`로 새 디스크(`/dev/sdb`)가 보이는지 확인하세요.
+2. `fdisk`로 파티션을 하나 만드세요.
+3. `mkfs.ext4`로 파일시스템을 만들고 `/data`에 마운트하세요.
+4. `blkid`로 UUID를 확인하고 `/etc/fstab`에 `nofail`을 붙여 등록하세요.
+5. **`sudo mount -a`로 검증**한 뒤 재부팅해 마운트가 유지되는지 확인하세요.
+
+<Answer>
+<Term code={`
+$ sudo mkfs.ext4 /dev/sdb1
+$ sudo mkdir -p /data && sudo mount /dev/sdb1 /data
+$ df -h /data
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdb1       4.9G   24K  4.6G   1% /data
+
+$ sudo blkid /dev/sdb1
+/dev/sdb1: UUID="8f3a..." TYPE="ext4"
+
+$ sudo mount -a      # 오류가 없으면 아무 출력도 없다
+`} />
+
+5GB 디스크인데 사용 가능이 4.6G입니다. 파일시스템 자체가 메타데이터로 일부를 쓰고, ext4는 **5%를 root 전용으로 예약**해 둡니다. 디스크가 가득 차도 관리자가 로그인해 정리할 여지를 남기려는 장치입니다.
+</Answer>
+</Mini>
+
+## 6.3 LVM — 1주차의 숙제
+
+1주차에서 25GB 디스크를 줬는데 루트가 11G만 잡혔던 것을 기억하시죠. 이제 나머지를 붙입니다.
+
+LVM은 물리 디스크와 파일시스템 사이에 **한 겹을 더 두는** 방식입니다.
+
+| 계층 | 뜻 | 명령 |
+|---|---|---|
+| **PV** (Physical Volume) | 물리 디스크·파티션을 LVM에 등록 | `pvcreate` |
+| **VG** (Volume Group) | PV들을 묶은 저장소 풀 | `vgcreate`, `vgextend` |
+| **LV** (Logical Volume) | VG에서 잘라낸 논리 볼륨. 여기에 파일시스템을 만든다 | `lvcreate`, `lvextend` |
+
+<Term code={`
+$ sudo pvs && sudo vgs && sudo lvs
+  PV         VG        Fmt  Attr PSize   PFree
+  /dev/sda3  ubuntu-vg lvm2 a--  <23.00g <12.00g     ← 12G 가 남아 있다
+
+  VG        #PV #LV #SN Attr   VSize   VFree
+  ubuntu-vg   1   1   0 wz--n- <23.00g <12.00g
+
+  LV        VG        Attr       LSize
+  ubuntu-lv ubuntu-vg -wi-ao---- 11.00g
+`} />
+
+### 서비스를 멈추지 않고 늘리기
+
+<Term code={`
+# 1) 논리 볼륨을 남은 공간 전부로 확장
+$ sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+  Size of logical volume ubuntu-vg/ubuntu-lv changed from 11.00 GiB to <23.00 GiB.
+
+# 2) 파일시스템에게 "커졌다"고 알려준다 — ext4 는 온라인으로 가능
+$ sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+The filesystem on /dev/ubuntu-vg/ubuntu-lv is now 6029312 (4k) blocks long.
+
+$ df -h /
+Filesystem                         Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-ubuntu--lv   23G  5.2G   17G  24% /
+`} />
+
+**시스템을 재부팅하지도, 서비스를 멈추지도 않았습니다.** 운영 중인 서버에서 이게 가능하다는 것이 LVM의 존재 이유입니다.
+
+<Note type="tip" title="왜 처음부터 다 안 쓰고 남겨뒀나">
+우분투 설치 프로그램이 일부러 절반만 할당한 데는 이유가 있습니다.
+
+LVM에는 **스냅샷** 기능이 있고, 스냅샷을 만들려면 VG에 여유 공간이 필요합니다. 또 한 번 늘린 볼륨은 **줄이기가 훨씬 까다롭습니다**(ext4는 마운트를 해제해야 하고, XFS는 아예 축소가 안 됩니다). 그래서 "필요할 때 늘린다"가 안전한 기본값인 것입니다.
+
+늘리는 것은 쉽고 줄이는 것은 어렵다 — 스토리지 설계의 기본 원칙입니다.
+</Note>
+
+<Note type="warn" title="XFS 는 명령이 다릅니다">
+파일시스템마다 확장 명령이 다릅니다.
+
+- ext4 → `resize2fs 장치`
+- XFS → `xfs_growfs 마운트지점` (장치가 아니라 **마운트 지점**을 넘깁니다)
+
+RHEL 계열 기본이 XFS이므로, 그쪽 서버를 만질 때 헷갈리기 쉽습니다.
+</Note>
+
+<Mini title="루트 파티션 확장하기">
+1. `sudo vgs`로 여유 공간(VFree)이 얼마나 있는지 확인하세요.
+2. `df -h /`로 확장 **전** 크기를 기록하세요.
+3. `lvextend -l +100%FREE`로 논리 볼륨을 늘리세요.
+4. `resize2fs`로 파일시스템에 반영하세요.
+5. `df -h /`로 다시 확인하세요. **재부팅 없이** 늘어났나요?
+
+<Answer>
+확장 전 `11G` → 확장 후 `23G`. 서비스를 하나도 멈추지 않았습니다.
+
+3번과 4번이 **왜 두 단계인지**가 핵심입니다. `lvextend`는 블록 장치의 크기를 늘렸을 뿐이고, 그 위에 얹힌 파일시스템은 아직 자기가 커진 줄 모릅니다. `resize2fs`가 파일시스템에게 "네 공간이 늘었다"고 알려주는 단계입니다.
+
+3번만 하고 `df`를 보면 크기가 그대로라 당황하게 되는데, 이건 실무에서도 흔한 혼란입니다.
+</Answer>
+</Mini>
+
+## 6.4 용량이 찼을 때
+
+<Term code={`
+$ df -h                       # 파티션별 여유
+$ df -i                       # inode 여유 — 파일 개수 한계
+$ du -sh /var/* 2>/dev/null | sort -rh | head -5    # 어디가 큰가
+$ sudo ncdu /var              # 대화형 탐색 (apt install ncdu)
+
+# 지워도 용량이 안 줄어들 때 — 삭제됐지만 열려 있는 파일
+$ sudo lsof +L1 | head
+`} />
+
+<Note type="warn" title="용량이 남는데 '디스크 가득 참' 오류가 난다면">
+두 가지를 의심하세요.
+
+**① inode 고갈** — 파일시스템은 파일 개수에도 한계가 있습니다. 작은 파일을 수백만 개 만드는 서비스(세션 파일, 캐시)에서 실제로 벌어집니다. `df -i`로 확인합니다.
+
+**② 삭제됐지만 열려 있는 파일** — 어떤 프로세스가 로그 파일을 열어둔 채 그 파일을 `rm`으로 지우면, 2주차에서 배운 대로 이름만 떨어져 나가고 **데이터는 남습니다.** 프로세스가 닫을 때까지 공간이 회수되지 않습니다. `lsof +L1`로 찾고, 해당 서비스를 재시작하면 회수됩니다.
+
+②는 특히 "로그가 커서 지웠는데 `df`가 그대로"인 상황으로 나타납니다. **로그는 지우지 말고 로테이션으로 관리해야 하는 이유**이기도 합니다.
+</Note>
+
+## 6.5 로그 — 무슨 일이 있었는지 알아내기
+
+우분투에는 로그 체계가 두 가지 있습니다.
+
+| 체계 | 저장 형태 | 조회 |
+|---|---|---|
+| **journald** | 바이너리, 구조화 | `journalctl` |
+| **rsyslog** | 텍스트 파일 | `/var/log/*.log` |
+
+<Term code={`
+$ ls /var/log/
+auth.log  dpkg.log  journal/  kern.log  syslog  wtmp
+
+# 중요한 파일들
+# auth.log  — 로그인·sudo·SSH 시도  ← 보안에서 가장 중요
+# syslog    — 일반 시스템 메시지
+# kern.log  — 커널 메시지
+# dpkg.log  — 패키지 설치 이력
+`} />
+
+<Hist year="1980s" title="syslog 는 메일 서버에서 나왔다">
+`syslog`는 원래 **sendmail**이라는 메일 서버를 위해 만들어졌습니다. 메일 배달 과정을 기록할 방법이 필요했는데, 프로그램마다 자기 방식으로 로그를 남기면 관리자가 파일 수십 개를 각각 다른 형식으로 읽어야 했습니다.
+
+그래서 **"로그를 남기고 싶은 프로그램은 여기로 보내라"**는 공용 창구를 만들었습니다. 프로그램은 메시지와 심각도만 보내고, 어디에 어떻게 저장할지는 syslog가 정합니다. 이 분리 덕분에 **설정 한 줄로 모든 로그를 원격 서버로 보내는 것**이 가능해졌습니다.
+
+이 아이디어가 너무 좋아서 업계 표준이 되었고, 지금도 네트워크 장비·방화벽·클라우드 서비스가 전부 syslog 형식으로 로그를 내보냅니다. 11주차에서 로그를 중앙에 모으는 이야기를 할 때 이 구조를 씁니다.
+</Hist>
+
+### journalctl — 실무에서 가장 많이 쓰는 형태
+
+<Term code={`
+$ journalctl -u ssh                    # 특정 서비스만
+$ journalctl -u nginx -f               # 실시간 추적 (tail -f 와 같은 역할)
+$ journalctl --since "1 hour ago"      # 시간 범위
+$ journalctl --since "2026-09-03 09:00" --until "2026-09-03 10:00"
+$ journalctl -p err                    # 심각도 error 이상만
+$ journalctl -b                        # 이번 부팅 이후
+$ journalctl -b -1                     # 직전 부팅 (갑자기 죽은 원인 추적)
+$ journalctl -k                        # 커널 메시지만
+$ journalctl -u nginx --since today -p warning
+`} />
+
+| 심각도 | 이름 | 뜻 |
+|---|---|---|
+| 0 | emerg | 시스템 사용 불가 |
+| 2 | crit | 심각 |
+| 3 | **err** | 오류 — **보통 여기부터 본다** |
+| 4 | warning | 경고 |
+| 6 | info | 정보 |
+
+<Note type="tip" title="장애 조사의 기본 순서">
+서비스가 죽었을 때 순서는 거의 항상 같습니다.
+
+```
+1. systemctl status 서비스        ← 상태와 최근 로그 몇 줄
+2. journalctl -u 서비스 -n 50     ← 더 많은 로그
+3. journalctl -u 서비스 --since "10 min ago" -p err
+4. journalctl -b -1 -p err        ← 갑자기 재부팅됐다면 직전 부팅 로그
+```
+
+**3번에서 대부분 답이 나옵니다.** 설정 파일 오타, 포트 충돌, 권한 부족 같은 것들이 명시적으로 적혀 있습니다. 로그를 읽지 않고 추측으로 고치려 드는 것이 초보와 실무자를 가르는 가장 큰 차이입니다.
+</Note>
+
+### 로그가 디스크를 채우지 않게
+
+<Term code={`
+# journald 용량 확인과 정리
+$ journalctl --disk-usage
+Archived and active journals take up 224.0M in the file system.
+
+$ sudo journalctl --vacuum-size=200M
+$ sudo journalctl --vacuum-time=30d
+
+# 영구 설정
+$ sudo vi /etc/systemd/journald.conf
+# SystemMaxUse=500M
+# MaxRetentionSec=30day
+$ sudo systemctl restart systemd-journald
+`} />
+
+**logrotate**는 텍스트 로그 파일을 주기적으로 잘라 압축하고 오래된 것을 지웁니다.
+
+<Term code={`
+$ sudo vi /etc/logrotate.d/myapp
+`} />
+
+```
+/var/log/myapp/*.log {
+    daily                # 매일 회전
+    rotate 14            # 14개까지 보관
+    compress             # gzip 압축
+    delaycompress        # 직전 것은 다음 회차에 압축
+    missingok            # 파일 없어도 오류 아님
+    notifempty           # 비어 있으면 건너뜀
+    create 0640 myapp adm    # 새 파일 권한 — 4주차의 그 640
+    sharedscripts
+    postrotate
+        systemctl reload myapp > /dev/null 2>&1 || true
+    endscript
+}
+```
+
+<Term code={`
+$ sudo logrotate -d /etc/logrotate.d/myapp    # -d 는 시험 실행 (실제로 안 함)
+`} />
+
+<Note type="tip" title="postrotate 가 왜 필요한가">
+6.4절에서 본 "삭제됐지만 열려 있는 파일" 문제가 여기서도 나옵니다.
+
+logrotate가 `app.log`를 `app.log.1`로 옮기면, **프로그램은 여전히 옛 파일을 열어둔 채 거기에 씁니다.** 이름이 바뀌어도 inode는 그대로니까요(2주차). 새 `app.log`에는 아무것도 안 들어가고, 옛 파일은 계속 커집니다.
+
+그래서 회전 후에 프로그램에게 **"로그 파일을 다시 열어라"**고 알려야 합니다. `reload`를 보내거나, 5주차에서 배운 `SIGHUP`을 보냅니다. `copytruncate` 옵션으로 우회할 수도 있지만, 그 순간에 쓰인 로그가 유실될 수 있습니다.
+</Note>
+
+<Mini title="로그에서 답 찾기">
+1. `journalctl -p err -b | tail -20` 으로 이번 부팅 이후의 오류를 확인하세요.
+2. `journalctl -u ssh --since today | tail -20` 으로 SSH 관련 기록을 보세요.
+3. `sudo grep "sudo" /var/log/auth.log | tail -5` 로 4주차에 실행한 sudo 기록을 찾아보세요.
+4. `journalctl --disk-usage` 로 로그가 차지하는 용량을 확인하세요.
+5. 일부러 실패시켜 보세요. `sudo systemctl start 없는서비스` 후 `journalctl -n 5`로 무엇이 기록됐는지 봅니다.
+
+<Answer>
+<Term code={`
+$ sudo systemctl start nosuchservice
+Failed to start nosuchservice.service: Unit nosuchservice.service not found.
+
+$ journalctl -n 3
+Sep 03 13:20:11 ubuntu-lab systemd[1]: nosuchservice.service: Unit not found.
+`} />
+
+3번의 `auth.log`에 4주차의 `find / -perm -4000` 실행 기록이 남아 있을 겁니다. **여러분이 며칠 전에 한 일이 그대로 기록되어 있습니다.** 이것이 sudo를 쓰는 이유이자, 11주차에서 침해사고를 추적할 때 쓰는 근거입니다.
+</Answer>
+</Mini>
+
+## 6.6 백업 — 스냅샷과는 다릅니다
+
+<Term code={`
+# tar — 여러 파일을 하나로 묶고 압축
+$ tar -czvf backup-$(date +%F).tar.gz /etc/nginx
+$ tar -tzvf backup-2026-09-03.tar.gz | head    # 열지 않고 목록만
+$ tar -xzvf backup-2026-09-03.tar.gz -C /tmp/restore
+
+# rsync — 바뀐 부분만 전송하는 동기화
+$ rsync -av --delete /var/www/ /data/backup/www/
+$ rsync -avz -e ssh /var/www/ user@backup-server:/backup/www/
+`} />
+
+| 옵션 | 뜻 |
+|---|---|
+| `-a` | 권한·소유자·시각 보존 (백업에는 거의 필수) |
+| `-v` | 진행 상황 출력 |
+| `-z` | 전송 중 압축 (원격일 때) |
+| `--delete` | 원본에서 지워진 것을 대상에서도 지움 |
+| `--dry-run` | **시험 실행** |
+
+<Note type="danger" title="--delete 는 --dry-run 으로 먼저">
+`--delete`는 대상에만 있는 파일을 지웁니다. **원본 경로를 잘못 적으면 백업본이 통째로 날아갑니다.**
+
+특히 경로 끝의 슬래시가 의미를 바꿉니다.
+
+- `rsync -a /src/ /dst/` → src **안의 내용**을 dst 안으로
+- `rsync -a /src /dst/` → src **디렉터리 자체**를 dst 안으로 (`/dst/src/`)
+
+한 글자 차이로 결과가 완전히 다릅니다. 항상 `--dry-run`으로 먼저 확인하세요.
+</Note>
+
+<Note type="warn" title="스냅샷은 백업이 아닙니다">
+1주차부터 VM 스냅샷을 써왔지만, 스냅샷과 백업은 다릅니다.
+
+**스냅샷**은 원본 디스크에 의존합니다. 디스크가 물리적으로 고장 나면 스냅샷도 함께 사라집니다. 랜섬웨어가 그 디스크를 암호화하면 스냅샷도 접근 불가가 될 수 있습니다.
+
+**백업**은 다른 매체·다른 장소에 있는 복사본입니다. 업계에서 흔히 말하는 원칙이 **3-2-1**입니다 — 사본 3개, 매체 2종, 그중 1개는 다른 장소에.
+
+그리고 가장 중요한 것: **복원해 본 적 없는 백업은 백업이 아닙니다.** 정기적으로 실제 복원 훈련을 해야 합니다. 백업이 도는 줄 알았는데 몇 달째 실패하고 있었다는 이야기는 흔합니다.
+</Note>
+
+<Hist year="1979" title="tar 는 자기 테이프용이었다">
+`tar`는 **t**ape **ar**chive의 줄임입니다. 이름 그대로 **자기 테이프에 파일을 순서대로 쓰기 위한** 도구였습니다.
+
+테이프는 되감기가 느려서 앞뒤로 오갈 수 없었습니다. 그래서 `tar`는 파일을 **하나의 긴 흐름으로 이어 붙이는** 방식을 택했습니다. 압축 기능조차 없었는데, 압축은 별개의 프로그램이 할 일이었기 때문입니다. 그래서 지금도 `tar.gz`처럼 **묶기(tar) + 압축(gzip)**이 두 단계로 되어 있습니다.
+
+3주차의 "하나만 잘하라"가 파일 이름에까지 남아 있는 셈입니다. 테이프를 쓰는 사람은 이제 거의 없지만, 이름과 구조는 그대로입니다.
+</Hist>
+
+## 🔒 보안 포인트 정리
+
+| 항목 | 왜 |
+|---|---|
+| 저장소는 공식 우선, 추가는 신중히 | 저장소 주인은 어떤 패키지든 덮어쓸 수 있다 |
+| `apt-key add` 대신 `Signed-By` | 저장소별로 키를 분리해야 한 곳이 뚫려도 번지지 않는다 |
+| 보안 업데이트를 정기적으로 | `apt update && apt upgrade` — 11주차에서 자동화 |
+| 소스 컴파일 설치는 목록 관리 | 패키지 관리자가 모르므로 취약점을 직접 챙겨야 한다 |
+| `auth.log` 권한 유지 (`640`) | 누가 언제 로그인했는지는 민감 정보다 |
+| 로그 보존 기간 정하기 | 너무 짧으면 사고 추적 불가, 너무 길면 디스크 고갈 |
+| 백업은 다른 장소에 | 랜섬웨어는 연결된 저장소를 함께 암호화한다 |
+| 복원 훈련 | 복원해 본 적 없는 백업은 백업이 아니다 |
+
+## 실습 과제 W6
+
+<Lab id="W6" title="스토리지 확장과 백업 파이프라인" time="150분">
+**시작 전에 스냅샷을 찍으세요.** 이번 과제는 디스크를 다룹니다.
+
+1. **패키지 조사** — `ncdu`를 설치하고, `dpkg -L ncdu`로 어떤 파일이 어디에 설치됐는지 확인하세요. `/etc/apt/sources.list.d/`의 저장소 설정에서 `Signed-By` 줄을 찾아 **이것이 무엇을 보장하는지** 한 문단으로 설명하세요.
+2. **LVM 확장** — 루트 파티션을 남은 공간 전부로 확장하세요. 확장 전후의 `df -h /` 출력을 함께 제출하고, **`lvextend`와 `resize2fs`가 왜 두 단계인지** 설명하세요.
+3. **새 디스크 마운트** — VirtualBox에서 5GB 디스크를 추가해 파티션·파일시스템을 만들고 `/data`에 마운트하세요. UUID와 `nofail`을 써서 `/etc/fstab`에 등록하고, **`sudo mount -a`로 검증한 뒤** 재부팅해 유지되는지 확인하세요.
+4. **로그 조사** — 다음 세 가지를 `journalctl`로 각각 찾아 명령과 결과를 제출하세요.
+   - 이번 부팅 이후 발생한 `err` 이상 로그
+   - 지난 1시간 동안의 `ssh` 서비스 로그
+   - 직전 부팅(`-b -1`)의 마지막 10줄
+5. **로그 로테이션** — `/var/log/myapp/`에 로그를 남기는 상황을 가정해 `logrotate` 설정을 작성하세요. 일 단위 회전, 14개 보관, 압축, 권한 `640`을 포함하고 `logrotate -d`로 시험 실행한 결과를 제출합니다.
+6. **백업 스크립트** — `/etc` 전체를 날짜가 붙은 `tar.gz`로 묶어 `/data/backup/`에 저장하는 스크립트를 만드세요. **7일보다 오래된 백업은 자동으로 삭제**되어야 합니다. (`find -mtime +7 -delete`)
+7. **rsync 동기화** — `/var/www`(없으면 만들어서 파일 몇 개 넣기)를 `/data/backup/www/`로 동기화하세요. **반드시 `--dry-run`으로 먼저 확인**한 과정을 함께 제출합니다.
+8. **자동화** — 6번 스크립트를 5주차에서 배운 **systemd 타이머**로 매일 새벽 3시에 실행되게 등록하세요. `systemctl list-timers`로 다음 실행 시각을 확인합니다.
+9. **복원 검증** — 6번이 만든 백업을 `/tmp/restore-test/`에 실제로 풀어보고, 파일 개수를 원본과 비교하세요. **이 단계를 건너뛰면 과제 미완성으로 봅니다.**
+
+**제출물** — 각 문항의 명령과 출력, 2번과 7번의 설명, 스크립트와 유닛 파일 전문, 9번의 비교 결과.
+</Lab>
+
+<Note type="tip" title="채점 기준">
+9번이 이 과제에서 가장 중요합니다. 백업 스크립트를 만드는 것은 누구나 하지만, **복원해 보는 사람은 드뭅니다.** 실무 사고의 상당수가 "백업은 돌고 있었는데 복원이 안 되더라"입니다.
+
+7번의 `--dry-run`도 같은 맥락입니다. `--delete`를 쓰는 명령을 확인 없이 실행하는 습관은 언젠가 반드시 사고로 돌아옵니다.
+
+2번은 이해도를 봅니다. "블록 장치를 늘린 것과 파일시스템에 알리는 것은 다른 층위"라고 설명하면 만점입니다.
+</Note>
+
+## 부록 A · 6주차 명령어
+
+### 패키지
+
+| 명령 | 하는 일 |
+|---|---|
+| `apt update` | 저장소 목록 갱신 (**설치 아님**) |
+| `apt upgrade` | 설치된 패키지 업그레이드 |
+| `apt install/remove/purge 이름` | 설치 / 삭제 / 설정까지 삭제 |
+| `apt autoremove` | 필요 없어진 의존 패키지 정리 |
+| `apt search` / `apt show` | 검색 / 상세 정보 |
+| `apt list --installed` | 설치 목록 |
+| `dpkg -L 패키지` | 그 패키지가 설치한 파일 목록 |
+| `dpkg -S 경로` | 그 파일이 속한 패키지 |
+| `dpkg -l` | 설치된 패키지 목록 |
+
+### 스토리지
+
+| 명령 | 하는 일 |
+|---|---|
+| `lsblk` | 블록 장치 트리 |
+| `blkid` | UUID와 파일시스템 종류 |
+| `fdisk /dev/sdX` | 파티션 편집 (`n` 생성 · `p` 목록 · `w` 저장) |
+| `mkfs.ext4 /dev/sdX1` | 파일시스템 생성 (**되돌릴 수 없음**) |
+| `mount` / `umount` | 마운트 / 해제 |
+| `mount -a` | fstab 전체 검증 및 마운트 |
+| `findmnt --real` | 마운트 지점 목록 |
+| `df -h` / `df -i` | 용량 / inode 여유 |
+| `du -sh 경로` | 사용량 |
+| `ncdu 경로` | 대화형 용량 탐색 |
+| `lsof +L1` | 삭제됐지만 열려 있는 파일 |
+
+### LVM
+
+| 명령 | 하는 일 |
+|---|---|
+| `pvs` / `vgs` / `lvs` | PV / VG / LV 요약 |
+| `pvcreate /dev/sdX1` | PV 등록 |
+| `vgextend VG /dev/sdX1` | VG에 디스크 추가 |
+| `lvextend -l +100%FREE 경로` | LV를 남은 공간 전부로 확장 |
+| `resize2fs 경로` | ext4 파일시스템 확장 |
+| `xfs_growfs 마운트지점` | XFS 확장 (**장치가 아니라 마운트 지점**) |
+
+### 로그
+
+| 명령 | 하는 일 |
+|---|---|
+| `journalctl -u 서비스` | 서비스별 로그 |
+| `journalctl -f` | 실시간 추적 |
+| `journalctl -p err` | 심각도 이상만 |
+| `journalctl -b` / `-b -1` | 이번 부팅 / 직전 부팅 |
+| `journalctl --since "1 hour ago"` | 시간 범위 |
+| `journalctl -k` | 커널 메시지 |
+| `journalctl --disk-usage` | 로그 용량 |
+| `journalctl --vacuum-size=200M` | 용량 기준 정리 |
+| `logrotate -d 설정파일` | 시험 실행 |
+
+### 백업
+
+| 명령 | 하는 일 |
+|---|---|
+| `tar -czvf 파일.tar.gz 경로` | 묶고 압축 |
+| `tar -tzvf 파일.tar.gz` | 열지 않고 목록 확인 |
+| `tar -xzvf 파일.tar.gz -C 대상` | 풀기 |
+| `rsync -av 원본/ 대상/` | 동기화 (권한·시각 보존) |
+| `rsync -avz -e ssh 원본/ user@host:경로` | 원격 동기화 |
+| `rsync --dry-run` | **시험 실행 — `--delete` 쓸 때 필수** |
+
+## 부록 B · 윈도우 대응
+
+| 윈도우 | 리눅스 | 비고 |
+|---|---|---|
+| 프로그램 추가/제거 | `apt` | 리눅스는 저장소 중심 |
+| Windows Update | `apt update && apt upgrade` | 리눅스는 앱까지 함께 갱신 |
+| Microsoft Store | `snap`, `apt` | |
+| 디스크 관리 | `lsblk`, `fdisk`, `parted` | |
+| 볼륨 확장 | LVM (`lvextend` + `resize2fs`) | 리눅스는 무중단 확장 가능 |
+| 드라이브 문자 할당 | 마운트, `/etc/fstab` | 2주차 |
+| 이벤트 뷰어 | `journalctl`, `/var/log` | |
+| 백업과 복원 | `tar`, `rsync` | |
+
+## 부록 C · 이번 주 용어의 유래
+
+| 이름 | 유래 |
+|---|---|
+| **apt** | Advanced Package Tool. 의존성 지옥을 풀기 위해 Debian이 만들었다 |
+| **dpkg** | Debian package. 패키지 하나를 다루는 저수준 도구 |
+| **저널링** | 실제 작업 전에 "할 일"을 먼저 기록해 두는 방식. 정전 후 `fsck`에 몇 시간 걸리던 문제를 해결했다 |
+| **inode 고갈** | 용량은 남는데 파일 개수 한계에 걸리는 현상. `df -i`로 확인 |
+| **syslog** | 메일 서버 sendmail을 위해 만들어진 공용 로그 창구. 지금은 업계 표준 |
+| **journald** | systemd의 로그 담당. 텍스트 대신 구조화된 형식으로 저장해 필터링이 강하다 |
+| **logrotate** | 로그를 잘라 압축하고 오래된 것을 지운다. 회전(rotate)이라 부르는 것은 파일 이름이 `.1`, `.2`로 돌아가며 밀리기 때문이다 |
+| **tar** | tape archive. 자기 테이프에 순서대로 쓰기 위한 도구였고, 압축은 별개 프로그램의 일이라 지금도 두 단계다 |
+| **rsync** | remote sync. 바뀐 부분만 골라 보내는 알고리즘이 핵심이다 |
+| **LVM** | Logical Volume Manager. 물리 디스크와 파일시스템 사이에 한 겹을 둬 유연하게 만든다 |
+| **3-2-1** | 사본 3개, 매체 2종, 그중 1개는 다른 장소에 두라는 백업 원칙 |
+
+---
+
+**다음 주차 · 7주차 네트워크 기초와 원격 접속** — Part 3이 시작됩니다. 지금까지는 서버 한 대 안에서만 놀았다면, 이제 **밖과 연결**합니다. 그리고 이번 과정에서 가장 중요한 보안 주제 중 하나인 **SSH 하드닝**을 다룹니다. 서버가 인터넷에 노출되는 순간 무슨 일이 벌어지는지를 `auth.log`로 직접 보게 됩니다.

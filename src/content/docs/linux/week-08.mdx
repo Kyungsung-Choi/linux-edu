@@ -1,0 +1,646 @@
+---
+title: 웹 서버와 데이터베이스
+description: Nginx 가상 호스트와 리버스 프록시, Let's Encrypt로 HTTPS 적용, 보안 헤더, MariaDB 권한 분리와 백업
+sidebar:
+  label: 8주차 · 웹서버와 DB
+  order: 8
+---
+
+import Term from '../../../components/Term.astro';
+import Compare from '../../../components/Compare.astro';
+import Win from '../../../components/Win.astro';
+import Lin from '../../../components/Lin.astro';
+import Hist from '../../../components/Hist.astro';
+import Note from '../../../components/Note.astro';
+import Mini from '../../../components/Mini.astro';
+import Answer from '../../../components/Answer.astro';
+import Lab from '../../../components/Lab.astro';
+import Anatomy from '../../../components/Anatomy.astro';
+
+드디어 서비스를 올립니다. 지금까지 배운 것이 전부 여기서 만납니다 — 4주차의 전용 계정, 5주차의 systemd, 6주차의 로그 로테이션, 7주차의 열린 포트 관리가 하나의 웹 서비스로 조립됩니다.
+
+<Note type="why" title="이 주차를 마치면">
+- 브라우저 주소창에 URL을 치고 화면이 뜨기까지의 흐름을 설명할 수 있다
+- Nginx로 가상 호스트를 만들어 여러 사이트를 한 서버에서 서비스할 수 있다
+- Let's Encrypt로 HTTPS를 적용하고 자동 갱신을 확인할 수 있다
+- 보안 헤더가 각각 어떤 공격을 막는지 안다
+- 데이터베이스를 설치하고 **외부에 열지 않은 채** 애플리케이션 계정만으로 접근하게 만들 수 있다
+- 리버스 프록시가 왜 거의 모든 현대 웹 서비스의 앞단에 서 있는지 설명할 수 있다
+</Note>
+
+## 8.1 요청 하나가 지나가는 길
+
+<Term code={`
+브라우저 → DNS 조회 → TCP 연결(443) → TLS 핸드셰이크
+        → HTTP 요청 → Nginx → (정적 파일 or 앱 서버) → 응답 → 렌더링
+`} />
+
+7주차에서 배운 것들이 그대로 나옵니다. DNS가 이름을 IP로 바꾸고, 그 IP의 443 포트로 연결하고, 암호화 협상을 마친 뒤에야 요청이 갑니다.
+
+<Term code={`
+$ curl -v https://example.com 2>&1 | head -20
+*   Trying 93.184.215.14:443...
+* Connected to example.com (93.184.215.14) port 443
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+> GET / HTTP/1.1
+> Host: example.com
+`} />
+
+<Note type="tip" title="Host 헤더가 가상 호스트의 열쇠입니다">
+요청에 **`Host: example.com`**이 들어 있는 것을 보세요. 서버는 IP 하나에 도착한 요청이라도 이 헤더를 보고 **어느 사이트를 달라는 것인지** 구분합니다.
+
+덕분에 서버 한 대에 사이트 수십 개를 올릴 수 있습니다. 이것이 다음 절의 가상 호스트입니다.
+</Note>
+
+<Hist year="1997" title="Host 헤더는 IP 부족 사태의 산물이다">
+초기 HTTP에는 `Host` 헤더가 없었습니다. 서버 하나에 사이트 하나였고, **IP 주소 하나가 곧 사이트 하나**였습니다.
+
+그런데 1990년대 중반 웹이 폭발하면서 문제가 생겼습니다. IPv4 주소는 43억 개뿐인데, 개인 홈페이지 하나마다 IP를 하나씩 준다면 감당이 안 됐습니다. 당시에는 IP 고갈이 임박한 위기로 여겨졌습니다.
+
+해결책은 단순했습니다. **요청에 "나는 어느 사이트를 원한다"를 적어 보내게 하자.** HTTP/1.1에서 `Host` 헤더가 필수가 되면서, 서버 하나가 IP 하나로 사이트 수천 개를 서비스할 수 있게 됐습니다.
+
+오늘날 공유 호스팅, 클라우드 웹 서비스, CDN이 전부 이 한 줄의 헤더 위에 서 있습니다. **주소가 모자라서 만든 임시방편이 웹 호스팅 산업 전체의 기반이 된 셈입니다.** 2주차의 `/usr`과 같은 이야기죠 — 제약에서 나온 해법이 표준이 됩니다.
+</Hist>
+
+## 8.2 Nginx 설치와 구조
+
+<Term code={`
+$ sudo apt update && sudo apt install nginx
+$ systemctl status nginx
+$ sudo ss -tulpn | grep nginx
+tcp LISTEN 0.0.0.0:80  users:(("nginx",pid=1204))
+`} />
+
+7주차에서 배운 대로 **80번이 `0.0.0.0`으로 열렸습니다.** 웹 서버니까 당연하지만, 무엇이 열렸는지 항상 확인하는 습관은 유지하세요.
+
+| 경로 | 담는 것 |
+|---|---|
+| `/etc/nginx/nginx.conf` | 전역 설정 |
+| `/etc/nginx/sites-available/` | 사이트 설정 **원본** |
+| `/etc/nginx/sites-enabled/` | 활성화된 사이트 (**심볼릭 링크**) |
+| `/var/www/` | 웹 문서 |
+| `/var/log/nginx/` | 접근·오류 로그 |
+
+<Note type="tip" title="available 과 enabled 로 나눈 이유 — 2주차의 심볼릭 링크">
+설정 파일은 `sites-available`에 두고, 켜고 싶을 때만 `sites-enabled`로 **심볼릭 링크를 겁니다.**
+
+```
+$ sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/
+$ sudo rm /etc/nginx/sites-enabled/mysite      # 끄기 — 원본은 남는다
+```
+
+사이트를 끄더라도 **설정 원본은 그대로 남습니다.** 나중에 다시 켜려면 링크만 걸면 되죠. 2주차에서 배운 심볼릭 링크가 운영 도구로 쓰이는 전형적인 예이고, 5주차의 `systemctl enable`도 사실 같은 방식으로 동작합니다.
+</Note>
+
+<Hist year="2004" title="Nginx 는 동시 접속 1만 개 문제에서 태어났다">
+1990년대 웹 서버의 표준은 Apache였습니다. Apache는 **접속 하나마다 프로세스(또는 스레드)를 하나씩** 배정하는 방식이었는데, 접속이 늘면 프로세스도 그만큼 늘어 메모리가 폭발했습니다.
+
+당시 이것을 **C10K 문제**라고 불렀습니다 — 동시 접속 1만 개(10K Connections)를 어떻게 감당할 것인가.
+
+러시아의 이고르 시쇼프가 이 문제를 정면으로 겨냥해 Nginx를 만들었습니다. 접속마다 프로세스를 만드는 대신, **소수의 프로세스가 이벤트를 돌아가며 처리하는** 방식이었습니다. 요청을 기다리는 동안 놀지 않고 다른 요청을 처리하는 것이죠. 결과적으로 같은 하드웨어로 훨씬 많은 접속을 감당하게 됐습니다.
+
+5주차에서 `pstree`를 봤을 때 `nginx` 아래 `worker process`가 몇 개뿐이었던 것을 기억하시나요? **접속이 수천 개여도 그 숫자는 CPU 코어 수 정도로 유지됩니다.** 그것이 이 설계의 결과입니다.
+</Hist>
+
+## 8.3 가상 호스트 만들기
+
+<Term code={`
+$ sudo mkdir -p /var/www/mysite
+$ echo "<h1>My Site</h1>" | sudo tee /var/www/mysite/index.html
+$ sudo chown -R www-data:www-data /var/www/mysite
+$ sudo chmod -R 755 /var/www/mysite
+
+$ sudo vi /etc/nginx/sites-available/mysite
+`} />
+
+```nginx
+server {
+    listen 80;
+    server_name mysite.local;
+
+    root /var/www/mysite;
+    index index.html;
+
+    access_log /var/log/nginx/mysite.access.log;
+    error_log  /var/log/nginx/mysite.error.log;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # 숨김 파일 접근 차단 — .git, .env 유출 방지
+    location ~ /\. {
+        deny all;
+    }
+}
+```
+
+<Term code={`
+$ sudo ln -s /etc/nginx/sites-available/mysite /etc/nginx/sites-enabled/
+$ sudo nginx -t                    # 문법 검사 — 반드시 먼저
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+$ sudo systemctl reload nginx      # 무중단 반영
+
+# 확인 — Host 헤더를 흉내내 요청
+$ curl -H "Host: mysite.local" http://localhost
+<h1>My Site</h1>
+`} />
+
+<Note type="danger" title="🔒 .env 와 .git 유출은 실제로 자주 일어납니다">
+위 설정의 마지막 블록이 그것을 막습니다.
+
+웹 루트에 `.env`(DB 비밀번호가 든 파일)나 `.git/` 디렉터리가 실수로 배포되면, **누구나 브라우저로 내려받을 수 있습니다.** 공격자는 자동화된 스캐너로 전 세계 사이트의 `/.env`와 `/.git/config`를 훑고 다닙니다.
+
+`.git/`이 노출되면 소스 코드 전체를 복원할 수 있고, 거기에 커밋된 적 있는 비밀번호도 함께 나옵니다. **국내에서도 대형 사고가 여러 건 있었습니다.**
+
+두 가지로 막습니다.
+1. 위처럼 Nginx에서 점 파일 접근을 차단
+2. 애초에 웹 루트에 그런 파일을 두지 않기 — 배포 산출물만 올립니다
+</Note>
+
+<Note type="warn" title="reload 와 restart">
+- `reload` — 설정만 다시 읽습니다. **연결이 끊기지 않습니다**
+- `restart` — 프로세스를 죽였다 살립니다. 순간적으로 서비스가 끊깁니다
+
+운영 중인 서버에서는 항상 **`nginx -t` → `reload`** 입니다. 5주차에서 배운 `systemctl reload`가 여기서 실전으로 쓰입니다.
+</Note>
+
+<Mini title="가상 호스트 두 개 올리기">
+1. `/var/www/site-a`와 `/var/www/site-b`를 만들고 각각 다른 내용의 `index.html`을 넣으세요.
+2. 두 개의 서버 블록을 만들어 `server_name`을 각각 `a.local`, `b.local`로 하세요.
+3. `nginx -t`로 검사하고 `reload` 하세요.
+4. `curl -H "Host: a.local" http://localhost` 와 `b.local`로 각각 다른 내용이 나오는지 확인하세요.
+5. `/etc/hosts`에 `127.0.0.1 a.local b.local`을 추가하면 브라우저에서도 접속됩니다.
+
+<Answer>
+<Term code={`
+$ curl -H "Host: a.local" http://localhost
+<h1>Site A</h1>
+$ curl -H "Host: b.local" http://localhost
+<h1>Site B</h1>
+`} />
+
+**같은 IP, 같은 포트인데 다른 내용**이 나왔습니다. Nginx가 `Host` 헤더만 보고 갈랐기 때문입니다.
+
+이것이 공유 호스팅과 클라우드 웹 서비스의 기본 원리입니다. 서버 한 대에 고객 사이트 수백 개를 올릴 수 있는 이유이기도 합니다.
+</Answer>
+</Mini>
+
+## 8.4 HTTPS 적용
+
+<Hist year="2015" title="Let's Encrypt 이전에는 인증서가 비쌌다">
+2015년 이전에 HTTPS를 쓰려면 인증 기관에서 인증서를 **돈을 주고 사야 했습니다.** 연 수만 원에서 수십만 원이었고, 발급 절차도 번거로웠습니다. 그래서 로그인이나 결제 페이지에만 HTTPS를 걸고 나머지는 HTTP로 두는 것이 일반적이었습니다.
+
+문제는 HTTP 구간에서 **누구나 내용을 보고 바꿀 수 있다**는 것이었습니다. 공용 와이파이에서 접속하면 통신사나 카페 주인이 페이지에 광고를 끼워 넣는 일도 실제로 있었습니다.
+
+**Let's Encrypt**는 인증서를 **무료로, 자동으로** 발급하는 비영리 인증 기관으로 2015년 시작했습니다. 명령 한 줄로 발급과 갱신이 되니 "비싸서 못 쓴다"는 이유가 사라졌습니다.
+
+효과는 극적이었습니다. 웹 트래픽의 HTTPS 비율이 몇 년 만에 절반 이하에서 대부분으로 올라갔습니다. **경제적 장벽 하나를 없앤 것이 기술적 개선보다 큰 변화를 만든 사례입니다.**
+</Hist>
+
+### 실제 도메인이 있을 때
+
+<Term code={`
+$ sudo apt install certbot python3-certbot-nginx
+$ sudo certbot --nginx -d mysite.com -d www.mysite.com
+
+# 자동 갱신 확인 — certbot 은 systemd 타이머를 등록한다 (5주차!)
+$ systemctl list-timers | grep certbot
+$ sudo certbot renew --dry-run
+`} />
+
+<Note type="tip" title="갱신은 5주차의 타이머로 돌아갑니다">
+Let's Encrypt 인증서는 **90일짜리**입니다. 짧은 이유는 자동 갱신을 전제로 설계했기 때문이고, 유출됐을 때 피해 기간도 줄어듭니다.
+
+`certbot`을 설치하면 systemd 타이머가 자동으로 등록됩니다. 5주차에서 직접 만들어 본 그 구조입니다. `systemctl list-timers`로 다음 실행 시각을 확인할 수 있고, **`renew --dry-run`으로 실제 갱신 전에 시험**해 볼 수 있습니다.
+
+인증서 만료로 사이트가 멈추는 사고는 지금도 흔합니다. 대개 자동 갱신이 조용히 실패하고 있었는데 아무도 확인하지 않은 경우입니다.
+</Note>
+
+### 실습 환경에서는 자체 서명
+
+<Term code={`
+$ sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/ssl/private/mysite.key \
+  -out /etc/ssl/certs/mysite.crt \
+  -subj "/CN=mysite.local"
+
+$ sudo chmod 600 /etc/ssl/private/mysite.key
+`} />
+
+```nginx
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name mysite.local;
+
+    ssl_certificate     /etc/ssl/certs/mysite.crt;
+    ssl_certificate_key /etc/ssl/private/mysite.key;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    root /var/www/mysite;
+    index index.html;
+}
+
+# HTTP 로 온 요청은 HTTPS 로 넘긴다
+server {
+    listen 80;
+    server_name mysite.local;
+    return 301 https://$host$request_uri;
+}
+```
+
+<Note type="warn" title="자체 서명 인증서는 브라우저 경고가 뜹니다">
+브라우저가 "이 연결은 비공개가 아닙니다"라고 경고합니다. **정상입니다.** 아무도 이 인증서를 보증하지 않기 때문입니다.
+
+암호화 자체는 동작하지만 **"이 서버가 진짜 그 서버인지"**를 확인할 수 없습니다. 7주차의 SSH 지문 확인과 같은 문제입니다. 학습·내부 테스트용으로만 쓰고, 외부에 공개하는 서비스에는 반드시 Let's Encrypt 같은 신뢰된 인증서를 쓰세요.
+</Note>
+
+## 8.5 🔒 보안 헤더
+
+HTTPS를 켜는 것만으로는 부족합니다. 브라우저에게 **"이 사이트를 이렇게 다뤄라"**고 지시하는 헤더들이 있습니다.
+
+```nginx
+# HTTPS 를 기억하게 만든다 (앞으로 HTTP 로 접속 시도조차 안 함)
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+# 다른 사이트가 이 페이지를 프레임에 넣지 못하게
+add_header X-Frame-Options "SAMEORIGIN" always;
+
+# 브라우저의 콘텐츠 타입 추측 금지
+add_header X-Content-Type-Options "nosniff" always;
+
+# 다른 사이트로 이동할 때 전체 URL 을 넘기지 않음
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+# 서버 버전 숨기기
+server_tokens off;
+```
+
+| 헤더 | 막는 공격 |
+|---|---|
+| `Strict-Transport-Security` | HTTPS를 HTTP로 끌어내리는 다운그레이드 공격 |
+| `X-Frame-Options` | **클릭재킹** — 투명한 프레임을 덮어씌워 의도치 않은 클릭을 유도 |
+| `X-Content-Type-Options` | 이미지로 위장한 스크립트를 브라우저가 실행하는 것 |
+| `Referrer-Policy` | 외부 사이트로 URL에 든 정보(토큰 등)가 새는 것 |
+| `server_tokens off` | 버전을 알아내 그 버전의 알려진 취약점을 노리는 것 |
+
+<Note type="tip" title="server_tokens 는 왜 중요한가">
+기본 상태에서 Nginx는 응답 헤더에 `Server: nginx/1.24.0`처럼 **정확한 버전을 알려줍니다.**
+
+공격자는 이 정보로 그 버전의 공개된 취약점을 바로 찾습니다. 버전을 숨긴다고 취약점이 사라지지는 않지만, **자동화된 스캐너가 표적을 고르는 비용을 올립니다.** 10주차에서 다룰 "공격 표면 줄이기"의 작은 예입니다.
+
+물론 근본 대책은 **최신 버전을 유지하는 것**입니다. 숨기는 것은 보조 수단일 뿐입니다.
+</Note>
+
+<Mini title="보안 헤더 적용하고 확인하기">
+1. 위 헤더들을 서버 블록에 추가하고 `nginx -t` → `reload` 하세요.
+2. `curl -I -k https://localhost -H "Host: mysite.local"` 로 응답 헤더를 확인하세요.
+3. 적용 **전후**의 `Server:` 헤더를 비교하세요.
+4. `add_header`를 하나 일부러 빼고 다시 확인해, 그 헤더가 사라지는지 보세요.
+
+<Answer>
+<Term code={`
+$ curl -I -k https://localhost -H "Host: mysite.local"
+HTTP/2 200
+server: nginx
+strict-transport-security: max-age=31536000; includeSubDomains
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+referrer-policy: strict-origin-when-cross-origin
+`} />
+
+`server: nginx` — 버전 번호가 사라졌습니다. `server_tokens off` 전에는 `nginx/1.24.0`이었을 겁니다.
+
+`-k` 옵션은 **인증서 검증을 건너뛰라**는 뜻입니다. 자체 서명 인증서라 필요하지만, **실제 서비스를 점검할 때는 절대 쓰지 마세요.** 인증서 문제를 못 보고 넘어가게 됩니다.
+</Answer>
+</Mini>
+
+## 8.6 데이터베이스
+
+<Term code={`
+$ sudo apt install mariadb-server
+$ sudo systemctl status mariadb
+$ sudo mysql_secure_installation
+`} />
+
+`mysql_secure_installation`이 묻는 것들과 답할 내용입니다.
+
+| 질문 | 답 | 이유 |
+|---|---|---|
+| root 패스워드 설정 | **예** | |
+| 익명 사용자 제거 | **예** | 이름 없이 접속 가능한 계정 |
+| root 원격 로그인 금지 | **예** | root는 로컬에서만 |
+| test 데이터베이스 제거 | **예** | 누구나 접근 가능한 기본 DB |
+| 권한 테이블 다시 읽기 | **예** | |
+
+<Note type="danger" title="🔒 이번 주 가장 중요한 설정 — DB 를 외부에 열지 마세요">
+7주차에서 `0.0.0.0`과 `127.0.0.1`의 차이를 배웠습니다. **데이터베이스에서 이 차이가 유출 사고를 가릅니다.**
+
+```
+$ sudo ss -tulpn | grep 3306
+tcp LISTEN 127.0.0.1:3306   ← 올바름. 이 서버 안에서만 접근 가능
+tcp LISTEN 0.0.0.0:3306     ← 위험. 인터넷 전체에 열려 있음
+```
+
+우분투의 MariaDB는 기본적으로 `127.0.0.1`에 묶여 있습니다. **그 기본값을 바꾸지 마세요.** 설정 파일에서 확인할 수 있습니다.
+
+```
+$ grep -r bind-address /etc/mysql/
+bind-address = 127.0.0.1
+```
+
+인터넷에 노출된 데이터베이스는 **자동화된 스캐너가 몇 시간 안에 찾아냅니다.** 기본 계정이나 약한 패스워드가 있으면 그대로 털립니다. 국내외에서 지금도 계속 일어나는 사고이고, 원인은 거의 항상 "개발 편의를 위해 잠깐 열어둔 것을 잊은 것"입니다.
+
+**앱 서버가 다른 장비에 있다면** 인터넷이 아니라 사설 네트워크로 붙이고, 방화벽으로 그 IP만 허용합니다(10주차).
+</Note>
+
+<Hist year="1998" title="SQL 인젝션 — 25년째 1위인 취약점">
+1998년 한 해커 잡지에 실린 글이 시작이었습니다. 웹 폼에 입력한 문자열이 그대로 SQL 문장에 끼워 넣어진다면, 따옴표 하나로 **질의문 자체를 바꿔 쓸 수 있다**는 지적이었습니다.
+
+25년이 지났지만 SQL 인젝션은 여전히 웹 취약점 상위권에 있습니다. 근본 해결책은 애플리케이션 쪽에 있습니다 — 입력을 문자열로 이어 붙이지 말고 **매개변수화된 질의**를 쓰는 것이죠.
+
+그런데 서버 운영자에게도 할 일이 있습니다. **인젝션이 발생하더라도 피해를 줄이는 것**입니다. 앱 계정에 `DROP` 권한이 없으면 테이블을 지울 수 없고, `*.*` 권한이 없으면 다른 서비스의 데이터에 닿을 수 없습니다.
+
+10주차에서 배울 **계층 방어**가 바로 이것입니다. 앱의 버그를 서버 설정이 완전히 막을 수는 없지만, **피해 범위는 확실히 좁힐 수 있습니다.**
+</Hist>
+
+### 애플리케이션 전용 계정 — 4주차의 최소 권한
+
+<Term code={`
+$ sudo mysql
+`} />
+
+```sql
+CREATE DATABASE myapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 이 DB 에만, 로컬에서만 접근하는 전용 계정
+CREATE USER 'myapp'@'localhost' IDENTIFIED BY '충분히긴무작위암호';
+
+-- 필요한 권한만 — DROP, GRANT 는 주지 않는다
+GRANT SELECT, INSERT, UPDATE, DELETE ON myapp.* TO 'myapp'@'localhost';
+
+FLUSH PRIVILEGES;
+SHOW GRANTS FOR 'myapp'@'localhost';
+```
+
+<Note type="warn" title="ALL PRIVILEGES 를 주지 마세요">
+`GRANT ALL PRIVILEGES ON *.* TO 'myapp'@'%'` 는 인터넷 안내에 흔히 나오지만 두 가지가 최악입니다.
+
+- **`*.*`** — 모든 데이터베이스에 접근. 다른 서비스의 데이터까지
+- **`'%'`** — 어느 호스트에서든 접속 허용
+
+여기에 `DROP` 권한이 포함되므로, **SQL 인젝션 취약점 하나로 데이터베이스 전체가 삭제될 수 있습니다.** 애플리케이션은 대부분 `SELECT/INSERT/UPDATE/DELETE`면 충분합니다.
+
+스키마 변경(`ALTER`, `CREATE`)이 필요한 마이그레이션은 **별도의 관리 계정**으로, 배포 시점에만 수행하세요.
+</Note>
+
+<Compare>
+  <Win>웹 설정은 IIS 관리자 GUI에서 클릭으로 합니다. 편하지만 **무엇이 바뀌었는지 기록이 남지 않고**, 서버 여러 대에 같은 설정을 적용하려면 각각 클릭해야 합니다.</Win>
+  <Lin>설정이 텍스트 파일이라 **Git으로 이력을 남기고, 복사해서 배포하고, `diff`로 비교**할 수 있습니다. 1주차에서 본 "설정은 텍스트" 원칙이 운영 규모에서 값을 합니다.</Lin>
+</Compare>
+
+### 접속 정보를 어디에 두나
+
+5주차에서 "명령줄 인자에 비밀을 넣지 말라"고 했습니다. 설정 파일도 마찬가지 원칙입니다.
+
+<Term code={`
+$ sudo vi /etc/myapp/db.conf
+$ sudo chown root:myapp /etc/myapp/db.conf
+$ sudo chmod 640 /etc/myapp/db.conf
+$ ls -l /etc/myapp/db.conf
+-rw-r----- 1 root myapp 84 Sep  3 15:00 /etc/myapp/db.conf
+`} />
+
+4주차의 `640`이 여기서 쓰입니다 — **root가 쓰고, `myapp` 그룹이 읽고, 나머지는 아무것도.** 웹 서버가 뚫려 다른 계정으로 파일을 읽으려 해도 이 파일에는 닿지 않습니다.
+
+### 백업
+
+<Term code={`
+# 논리 백업 — 텍스트 SQL 로 덤프
+$ sudo mysqldump --single-transaction --routines myapp > /data/backup/myapp-$(date +%F).sql
+$ gzip /data/backup/myapp-$(date +%F).sql
+
+# 복원
+$ gunzip -c myapp-2026-09-03.sql.gz | sudo mysql myapp
+`} />
+
+<Note type="tip" title="--single-transaction 이 있고 없고의 차이">
+이 옵션 없이 덤프하면 **테이블마다 다른 시점의 데이터**가 섞일 수 있습니다. 주문 테이블은 10시 정각, 결제 테이블은 10시 3분 상태로 백업되면 복원했을 때 앞뒤가 안 맞습니다.
+
+`--single-transaction`은 덤프 시작 시점의 일관된 스냅샷을 뜹니다. **InnoDB 테이블에서 서비스를 멈추지 않고 일관성 있는 백업**을 받는 방법입니다.
+
+그리고 6주차에서 강조한 것을 다시 — **복원해 본 적 없는 백업은 백업이 아닙니다.** 덤프 파일이 매일 쌓이고 있어도 실제로 복원되는지 확인하지 않았다면 아무것도 보장되지 않습니다.
+</Note>
+
+<Mini title="DB 설치하고 권한 분리하기">
+1. MariaDB를 설치하고 `mysql_secure_installation`을 실행하세요.
+2. `sudo ss -tulpn | grep 3306` 으로 **`127.0.0.1`에 묶여 있는지** 확인하세요.
+3. `myapp` 데이터베이스와 전용 계정을 만들고 최소 권한만 부여하세요.
+4. `SHOW GRANTS FOR 'myapp'@'localhost';` 로 부여된 권한을 확인하세요.
+5. 그 계정으로 접속해 **다른 데이터베이스가 보이는지** 확인하세요. (`SHOW DATABASES;`)
+6. `mysqldump`로 백업하고, 새 DB에 복원해 보세요.
+
+<Answer>
+<Term code={`
+$ mysql -u myapp -p
+MariaDB [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| myapp              |
++--------------------+
+
+MariaDB [(none)]> DROP DATABASE myapp;
+ERROR 1044 (42000): Access denied for user 'myapp'@'localhost' to database 'myapp'
+`} />
+
+5번이 핵심입니다. **다른 데이터베이스가 아예 목록에 안 보입니다.** 권한이 없는 것은 존재조차 알려주지 않습니다.
+
+그리고 `DROP DATABASE`가 거부됐습니다. SQL 인젝션이 발생해도 **삭제까지는 가지 못합니다.** 4주차의 최소 권한 원칙이 데이터베이스에서 이렇게 구체화됩니다.
+</Answer>
+</Mini>
+
+## 8.7 리버스 프록시 — 현대 웹의 표준 구조
+
+애플리케이션 서버(Node.js, Python, Java)는 대개 자체 포트에서 돕니다. 그것을 인터넷에 직접 노출하지 않고 **Nginx를 앞에 세웁니다.**
+
+```nginx
+upstream app_backend {
+    server 127.0.0.1:3000;
+    # server 127.0.0.1:3001;   ← 늘리면 로드밸런싱
+}
+
+server {
+    listen 443 ssl;
+    server_name app.mysite.com;
+
+    ssl_certificate     /etc/letsencrypt/live/app.mysite.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/app.mysite.com/privkey.pem;
+
+    # 정적 파일은 Nginx 가 직접 — 앱까지 갈 필요 없다
+    location /static/ {
+        alias /var/www/app/static/;
+        expires 30d;
+    }
+
+    location / {
+        proxy_pass http://app_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+<Note type="tip" title="왜 앱을 직접 노출하지 않나">
+| 이유 | 설명 |
+|---|---|
+| **TLS 종료** | 인증서 관리를 Nginx 한 곳에서. 앱은 평문 HTTP만 신경 쓰면 됩니다 |
+| **정적 파일** | 이미지·CSS는 Nginx가 훨씬 빠르게 처리합니다 |
+| **보안 헤더** | 앱 종류와 무관하게 한 곳에서 적용 |
+| **로드밸런싱** | 앱 인스턴스를 늘리면 `upstream`에 한 줄 추가 |
+| **무중단 배포** | 앱을 교체하는 동안 Nginx가 대기시킵니다 |
+| **공격 표면** | 앱 서버가 인터넷에 직접 노출되지 않습니다 |
+
+**앱은 `127.0.0.1:3000`에 묶어두세요.** DB와 같은 원칙입니다. 7주차의 `ss -tulpn`으로 확인하는 습관이 여기서도 쓰입니다.
+</Note>
+
+<Note type="warn" title="X-Forwarded-For 를 잊으면">
+프록시를 거치면 앱이 보는 접속 IP가 **전부 `127.0.0.1`**이 됩니다. Nginx가 대신 요청했으니까요.
+
+그래서 원래 클라이언트 IP를 `X-Real-IP`나 `X-Forwarded-For` 헤더에 담아 넘깁니다. 이걸 빠뜨리면 **로그에 실제 접속자 IP가 안 남고**, 접속 제한이나 이상 탐지가 전부 무력해집니다. 11주차 로그 분석에서 이 헤더가 없으면 아무것도 추적할 수 없습니다.
+</Note>
+
+## 🔒 보안 포인트 정리
+
+| 항목 | 확인 방법 |
+|---|---|
+| DB는 `127.0.0.1`에만 | `ss -tulpn \| grep 3306` |
+| 앱 서버도 `127.0.0.1`에만 | `ss -tulpn` 전체 검토 |
+| DB 계정은 최소 권한 | `SHOW GRANTS FOR ...` |
+| 웹 루트에 `.env`·`.git` 없음 | `curl -I https://사이트/.env` → 403이어야 |
+| HTTP → HTTPS 강제 | `curl -I http://사이트` → 301 |
+| 보안 헤더 적용 | `curl -I https://사이트` |
+| 서버 버전 숨김 | `server_tokens off` |
+| 웹 디렉터리 권한 | `755`, 소유자 `www-data`. **777 금지** |
+| 인증서 자동 갱신 동작 | `certbot renew --dry-run` |
+| 로그 로테이션 | `/etc/logrotate.d/nginx` 확인 (6주차) |
+
+## 실습 과제 W8
+
+<Lab id="W8" title="HTTPS 웹 서비스 구축" time="180분">
+**스냅샷 먼저.** 이번 과제의 결과물은 12주차 최종 프로젝트의 뼈대가 됩니다.
+
+1. **Nginx 설치** — 설치 후 `ss -tulpn`으로 열린 포트를 확인하고, 7주차 목록과 무엇이 달라졌는지 적으세요.
+2. **가상 호스트 두 개** — `site-a.local`, `site-b.local`을 만들어 `curl -H "Host: ..."`로 각각 다른 내용이 나오는 것을 확인하세요. 웹 루트 소유자는 `www-data`, 권한은 `755`로 설정합니다.
+3. **점 파일 차단** — 웹 루트에 `.env` 파일을 하나 만들고, **차단 설정 전후로** `curl http://localhost/.env`의 결과가 어떻게 다른지 비교하세요.
+4. **HTTPS** — 자체 서명 인증서를 만들어 443에 적용하고, **80으로 온 요청이 301로 리다이렉트되는지** 확인하세요.
+5. **보안 헤더** — 본문의 헤더 다섯 가지를 모두 적용하고 `curl -I`로 확인하세요. **각 헤더가 무엇을 막는지 한 줄씩 적습니다.**
+6. **DB 설치와 잠그기** — MariaDB를 설치하고 `mysql_secure_installation`을 실행하세요. `bind-address`가 `127.0.0.1`인지 확인하고, **`0.0.0.0`으로 바꿔본 뒤 `ss` 출력이 어떻게 달라지는지 확인한 다음 반드시 되돌리세요.**
+7. **DB 권한 분리** — `myapp` DB와 전용 계정을 만들어 `SELECT/INSERT/UPDATE/DELETE`만 부여하세요. 그 계정으로 `DROP DATABASE`를 시도해 **거부되는 것을 확인**합니다.
+8. **접속 정보 보호** — DB 접속 정보를 `/etc/myapp/db.conf`에 두고 `640` 권한으로 설정하세요. 다른 일반 계정으로 읽으려 시도해 막히는지 확인합니다.
+9. **백업과 복원** — `mysqldump`로 백업하고, **`myapp_restore`라는 새 DB에 실제로 복원**해 테이블이 같은지 비교하세요.
+10. **로그 확인** — 지금까지의 요청이 `/var/log/nginx/*.access.log`에 어떻게 남았는지 보고, 3주차 파이프라인으로 **상태 코드별 요청 수**를 집계하세요.
+
+**제출물** — 각 문항의 명령과 출력, 3·5·6·7번의 전후 비교, Nginx 설정 파일 전문, 10번의 파이프라인과 결과.
+</Lab>
+
+<Note type="tip" title="채점 기준">
+3·6·7번의 **전후 비교**가 핵심입니다. 특히 6번에서 `bind-address`를 일부러 `0.0.0.0`으로 바꿔 `ss` 출력이 달라지는 것을 눈으로 본 사람은, 실무에서 그 한 줄을 절대 잘못 건드리지 않습니다.
+
+9번은 6주차와 같은 이유로 필수입니다. 백업 명령을 실행하는 것과 복원이 되는 것을 확인하는 것은 다릅니다.
+
+10번은 이 과정을 관통하는 문항입니다. 3주차 파이프라인이 8주차 웹 로그 분석 도구가 되고, 11주차에서 침해 탐지 도구가 됩니다.
+</Note>
+
+## 부록 A · 8주차 명령어
+
+### Nginx
+
+| 명령 | 하는 일 |
+|---|---|
+| `nginx -t` | **설정 문법 검사 (반영 전 필수)** |
+| `systemctl reload nginx` | 무중단 설정 반영 |
+| `systemctl restart nginx` | 재시작 (순간 끊김) |
+| `nginx -T` | 최종 병합된 설정 전체 출력 |
+| `ln -s /etc/nginx/sites-available/X /etc/nginx/sites-enabled/` | 사이트 활성화 |
+| `tail -f /var/log/nginx/error.log` | 오류 실시간 확인 |
+
+### 확인·진단
+
+| 명령 | 하는 일 |
+|---|---|
+| `curl -I URL` | 응답 헤더만 |
+| `curl -H "Host: 이름" http://localhost` | 가상 호스트 시험 |
+| `curl -k https://...` | 인증서 검증 건너뛰기 (**실습 전용**) |
+| `curl -v https://...` | 연결·TLS 과정 상세 |
+| `ss -tulpn` | 열린 포트 |
+| `openssl s_client -connect 호스트:443` | 인증서 상세 확인 |
+
+### 인증서
+
+| 명령 | 하는 일 |
+|---|---|
+| `certbot --nginx -d 도메인` | 발급 + Nginx 자동 설정 |
+| `certbot renew --dry-run` | 갱신 시험 |
+| `certbot certificates` | 발급된 인증서 목록과 만료일 |
+| `openssl req -x509 -nodes ...` | 자체 서명 인증서 생성 |
+
+### 데이터베이스
+
+| 명령 | 하는 일 |
+|---|---|
+| `mysql_secure_installation` | 초기 보안 설정 |
+| `sudo mysql` | root로 접속 (소켓 인증) |
+| `mysql -u 계정 -p` | 계정으로 접속 |
+| `SHOW DATABASES;` / `SHOW GRANTS FOR '계정'@'호스트';` | 목록 / 권한 확인 |
+| `mysqldump --single-transaction DB > 파일.sql` | 일관성 있는 백업 |
+| `mysql DB < 파일.sql` | 복원 |
+| `grep -r bind-address /etc/mysql/` | 바인드 주소 확인 |
+
+### 설정 조각 모음
+
+| 목적 | 설정 |
+|---|---|
+| HTTP → HTTPS | `return 301 https://$host$request_uri;` |
+| 점 파일 차단 | `location ~ /\. { deny all; }` |
+| 버전 숨김 | `server_tokens off;` |
+| 리버스 프록시 | `proxy_pass http://127.0.0.1:3000;` + `X-Forwarded-*` 헤더 |
+| 정적 파일 캐시 | `expires 30d;` |
+
+## 부록 B · 윈도우 대응
+
+| 윈도우 | 리눅스 | 비고 |
+|---|---|---|
+| IIS | Nginx, Apache | |
+| IIS 관리자 GUI | `/etc/nginx/sites-available/*` 텍스트 | 버전 관리 가능 |
+| 바인딩 설정 | `server_name`, `listen` | |
+| 인증서 스토어 | `/etc/ssl/`, `/etc/letsencrypt/` | |
+| SQL Server | MariaDB, PostgreSQL | |
+| SSMS | `mysql` CLI, 웹 도구 | |
+| 백업 장치 | `mysqldump` + `cron`/타이머 | |
+| 애플리케이션 풀 | systemd 서비스 (5주차) | |
+
+## 부록 C · 이번 주 용어의 유래
+
+| 이름 | 유래 |
+|---|---|
+| **Nginx** | "engine X"를 소리 나는 대로 적은 것. C10K 문제를 겨냥해 2004년 이고르 시쇼프가 만들었다 |
+| **C10K** | 동시 접속 1만 개(10K Connections)를 어떻게 감당할 것인가라는 2000년대 초의 과제 |
+| **가상 호스트** | 하나의 IP·포트에서 `Host` 헤더로 사이트를 구분하는 방식 |
+| **sites-available / enabled** | 설정 원본과 심볼릭 링크를 분리한 데비안 관례. 끄더라도 설정이 남는다 |
+| **Let's Encrypt** | 인증서가 비싸 HTTPS가 퍼지지 못하던 문제를 무료·자동 발급으로 해결한 비영리 인증 기관 |
+| **90일 인증서** | 자동 갱신을 전제로 짧게 잡았다. 유출 시 피해 기간도 줄어든다 |
+| **HSTS** | HTTP Strict Transport Security. 브라우저가 그 사이트를 HTTPS로만 접속하도록 기억한다 |
+| **클릭재킹** | 투명한 프레임을 덮어씌워 사용자가 의도치 않은 것을 클릭하게 만드는 공격 |
+| **리버스 프록시** | 클라이언트 대신 요청을 받아 뒤의 서버로 넘긴다. 일반 프록시가 클라이언트 편이라면 이쪽은 서버 편이다 |
+| **`X-Forwarded-For`** | 프록시를 거치며 잃어버린 원래 클라이언트 IP를 담아 전달하는 헤더 |
+
+---
+
+**다음 주차 · 9주차 파일 공유, 컨테이너, 자동화** — Samba로 윈도우 탐색기에서 리눅스 폴더를 열고, Docker로 이번 주에 만든 웹+DB 스택을 명령 한 줄로 재현합니다. 그리고 지금까지 손으로 하던 작업들을 셸 스크립트로 묶습니다.
