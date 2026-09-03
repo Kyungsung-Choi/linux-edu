@@ -46,6 +46,10 @@
   --serif:"Gowun Batang","Nanum Myeongjo",Georgia,serif;
   --sans:var(--sl-font);
   --mono:var(--sl-font-mono);
+
+
+  /* 레이아웃 폭 — 좌우 사이드바에 눌려 본문이 좁아지는 문제 완화 */
+  --sl-content-width: 60rem;
 }
 
 :root[data-theme="light"] {
@@ -101,4 +105,11 @@
 
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important; transition:none!important;}
+}
+
+/* 페이지 제목 — 세리프 디스플레이 타이틀 */
+h1#_top {
+  font-family: var(--serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }

@@ -30,7 +30,7 @@ src/styles/tokens.css          디자인 토큰 + Starlight 변수 매핑
 | `Hist` | 역사·유래 블록 (연도 배지 + 명조체) |
 | `Note` | 콜아웃 `tip` / `warn` / `danger` / `why` |
 | `Mini` / `Answer` | 절별 미니 실습 + 접이식 정답 |
-| `Lab` | 주차 과제 |
+| `Lab` | 챕터 과제 |
 | `Timeline` / `Event` | 연표 |
 | `Anatomy` | 인터랙티브 해부도 (프롬프트, 권한 비트 등) |
 
@@ -59,16 +59,16 @@ $ fail2ban-client status sshd
 `} />
 ```
 
-주차 원고를 추가한 뒤에는 아래로 전체를 점검할 수 있습니다.
+챕터 원고를 추가한 뒤에는 아래로 전체를 점검할 수 있습니다.
 
 ```bash
 grep -n '^[^|]*`- ' src/content/docs/linux/*.mdx   # 트리 문자 백틱 의심 줄
 npm run build                                       # 최종 확인
 ```
 
-## 주차 추가
+## 챕터 추가
 
-1. `src/content/docs/linux/week-NN.mdx` 생성
+1. `src/content/docs/linux/chapter-NN.mdx` 생성
 2. `astro.config.mjs` 사이드바에 항목 추가
 3. `src/data/projects.ts`의 `progress.done` 갱신
 
