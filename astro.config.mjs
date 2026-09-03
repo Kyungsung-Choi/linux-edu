@@ -2,8 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
-  site: 'https://Kyungsung-Choi.github.io',
-  base: '/linux-edu',
+  site: 'https://linux-edu.vercel.app',
   integrations: [
     starlight({
       title: '리눅스 입문',
