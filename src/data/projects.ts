@@ -19,7 +19,7 @@ export const projects: Project[] = [
     summary:
       'GUI만 써온 사람을 위한 12주 과정. 명령어 암기가 아니라 왜 그렇게 만들어졌는지를 가르칩니다. 각 설계 결정의 역사적 배경과 절별 실습을 함께 담았습니다.',
     tags: ['Ubuntu 24.04', '서버 운영', '보안 하드닝'],
-    href: '/linux/',
+    href: '/portfolio/linux/',
     status: '완료',
     progress: { done: 12, total: 12 },
     year: 2026,
