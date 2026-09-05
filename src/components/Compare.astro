@@ -3,6 +3,9 @@
 ---
 <div class="xwin"><slot /></div>
 <style>
-  .xwin{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:0 0 1.6rem}
+  .xwin{display:grid; grid-template-columns:1fr 1fr; align-items:stretch; gap:16px; margin:0 0 1.6rem}
   @media (max-width:820px){ .xwin{grid-template-columns:1fr} }
+  /* Starlight's automatic sibling spacing (the "owl" selector) reaches into this
+     grid and adds margin-top to the second box, breaking the equal-height layout. */
+  .xwin :global(.xw){ margin:0 !important }
 </style>
