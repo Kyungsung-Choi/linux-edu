@@ -7,7 +7,9 @@ const DESC = '교육 커리큘럼과 기술 문서를 만듭니다. 무엇을 �
 const solo = projects.length === 1;
 ---
 <SiteLayout title={TITLE} description={DESC} path="/portfolio/" active="portfolio" ogImageAlt="배우는 사람이 이해할 수 있는 자료를 만듭니다 — 최경성 포트폴리오">
-  <section class={solo ? 'cards cards--solo cards--top' : 'cards cards--top'}>
+  <p class="hero__k hero__k--top">Portfolio</p>
+
+  <section class={solo ? 'cards cards--solo' : 'cards'}>
     {projects.map((p) => (
       <a class="card" href={p.href}>
         <div class="card__top">
