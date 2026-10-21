@@ -24,4 +24,16 @@ export const projects: Project[] = [
     progress: { done: 12, total: 12 },
     year: 2026,
   },
+  {
+    slug: 'econ',
+    title: '연준 뉴스를 읽기 위한 경제 기초',
+    kind: '교육 교재',
+    summary:
+      '경제 비전공자를 위한 2시간 개념 교재. 거시경제 지표에서 연준의 금리·장부 정책(QE·QT·RMP), 국채·레포 시장까지 뉴스에 필요한 만큼만, 각 개념이 왜 생겼는지부터 설명합니다.',
+    tags: ['거시경제', '통화정책', '금융시장', '약자 사전'],
+    href: '/portfolio/econ/',
+    status: '완료',
+    progress: { done: 5, total: 5 },
+    year: 2026,
+  },
 ];

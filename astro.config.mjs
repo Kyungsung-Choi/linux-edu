@@ -46,6 +46,8 @@ export default defineConfig({
       components: {
         Sidebar: './src/components/Sidebar.astro',
       },
+      // 교재별로 사이드바·제목·이전/다음 링크를 나눈다 (src/routeData.ts).
+      routeMiddleware: './src/routeData.ts',
       // Starlight는 og:title·og:description·og:url·og:site_name 을 페이지마다 자동 생성한다.
       // 여기서는 이미지와 트위터 카드, 아이콘만 보탠다.
       head: [
@@ -76,6 +78,19 @@ export default defineConfig({
             { label: 'Chapter 12 · 최종 프로젝트', link: '/portfolio/linux/chapter-12/' },
           ],
         },
+        // ── 연준 경제 읽기 (/portfolio/econ/) ──
+        { label: '교재 안내', link: '/portfolio/econ/' },
+        {
+          label: '챕터',
+          items: [
+            { label: '1 · 경제의 체온계 네 개', link: '/portfolio/econ/chapter-01/' },
+            { label: '2 · 연준은 무엇을, 왜, 어떻게', link: '/portfolio/econ/chapter-02/' },
+            { label: '3 · 연준의 장부: QE·QT·RMP', link: '/portfolio/econ/chapter-03/' },
+            { label: '4 · 금융시장의 배관', link: '/portfolio/econ/chapter-04/' },
+            { label: '5 · 뉴스 실전 독해', link: '/portfolio/econ/chapter-05/' },
+          ],
+        },
+        { label: '약자 사전', link: '/portfolio/econ/glossary/' },
       ],
     }),
   ],

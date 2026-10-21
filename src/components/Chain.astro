@@ -1,0 +1,58 @@
+---
+/**
+ * 인과 사슬(도미노) 도식. 화면이 넓으면 가로, 좁으면 세로로 흐른다.
+ *   <Chain steps={['기준금리 ↑|연준이 결정', '대출금리 ↑', '소비·투자 ↓']} caption="..." />
+ * 각 항목에서 '|' 뒤는 작은 보조 설명이 된다.
+ */
+interface Props {
+  steps: string[];
+  caption?: string;
+}
+const { steps, caption } = Astro.props;
+const items = steps.map((s) => {
+  const [t, sub] = s.split('|');
+  return { t: t.trim(), sub: sub?.trim() };
+});
+---
+<figure class="chain">
+  <ol class="chain__row">
+    {items.map((it, i) => (
+      <>
+        <li class="chain__step">
+          <span class="chain__n">{i + 1}</span>
+          <span class="chain__t">{it.t}</span>
+          {it.sub && <span class="chain__s">{it.sub}</span>}
+        </li>
+        {i < items.length - 1 && <li class="chain__arr" aria-hidden="true">→</li>}
+      </>
+    ))}
+  </ol>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+<style>
+  .chain { margin: 0 0 1.6rem; }
+  .chain__row {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; align-items: stretch; gap: 6px;
+  }
+  .chain__step {
+    flex: 1 1 0; min-width: 0; margin: 0 !important; max-width: none;
+    background: var(--surface); border: 1px solid var(--rule2); border-radius: 10px;
+    padding: 11px 12px 12px; display: flex; flex-direction: column; gap: 3px;
+  }
+  .chain__n {
+    font-family: var(--mono); font-size: .66rem; font-weight: 600; color: var(--accent);
+    letter-spacing: .08em;
+  }
+  .chain__t { font-weight: 600; font-size: .92rem; line-height: 1.4; }
+  .chain__s { font-size: .78rem; color: var(--ink3); line-height: 1.45; }
+  .chain__arr {
+    flex: 0 0 auto; align-self: center; margin: 0 !important;
+    color: var(--accent); font-weight: 600; font-size: 1rem;
+  }
+  figcaption { margin-top: 9px; font-size: .82rem; color: var(--ink3); line-height: 1.6; }
+  @media (max-width: 820px) {
+    .chain__row { flex-direction: column; gap: 4px; }
+    .chain__arr { transform: rotate(90deg); }
+  }
+</style>

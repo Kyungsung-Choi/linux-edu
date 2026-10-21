@@ -1,0 +1,61 @@
+---
+/**
+ * 연준의 금리 "통로" 도식 — 천장(SRF)·IORB·실제 시장금리·바닥(ON RRP).
+ * 숫자는 props로 받는다. 기준일(asOf)을 반드시 함께 적는다.
+ */
+import Ab from './Ab.astro';
+interface Props {
+  top: string;
+  iorb: string;
+  bottom: string;
+  asOf: string;
+}
+const { top, iorb, bottom, asOf } = Astro.props;
+---
+<figure class="cor">
+  <div class="cor__band">
+    <div class="cor__row cor__row--ceil">
+      <span class="cor__rate">{top}</span>
+      <span class="cor__what"><strong>천장</strong> · 목표범위 상단 = <Ab k="SRF" /> 금리</span>
+      <span class="cor__why">"이보다 비싸게 빌릴 이유가 없다 — 연준 창구에서 이 금리로 빌릴 수 있으니까"</span>
+    </div>
+    <div class="cor__row cor__row--iorb">
+      <span class="cor__rate">{iorb}</span>
+      <span class="cor__what"><strong>기준선</strong> · <Ab k="IORB" /></span>
+      <span class="cor__why">"은행은 연준에 맡겨만 둬도 이만큼 받는다 — 이보다 싸게 남에게 빌려줄 이유가 적다"</span>
+    </div>
+    <div class="cor__row cor__row--mkt">
+      <span class="cor__rate">↕</span>
+      <span class="cor__what"><strong>실제 시장금리</strong> · <Ab k="EFFR" />, <Ab k="SOFR" /></span>
+      <span class="cor__why">평소에는 이 통로 안에서 움직인다</span>
+    </div>
+    <div class="cor__row cor__row--floor">
+      <span class="cor__rate">{bottom}</span>
+      <span class="cor__what"><strong>바닥</strong> · 목표범위 하단 = <Ab k="ON RRP" /> 금리</span>
+      <span class="cor__why">"이보다 싸게 빌려줄 이유가 없다 — 연준에 맡기면 이만큼 받으니까"</span>
+    </div>
+  </div>
+  <figcaption>{asOf} 기준 실제 값. 숫자는 회의마다 바뀌지만 "천장·기준선·바닥" 구조는 그대로입니다.</figcaption>
+</figure>
+<style>
+  .cor { margin: 0 0 1.6rem; }
+  .cor__band {
+    border: 1px solid var(--rule2); border-radius: 12px; overflow: hidden;
+    background: linear-gradient(180deg, var(--danger-soft), var(--surface) 35%, var(--surface) 65%, var(--ok-soft));
+  }
+  .cor__row {
+    display: grid; grid-template-columns: 74px 1fr; gap: 2px 16px;
+    padding: 12px 18px; border-bottom: 1px dashed var(--rule2); margin: 0 !important;
+  }
+  .cor__row:last-child { border-bottom: 0; }
+  .cor__rate {
+    grid-row: span 2; font-family: var(--mono); font-weight: 600; font-size: 1rem;
+    color: var(--accent); font-variant-numeric: tabular-nums; align-self: center;
+  }
+  .cor__row--ceil .cor__rate { color: var(--danger); }
+  .cor__row--floor .cor__rate { color: var(--ok); }
+  .cor__row--mkt .cor__rate { color: var(--ink3); text-align: center; }
+  .cor__what { font-size: .92rem; }
+  .cor__why { font-size: .82rem; color: var(--ink2); line-height: 1.55; }
+  figcaption { margin-top: 9px; font-size: .82rem; color: var(--ink3); }
+</style>

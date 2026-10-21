@@ -1,0 +1,93 @@
+---
+/**
+ * 약자 팝오버. <Ab k="FOMC" /> 처럼 쓰면 점선 밑줄 약자가 되고,
+ * 누르거나(모바일) 마우스를 올리면(데스크톱) 영문 풀네임과 우리말 이름이 뜬다.
+ * 내용은 src/data/econ-glossary.ts 한 곳에서 가져온다. 없는 키를 쓰면 빌드가 멈춘다.
+ */
+import { glossary } from '../data/econ-glossary';
+
+interface Props {
+  k: string;
+  /** 화면에 보일 글자를 약자와 다르게 하고 싶을 때 (예: k="Fed" label="연준") */
+  label?: string;
+}
+const { k, label } = Astro.props;
+const g = glossary[k];
+if (!g) throw new Error(`[Ab] 약자 사전에 "${k}" 항목이 없습니다 — src/data/econ-glossary.ts 에 추가하세요.`);
+const id = `ab-${k.replace(/[^A-Za-z0-9]/g, '')}-${Math.random().toString(36).slice(2, 7)}`;
+---
+<span class="ab" data-ab><button type="button" class="ab__k" aria-expanded="false" aria-describedby={id}>{label ?? k}</button><span class="ab__pop" id={id} role="tooltip"><span class="ab__full">{g.full}</span><span class="ab__ko">{g.ko}</span></span></span>
+
+<script>
+  const OPEN = 'is-open';
+  const MARGIN = 12;
+
+  function place(ab: HTMLElement) {
+    const pop = ab.querySelector<HTMLElement>('.ab__pop');
+    if (!pop) return;
+    pop.style.setProperty('--dx', '0px');
+    const r = pop.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    let dx = 0;
+    if (r.right > vw - MARGIN) dx = vw - MARGIN - r.right;
+    if (r.left + dx < MARGIN) dx = MARGIN - r.left;
+    pop.style.setProperty('--dx', `${dx}px`);
+  }
+
+  function closeAll(except?: Element) {
+    document.querySelectorAll<HTMLElement>(`[data-ab].${OPEN}`).forEach((el) => {
+      if (el === except) return;
+      el.classList.remove(OPEN);
+      el.querySelector('.ab__k')?.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as Element).closest?.('.ab__k');
+    if (!btn) return closeAll();
+    const ab = btn.closest<HTMLElement>('[data-ab]');
+    if (!ab) return;
+    const open = !ab.classList.contains(OPEN);
+    closeAll(ab);
+    ab.classList.toggle(OPEN, open);
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) place(ab);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
+
+  document.addEventListener('mouseover', (e) => {
+    const ab = (e.target as Element).closest?.<HTMLElement>('[data-ab]');
+    if (ab) place(ab);
+  });
+</script>
+
+<style>
+  .ab { position: relative; display: inline; }
+  .ab__k {
+    font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0;
+    border-bottom: 1px dotted var(--accent); cursor: help; line-height: inherit;
+  }
+  .ab__k:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  .ab__pop {
+    --dx: 0px;
+    position: absolute; top: calc(100% + 6px); left: 50%;
+    transform: translateX(calc(-50% + var(--dx)));
+    z-index: 40; display: none;
+    width: max-content; max-width: min(300px, calc(100vw - 24px));
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--accent-line); border-radius: 9px;
+    box-shadow: var(--shadow);
+    padding: 9px 12px; text-align: left; white-space: normal;
+    font-family: var(--sans); font-size: .8rem; font-weight: 400; line-height: 1.5;
+    letter-spacing: 0; text-transform: none;
+  }
+  .ab__full { display: block; font-family: var(--mono); font-weight: 600; color: var(--accent); }
+  .ab__ko { display: block; color: var(--ink2); margin-top: 2px; }
+  .ab.is-open .ab__pop { display: block; }
+  @media (hover: hover) and (pointer: fine) {
+    .ab:hover .ab__pop { display: block; }
+  }
+</style>

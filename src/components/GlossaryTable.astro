@@ -1,0 +1,41 @@
+---
+/** 약자 사전 표. src/data/econ-glossary.ts 의 한 묶음(cat)을 표로 그린다. */
+import { glossary, type GlossaryEntry } from '../data/econ-glossary';
+
+interface Props { cat: GlossaryEntry['cat'] }
+const { cat } = Astro.props;
+const rows = Object.entries(glossary)
+  .filter(([, g]) => g.cat === cat)
+  .sort(([a], [b]) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+const anchor = (k: string) => `ab-${k.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+<div class="gl-wrap">
+  <table class="gl">
+    <thead>
+      <tr><th>약자</th><th>풀네임 · 우리말</th><th>쉽게 말하면</th><th>챕터</th></tr>
+    </thead>
+    <tbody>
+      {rows.map(([k, g]) => (
+        <tr id={anchor(k)} data-gl-row data-gl-text={`${k} ${g.full} ${g.ko} ${g.desc}`.toLowerCase()}>
+          <td class="gl__k">{k}</td>
+          <td><span class="gl__full">{g.full}</span><span class="gl__ko">{g.ko}</span></td>
+          <td class="gl__d">{g.desc}</td>
+          <td><a href={`/portfolio/econ/chapter-${pad(g.ch)}/`}>{g.ch}장</a></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+<style>
+  .gl-wrap { margin: 0 0 1.6rem; overflow-x: auto; }
+  .gl { display: table !important; width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .gl th { white-space: nowrap; }
+  .gl td { vertical-align: top; line-height: 1.6; }
+  .gl__k { font-family: var(--mono); font-weight: 600; color: var(--accent); white-space: nowrap; }
+  .gl__full { display: block; font-family: var(--mono); font-size: .8rem; }
+  .gl__ko { display: block; font-weight: 600; }
+  .gl__d { color: var(--ink2); min-width: 14rem; }
+  tr:target td { background: var(--accent-soft); }
+  tr[hidden] { display: none; }
+</style>
