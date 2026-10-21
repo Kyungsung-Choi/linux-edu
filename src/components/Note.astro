@@ -7,12 +7,12 @@ const { type = 'tip', title } = Astro.props;
   <div class="note__b"><slot /></div>
 </aside>
 <style>
-  .note{border-radius:10px; padding:18px 24px; margin:0 0 1.6rem}
+  .note{border-radius:10px; padding:18px 24px; margin:0 0 var(--gap-block)}
   .note__t{
     font-family:var(--mono); font-size:.68rem; font-weight:600; letter-spacing:.13em;
     text-transform:uppercase; margin-bottom:9px; display:block;
   }
-  .note__b :global(p){margin:0 0 .7rem; max-width:none; font-size:.94rem; line-height:1.78}
+  .note__b :global(p){margin:0 0 .7rem; max-width:none; font-size:.94rem; line-height:var(--lh-body)}
   .note__b :global(p:last-child){margin:0}
   .note--tip{background:var(--ok-soft); border-left:2px solid var(--ok)}
   .note--tip .note__t{color:var(--ok)}

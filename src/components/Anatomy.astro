@@ -52,7 +52,7 @@ const first = parts[0];
 <style>
   .anat{
     background:var(--term-bg); border-radius:11px; padding:26px 24px 22px;
-    margin:0 0 1.6rem; box-shadow:var(--shadow);
+    margin:0 0 var(--gap-block); box-shadow:var(--shadow);
   }
   .anat__line{
     font-family:var(--mono); font-size:clamp(.95rem,2.6vw,1.3rem); color:var(--term-ink);
@@ -74,6 +74,6 @@ const first = parts[0];
     font-family:var(--mono); font-size:.7rem; letter-spacing:.13em; text-transform:uppercase;
     color:var(--term-prompt); margin-bottom:7px;
   }
-  .anat__x{color:var(--term-ink); font-size:.92rem; line-height:1.75; margin:0; max-width:none}
+  .anat__x{color:var(--term-ink); font-size:.92rem; line-height:var(--lh-body); margin:0; max-width:none}
   .anat__hint{text-align:center; font-size:.76rem; color:var(--term-cmt); margin:14px 0 0; max-width:none}
 </style>

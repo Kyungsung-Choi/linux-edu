@@ -48,8 +48,14 @@
   --mono:var(--sl-font-mono);
 
 
-  /* 레이아웃 폭 — 좌우 사이드바에 눌려 본문이 좁아지는 문제 완화 */
-  --sl-content-width: 60rem;
+  /* 레이아웃 폭 — 본문·표·박스·도식이 모두 같은 한 줄(칼럼)에 맞도록 단일 폭으로 둔다 */
+  --sl-content-width: 54rem;
+
+  /* 세로 리듬 — 교재 전체가 같은 간격 체계를 쓴다 */
+  --lh-body: 1.8;     /* 본문·목록·박스 안 글 */
+  --lh-small: 1.65;   /* 표·캡션·보조 설명 */
+  --gap-flow: 1.25rem; /* 문단·목록·표 사이 */
+  --gap-block: 1.75rem; /* 박스·도식·터미널 등 덩어리 아래 */
 }
 
 :root[data-theme="light"] {
@@ -89,11 +95,31 @@
 }
 
 /* ── 한글 본문 가독성 ─────────────────────────────────────── */
-.sl-markdown-content { line-height:1.85; }
+.sl-markdown-content { line-height:var(--lh-body); }
+/* 문단은 칼럼 폭을 그대로 쓴다 — 박스·표와 오른쪽 끝선이 맞아야 한다 */
 .sl-markdown-content p,
-.sl-markdown-content li { max-width:66ch; }
-.sl-markdown-content h2 { letter-spacing:-.015em; text-wrap:balance; margin-top:2.6rem; }
-.sl-markdown-content h3 { letter-spacing:-.005em; text-wrap:balance; }
+.sl-markdown-content li { max-width:none; }
+.sl-markdown-content li { line-height:var(--lh-body); }
+
+/* 세로 간격: 위쪽 여백은 0, 아래쪽 여백으로만 흐름을 만든다(여백이 겹쳐 들쭉날쭉해지는 것 방지) */
+.sl-markdown-content > * { margin-top:0; }
+.sl-markdown-content > :is(p, ul, ol, table, blockquote, details, pre) { margin-bottom:var(--gap-flow); }
+.sl-markdown-content > :is(ul, ol) { padding-inline-start:1.4rem; }
+.sl-markdown-content > :is(ul, ol) li + li { margin-top:.35rem; }
+.sl-markdown-content > :is(ul, ol) li > :is(ul, ol) { margin-top:.35rem; }
+
+/* 제목: 위는 넉넉히, 아래는 내용에 붙인다. h2 바로 뒤의 h3 도 숨 쉴 자리를 둔다 */
+.sl-markdown-content :is(h2, h3, h4) { line-height:1.35; text-wrap:balance; }
+.sl-markdown-content h2 { font-size:1.75rem; letter-spacing:-.015em; }
+.sl-markdown-content h3 { font-size:1.3rem;  letter-spacing:-.005em; }
+.sl-markdown-content h4 { font-size:1.08rem; }
+/* Starlight 는 제목을 .sl-heading-wrapper 로 감싼다 — 간격은 래퍼에 준다 */
+.sl-markdown-content .sl-heading-wrapper :is(h2, h3, h4) { margin:0; }
+.sl-markdown-content :is(.sl-heading-wrapper.level-h2, h2) { margin-top:3.2rem; margin-bottom:1.35rem; }
+.sl-markdown-content :is(.sl-heading-wrapper.level-h3, h3) { margin-top:2.4rem; margin-bottom:1.1rem; }
+.sl-markdown-content :is(.sl-heading-wrapper.level-h4, h4) { margin-top:1.8rem; margin-bottom:.9rem; }
+.sl-markdown-content :is(.sl-heading-wrapper.level-h2) + :is(.sl-heading-wrapper.level-h3) { margin-top:1.6rem; }
+.sl-markdown-content > :first-child { margin-top:0; }
 .sl-markdown-content :not(pre) > code {
   font-family:var(--mono); font-size:.86em;
   border:1px solid var(--rule); border-radius:5px; padding:1px 6px;
@@ -102,6 +128,7 @@
 /* 표: 넘칠 때만 가로 스크롤, 본문은 절대 밀리지 않게 */
 .sl-markdown-content table { display:block; overflow-x:auto; border-collapse:collapse; width:100%; }
 .sl-markdown-content th { white-space:nowrap; }
+.sl-markdown-content :is(th, td) { line-height:var(--lh-small); }
 
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important; transition:none!important;}

@@ -38,7 +38,7 @@ const { top, iorb, bottom, asOf } = Astro.props;
   <figcaption>{asOf} 기준 실제 값. 숫자는 회의마다 바뀌지만 "천장·기준선·바닥" 구조는 그대로입니다.</figcaption>
 </figure>
 <style>
-  .cor { margin: 0 0 1.6rem; }
+  .cor { margin: 0 0 var(--gap-block); }
   .cor__band {
     border: 1px solid var(--rule2); border-radius: 12px; overflow: hidden;
     background: linear-gradient(180deg, var(--danger-soft), var(--surface) 35%, var(--surface) 65%, var(--ok-soft));
