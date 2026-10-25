@@ -50,4 +50,15 @@ export const projects: Project[] = [
     year: 2026,
     newWindow: true,
   },
+  {
+    slug: 'ai-tips',
+    title: 'AI 활용 TIP',
+    kind: 'TIP 모음',
+    summary:
+      'AI에게 화면을 시킬 때 도움이 되는 팁. UI 컴포넌트 이름과 웹사이트 시안을 많이 보면 왜 좋은지 설명하고, 눌러서 들어가 볼 수 있는 참고 사이트를 모았습니다.',
+    tags: ['UI 컴포넌트', '웹 디자인 참고', '프롬프트 팁'],
+    href: '/portfolio/ai-tips/',
+    status: '진행 중',
+    year: 2026,
+  },
 ];
