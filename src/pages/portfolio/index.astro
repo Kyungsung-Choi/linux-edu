@@ -11,7 +11,7 @@ const solo = projects.length === 1;
 
   <section class={solo ? 'cards cards--solo' : 'cards'}>
     {projects.map((p) => (
-      <a class="card" href={p.href}>
+      <a class="card" href={p.href} target={p.newWindow ? '_blank' : undefined} rel={p.newWindow ? 'noopener' : undefined}>
         <div class="card__top">
           <span class="card__kind">{p.kind}</span>
           <span class={p.status === '완료' ? 'chip chip--done' : 'chip'}>{p.status}</span>

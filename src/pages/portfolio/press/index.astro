@@ -1,0 +1,131 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+
+// 날짜별 기사 데이터: src/data/press/YYYY-MM-DD.json (scripts/press-upload.mjs 가 저장)
+// 같은 날짜의 PDF/HTML 은 public/press/YYYY-MM-DD.pdf|html 에 있으면 내려받기 링크가 생긴다.
+interface Article { kicker?: string; headline: string; sub?: string; body: string; source_title?: string; scope?: string }
+interface Issue { title: string; section?: string; date: string; source_label?: string; glance?: string[]; footnote?: string; articles: Article[] }
+
+const files = import.meta.glob<Issue>('../../../data/press/*.json', { eager: true, import: 'default' });
+const issues = Object.entries(files)
+  .map(([f, data]) => ({ day: f.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1] ?? '', data }))
+  .filter((i) => i.day)
+  .sort((a, b) => b.day.localeCompare(a.day));
+const pdfs = new Set(Object.keys(import.meta.glob('../../../../public/press/*.pdf')).map((f) => f.match(/(\d{4}-\d{2}-\d{2})/)?.[1]));
+const htmls = new Set(Object.keys(import.meta.glob('../../../../public/press/*.html')).map((f) => f.match(/(\d{4}-\d{2}-\d{2})/)?.[1]));
+
+const TITLE = '언론기사 · 최경성';
+const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약해 날짜별로 쌓아 둡니다.';
+---
+<SiteLayout title={TITLE} description={DESC} path="/portfolio/press/" active="portfolio">
+  <p class="hero__k hero__k--top">Press</p>
+
+  {issues.length === 0 ? (
+    <p class="empty">아직 올라온 기사가 없습니다.</p>
+  ) : (
+    <>
+      <div class="picker">
+        <button type="button" id="older" class="pbtn" aria-label="이전 날짜">← 이전</button>
+        <label class="picker__l" for="day">날짜</label>
+        <select id="day">
+          {issues.map((i) => <option value={i.day}>{i.day}</option>)}
+        </select>
+        <button type="button" id="newer" class="pbtn" aria-label="다음 날짜">다음 →</button>
+        <span class="zoom" role="group" aria-label="글자 크기">
+          <button type="button" id="fs-down" class="pbtn" aria-label="글자 작게">가−</button>
+          <button type="button" id="fs-up" class="pbtn" aria-label="글자 크게">가＋</button>
+        </span>
+        <span class="picker__n">{issues.length}일치 보관</span>
+      </div>
+
+      {issues.map((i, idx) => (
+        <section class="issue" data-day={i.day} hidden={idx !== 0}>
+          <h1 class="issue__t">{i.data.title}</h1>
+          <p class="issue__m">
+            {i.data.date}{i.data.section ? ` · ${i.data.section}` : ''}
+            {pdfs.has(i.day) && <a href={`/press/${i.day}.pdf`} target="_blank" rel="noopener">PDF</a>}
+            {htmls.has(i.day) && <a href={`/press/${i.day}.html`} target="_blank" rel="noopener">HTML</a>}
+          </p>
+          {i.data.glance && i.data.glance.length > 0 && (
+            <div class="glance">
+              <strong>오늘의 한눈에 보기</strong>
+              <ul>{i.data.glance.map((g) => <li>{g}</li>)}</ul>
+            </div>
+          )}
+          {i.data.articles.map((a) => (
+            <article class="art">
+              {a.kicker && <span class="art__k">{a.kicker}</span>}
+              <h2 class="art__h">{a.headline}</h2>
+              {a.sub && <p class="art__sub">{a.sub}</p>}
+              <p class="art__b">{a.body}</p>
+              <p class="art__by">{i.data.source_label ?? '원문 요약'}{a.source_title ? ` · ${a.source_title}` : ''}{a.scope ? ` · 확인 범위: ${a.scope}` : ''}</p>
+            </article>
+          ))}
+          {i.data.footnote && <p class="issue__f">{i.data.footnote}</p>}
+        </section>
+      ))}
+    </>
+  )}
+</SiteLayout>
+
+<script>
+  const sel = document.getElementById('day') as HTMLSelectElement | null;
+  const secs = Array.from(document.querySelectorAll<HTMLElement>('.issue'));
+  const older = document.getElementById('older') as HTMLButtonElement | null;
+  const newer = document.getElementById('newer') as HTMLButtonElement | null;
+  function show(day: string, push: boolean) {
+    if (!sel) return;
+    if (!secs.some((s) => s.dataset.day === day)) day = sel.options[0].value;
+    sel.value = day;
+    secs.forEach((s) => { s.hidden = s.dataset.day !== day; });
+    const i = sel.selectedIndex;
+    if (newer) newer.disabled = i === 0;
+    if (older) older.disabled = i === sel.options.length - 1;
+    if (push) { try { history.replaceState(null, '', '?d=' + day); } catch (e) {} window.scrollTo(0, 0); }
+  }
+  sel?.addEventListener('change', () => show(sel.value, true));
+  older?.addEventListener('click', () => sel && show(sel.options[Math.min(sel.selectedIndex + 1, sel.options.length - 1)].value, true));
+  newer?.addEventListener('click', () => sel && show(sel.options[Math.max(sel.selectedIndex - 1, 0)].value, true));
+  // 글자 크기: 기사 본문·부제·한눈에 보기에 적용, 이 브라우저에 기억
+  const STEPS = [0.85, 0.95, 1, 1.15, 1.3, 1.5];
+  let zi = 2;
+  try { const raw = localStorage.getItem('press-fs'); const v = raw === null ? -1 : Number(raw); if (v >= 0 && v < STEPS.length) zi = v; } catch (e) {}
+  const down = document.getElementById('fs-down') as HTMLButtonElement | null;
+  const up = document.getElementById('fs-up') as HTMLButtonElement | null;
+  function applyZoom() {
+    document.documentElement.style.setProperty('--press-z', String(STEPS[zi]));
+    if (down) down.disabled = zi === 0;
+    if (up) up.disabled = zi === STEPS.length - 1;
+    try { localStorage.setItem('press-fs', String(zi)); } catch (e) {}
+  }
+  down?.addEventListener('click', () => { zi = Math.max(0, zi - 1); applyZoom(); });
+  up?.addEventListener('click', () => { zi = Math.min(STEPS.length - 1, zi + 1); applyZoom(); });
+  applyZoom();
+  show(new URLSearchParams(location.search).get('d') ?? '', false);
+</script>
+
+<style is:global>
+  .empty{color:var(--ink2); padding:20px 0 80px}
+  .picker{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:0 0 28px}
+  .picker__l{font-size:.85rem; color:var(--ink2)}
+  #day{font:inherit; font-size:.95rem; color:var(--ink); background:var(--surface); border:1px solid var(--rule2); border-radius:8px; padding:6px 12px}
+  .pbtn{font:inherit; font-size:.85rem; color:var(--ink2); background:var(--surface2); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; cursor:pointer}
+  .pbtn:hover:not(:disabled){border-color:var(--accent-line); color:var(--accent)}
+  .pbtn:disabled{opacity:.4; cursor:default}
+  .zoom{display:inline-flex; gap:6px}
+  .picker__n{font-size:.8rem; color:var(--ink3); margin-left:auto}
+  .issue{padding-bottom:70px; max-width:760px}
+  .issue__t{font-family:var(--serif); font-weight:400; font-size:clamp(1.7rem,4vw,2.3rem); margin:0 0 6px; line-height:1.3}
+  .issue__m{color:var(--ink3); font-size:.85rem; margin:0 0 22px; display:flex; flex-wrap:wrap; gap:12px; align-items:baseline}
+  .issue__m a{color:var(--accent)}
+  .glance li{font-size:calc(.93rem * var(--press-z,1))}
+  .glance{background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:16px 20px; margin-bottom:12px; font-size:.93rem}
+  .glance ul{margin:8px 0 0; padding-left:1.2em}
+  .art{border-top:1px solid var(--rule); padding:22px 0 8px}
+  .art__k{font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; color:var(--accent)}
+  .art__h{font-size:1.35rem; line-height:1.4; margin:4px 0 8px; letter-spacing:-.015em; text-wrap:balance}
+  .art__sub{font-size:calc(.97rem * var(--press-z,1)); font-weight:600; color:var(--ink2); border-left:3px solid var(--plum); padding-left:12px; margin:0 0 12px; font-size:.97rem}
+  .art__b{margin:0; font-size:calc(1rem * var(--press-z,1)); line-height:1.9}
+  .art__by{margin:8px 0 0; text-align:right; font-size:.78rem; color:var(--ink3)}
+  .issue__f{border-top:1px solid var(--rule); padding-top:14px; margin-top:18px; font-size:.8rem; color:var(--ink3)}
+</style>

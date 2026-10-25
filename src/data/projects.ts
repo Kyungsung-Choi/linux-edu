@@ -8,6 +8,8 @@ export interface Project {
   status: '진행 중' | '완료';
   progress?: { done: number; total: number };
   year: number;
+  /** true면 카드를 눌렀을 때 새 창(탭)으로 연다 */
+  newWindow?: boolean;
 }
 
 /** 포트폴리오 항목을 추가하려면 이 배열에만 한 줄 넣으면 된다. */
@@ -35,5 +37,17 @@ export const projects: Project[] = [
     status: '완료',
     progress: { done: 5, total: 5 },
     year: 2026,
+  },
+  {
+    slug: 'press',
+    title: '언론기사 브리핑',
+    kind: '매일 업데이트',
+    summary:
+      '해외 경제·비즈니스 기사를 쉬운 한국어로 요약해 날짜별로 쌓아 둡니다. 새 창에서 날짜를 골라 그날의 신문 형태 요약을 읽을 수 있습니다.',
+    tags: ['기사 요약', '날짜별 아카이브', '쉬운 한국어'],
+    href: '/portfolio/press/',
+    status: '진행 중',
+    year: 2026,
+    newWindow: true,
   },
 ];
