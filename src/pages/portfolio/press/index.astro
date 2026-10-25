@@ -4,13 +4,15 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 // 날짜별 기사 데이터: src/data/press/YYYY-MM-DD.json (scripts/press-upload.mjs 가 저장)
 // 같은 날짜의 PDF 가 public/press/YYYY-MM-DD.pdf 에 있으면 내려받기 링크가 생긴다.
 interface Article { kicker?: string; headline: string; sub?: string; body: string; source_title?: string; scope?: string }
-interface Issue { title: string; band_left?: string; section?: string; date: string; source_label?: string; glance?: string[]; footnote?: string; articles: Article[] }
+interface Issue { category?: string; title: string; band_left?: string; section?: string; date: string; source_label?: string; glance?: string[]; footnote?: string; articles: Article[] }
 
 const files = import.meta.glob<Issue>('../../../data/press/*.json', { eager: true, import: 'default' });
 const issues = Object.entries(files)
   .map(([f, data]) => ({ day: f.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1] ?? '', data }))
   .filter((i) => i.day)
+  .map((i) => ({ ...i, cat: i.data.category ?? (/WSJ|월스트리트/.test(i.data.band_left ?? i.data.title) ? 'WSJ' : /Economist|이코노미스트/.test(i.data.band_left ?? i.data.title) ? '이코노미스트' : /블로그/.test(i.data.band_left ?? i.data.title) ? '블로그' : '기타') }))
   .sort((a, b) => b.day.localeCompare(a.day));
+const cats = [...new Set(issues.map((i) => i.cat))];
 const pdfs = new Set(Object.keys(import.meta.glob('../../../../public/press/*.pdf')).map((f) => f.match(/(\d{4}-\d{2}-\d{2})/)?.[1]));
 
 // 본문 끝에 ' ▶ 첨언: ...' 이 붙은 기사는 요약과 첨언을 나눠 보여 준다.
@@ -27,11 +29,15 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
     <p class="empty">아직 올라온 기사가 없습니다.</p>
   ) : (
     <>
+      <div class="cats" role="tablist" aria-label="분류">
+        <button type="button" class="cat is-on" data-cat="">전체 <i>{issues.length}</i></button>
+        {cats.map((c) => <button type="button" class="cat" data-cat={c}>{c} <i>{issues.filter((i) => i.cat === c).length}</i></button>)}
+      </div>
       <div class="picker">
         <button type="button" id="older" class="pbtn" aria-label="이전 날짜">← 이전</button>
         <label class="picker__l" for="day">날짜</label>
         <select id="day">
-          {issues.map((i) => <option value={i.day}>{i.day}</option>)}
+          {issues.map((i) => <option value={i.day} data-cat={i.cat}>{i.day}</option>)}
         </select>
         <button type="button" id="newer" class="pbtn" aria-label="다음 날짜">다음 →</button>
         <span class="zoom" role="group" aria-label="글자 크기">
@@ -42,7 +48,7 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
       </div>
 
       {issues.map((i, idx) => (
-        <section class="issue" data-day={i.day} hidden={idx !== 0}>
+        <section class="issue" data-day={i.day} data-cat={i.cat} hidden={idx !== 0}>
           <div class="paper">
             <div class="band">
               <span>{i.data.band_left ?? ''}</span>
@@ -89,11 +95,24 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
 <script>
   const sel = document.getElementById('day') as HTMLSelectElement | null;
   const secs = Array.from(document.querySelectorAll<HTMLElement>('.issue'));
+  const allOpts = sel ? Array.from(sel.options).map((o) => ({ v: o.value, c: o.dataset.cat ?? '' })) : [];
+  let curCat = '';
+  const catBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.cat'));
+  function setCat(c: string, push: boolean) {
+    if (!sel) return;
+    curCat = c;
+    catBtns.forEach((b) => b.classList.toggle('is-on', b.dataset.cat === c));
+    sel.innerHTML = '';
+    allOpts.filter((o) => !c || o.c === c).forEach((o) => { const op = document.createElement('option'); op.value = o.v; op.textContent = o.v; sel.appendChild(op); });
+    const n = document.querySelector('.picker__n'); if (n) n.textContent = sel.options.length + '일치 보관';
+    show(sel.options[0].value, push);
+  }
+  catBtns.forEach((b) => b.addEventListener('click', () => setCat(b.dataset.cat ?? '', true)));
   const older = document.getElementById('older') as HTMLButtonElement | null;
   const newer = document.getElementById('newer') as HTMLButtonElement | null;
   function show(day: string, push: boolean) {
     if (!sel) return;
-    if (!secs.some((s) => s.dataset.day === day)) day = sel.options[0].value;
+    if (!Array.from(sel.options).some((o) => o.value === day)) day = sel.options[0].value;
     sel.value = day;
     secs.forEach((s) => { s.hidden = s.dataset.day !== day; });
     const i = sel.selectedIndex;
@@ -119,7 +138,12 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
   down?.addEventListener('click', () => { zi = Math.max(0, zi - 1); applyZoom(); });
   up?.addEventListener('click', () => { zi = Math.min(STEPS.length - 1, zi + 1); applyZoom(); });
   applyZoom();
-  show(new URLSearchParams(location.search).get('d') ?? '', false);
+  {
+    const d0 = new URLSearchParams(location.search).get('d') ?? '';
+    const c0 = allOpts.find((o) => o.v === d0)?.c ?? '';
+    if (c0) setCat(c0, false);
+    show(d0, false);
+  }
 </script>
 
 <style is:global>
@@ -127,6 +151,12 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
   .picker{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:0 0 28px}
   .picker__l{font-size:.85rem; color:var(--ink2)}
   #day{font:inherit; font-size:.95rem; color:var(--ink); background:var(--surface); border:1px solid var(--rule2); border-radius:8px; padding:6px 12px}
+  .cats{display:flex; flex-wrap:wrap; gap:8px; padding:0 0 16px}
+  .cat{font:inherit; font-size:.9rem; color:var(--ink2); background:var(--surface2); border:1px solid var(--rule); border-radius:999px; padding:6px 14px; cursor:pointer}
+  .cat i{font-style:normal; font-size:.75rem; color:var(--ink3); margin-left:4px}
+  .cat:hover{border-color:var(--accent-line); color:var(--accent)}
+  .cat.is-on{background:var(--ink); color:var(--bg,#fff); border-color:var(--ink)}
+  .cat.is-on i{color:inherit; opacity:.7}
   .pbtn{font:inherit; font-size:.85rem; color:var(--ink2); background:var(--surface2); border:1px solid var(--rule); border-radius:8px; padding:6px 12px; cursor:pointer}
   .pbtn:hover:not(:disabled){border-color:var(--accent-line); color:var(--accent)}
   .pbtn:disabled{opacity:.4; cursor:default}
