@@ -8,12 +8,12 @@ interface Issue { category?: string; title: string; band_left?: string; section?
 
 const files = import.meta.glob<Issue>('../../../data/press/*.json', { eager: true, import: 'default' });
 const issues = Object.entries(files)
-  .map(([f, data]) => ({ day: f.match(/(\d{4}-\d{2}-\d{2})\.json$/)?.[1] ?? '', data }))
+  .map(([f, data]) => ({ day: f.match(/(\d{4}-\d{2}-\d{2}(?:_[a-z0-9]+)?)\.json$/)?.[1] ?? '', data }))
   .filter((i) => i.day)
   .map((i) => ({ ...i, cat: i.data.category ?? (/WSJ|월스트리트/.test(i.data.band_left ?? i.data.title) ? 'WSJ' : /Economist|이코노미스트/.test(i.data.band_left ?? i.data.title) ? '이코노미스트' : /블로그/.test(i.data.band_left ?? i.data.title) ? '블로그' : '기타') }))
   .sort((a, b) => b.day.localeCompare(a.day));
 const cats = [...new Set(issues.map((i) => i.cat))];
-const pdfs = new Set(Object.keys(import.meta.glob('../../../../public/press/*.pdf')).map((f) => f.match(/(\d{4}-\d{2}-\d{2})/)?.[1]));
+const pdfs = new Set(Object.keys(import.meta.glob('../../../../public/press/*.pdf')).map((f) => f.match(/(\d{4}-\d{2}-\d{2}(?:_[a-z0-9]+)?)\.pdf$/)?.[1]));
 
 // 본문 끝에 ' ▶ 첨언: ...' 이 붙은 기사는 요약과 첨언을 나눠 보여 준다.
 const MARK = ' ▶ 첨언: ';
@@ -37,14 +37,14 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
         <button type="button" id="older" class="pbtn" aria-label="이전 날짜">← 이전</button>
         <label class="picker__l" for="day">날짜</label>
         <select id="day">
-          {issues.map((i) => <option value={i.day} data-cat={i.cat}>{i.day}</option>)}
+          {issues.map((i) => <option value={i.day} data-cat={i.cat} data-label={`${i.day.slice(0, 10)} · ${i.cat}`}>{i.day.slice(0, 10)} · {i.cat}</option>)}
         </select>
         <button type="button" id="newer" class="pbtn" aria-label="다음 날짜">다음 →</button>
         <span class="zoom" role="group" aria-label="글자 크기">
           <button type="button" id="fs-down" class="pbtn" aria-label="글자 작게">가−</button>
           <button type="button" id="fs-up" class="pbtn" aria-label="글자 크게">가＋</button>
         </span>
-        <span class="picker__n">{issues.length}일치 보관</span>
+        <span class="picker__n">{issues.length}건 보관</span>
       </div>
 
       {issues.map((i, idx) => (
@@ -95,7 +95,7 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
 <script>
   const sel = document.getElementById('day') as HTMLSelectElement | null;
   const secs = Array.from(document.querySelectorAll<HTMLElement>('.issue'));
-  const allOpts = sel ? Array.from(sel.options).map((o) => ({ v: o.value, c: o.dataset.cat ?? '' })) : [];
+  const allOpts = sel ? Array.from(sel.options).map((o) => ({ v: o.value, c: o.dataset.cat ?? '', l: o.dataset.label ?? o.value })) : [];
   let curCat = '';
   const catBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.cat'));
   function setCat(c: string, push: boolean) {
@@ -103,8 +103,8 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
     curCat = c;
     catBtns.forEach((b) => b.classList.toggle('is-on', b.dataset.cat === c));
     sel.innerHTML = '';
-    allOpts.filter((o) => !c || o.c === c).forEach((o) => { const op = document.createElement('option'); op.value = o.v; op.textContent = o.v; sel.appendChild(op); });
-    const n = document.querySelector('.picker__n'); if (n) n.textContent = sel.options.length + '일치 보관';
+    allOpts.filter((o) => !c || o.c === c).forEach((o) => { const op = document.createElement('option'); op.value = o.v; op.textContent = o.l; sel.appendChild(op); });
+    const n = document.querySelector('.picker__n'); if (n) n.textContent = sel.options.length + '건 보관';
     show(sel.options[0].value, push);
   }
   catBtns.forEach((b) => b.addEventListener('click', () => setCat(b.dataset.cat ?? '', true)));

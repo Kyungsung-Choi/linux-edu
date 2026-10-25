@@ -1,5 +1,6 @@
 // 하루치 언론기사를 포트폴리오(/portfolio/press/)에 올린다. 날짜별 파일로 쌓이고, 같은 날짜를 다시 올리면 그날 것만 교체된다.
-// 사용: npm run press -- content.json [--date YYYY-MM-DD] [--pdf 파일.pdf] [--html 파일.html] [--deploy]
+// 사용: npm run press -- content.json [--date YYYY-MM-DD] [--pdf 파일.pdf] [--html 파일.html] [--slug 영문] [--deploy]
+//  - 같은 날짜에 출처가 다른 호가 둘 이상이면 --slug 로 구분 (예: --slug ng → 2026-10-26_ng.json)
 //  - content.json 은 신문브리핑 스킬과 같은 모양 (title, date, glance, articles[]...)
 //  - --date 가 없으면 content.json 의 "2026년 10월 24일 토요일" 에서 날짜를 읽는다
 //  - 같은 이름의 .pdf/.html 이 옆에 있으면 자동 사용
@@ -13,7 +14,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const take = (n) => { const i = args.indexOf(n); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
 const deploy = (() => { const i = args.indexOf('--deploy'); if (i >= 0) { args.splice(i, 1); return true; } return false; })();
-const dateArg = take('--date'), pdfArg = take('--pdf'), htmlArg = take('--html');
+const slugArg = take('--slug'), dateArg = take('--date'), pdfArg = take('--pdf'), htmlArg = take('--html');
 const src = args[0];
 if (!src || !existsSync(src)) { console.error('사용법: npm run press -- content.json [--date YYYY-MM-DD] [--pdf f.pdf] [--html f.html] [--deploy]'); process.exit(1); }
 
@@ -27,6 +28,7 @@ if (!date) {
 }
 if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { console.error('날짜를 알 수 없어요. --date YYYY-MM-DD 로 알려 주세요.'); process.exit(1); }
 
+if (slugArg) { if (!/^[a-z0-9]+$/.test(slugArg)) { console.error('--slug 는 영소문자·숫자만 쓸 수 있어요.'); process.exit(1); } date = `${date}_${slugArg}`; }
 mkdirSync(join(ROOT, 'src/data/press'), { recursive: true });
 mkdirSync(join(ROOT, 'public/press'), { recursive: true });
 const dest = join(ROOT, 'src/data/press', `${date}.json`);
