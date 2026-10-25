@@ -2,7 +2,7 @@
 import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 // 날짜별 기사 데이터: src/data/press/YYYY-MM-DD.json (scripts/press-upload.mjs 가 저장)
-// 같은 날짜의 PDF/HTML 은 public/press/YYYY-MM-DD.pdf|html 에 있으면 내려받기 링크가 생긴다.
+// 같은 날짜의 PDF 가 public/press/YYYY-MM-DD.pdf 에 있으면 내려받기 링크가 생긴다.
 interface Article { kicker?: string; headline: string; sub?: string; body: string; source_title?: string; scope?: string }
 interface Issue { title: string; section?: string; date: string; source_label?: string; glance?: string[]; footnote?: string; articles: Article[] }
 
@@ -12,7 +12,6 @@ const issues = Object.entries(files)
   .filter((i) => i.day)
   .sort((a, b) => b.day.localeCompare(a.day));
 const pdfs = new Set(Object.keys(import.meta.glob('../../../../public/press/*.pdf')).map((f) => f.match(/(\d{4}-\d{2}-\d{2})/)?.[1]));
-const htmls = new Set(Object.keys(import.meta.glob('../../../../public/press/*.html')).map((f) => f.match(/(\d{4}-\d{2}-\d{2})/)?.[1]));
 
 const TITLE = '언론기사 · 최경성';
 const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약해 날짜별로 쌓아 둡니다.';
@@ -44,7 +43,6 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
           <p class="issue__m">
             {i.data.date}{i.data.section ? ` · ${i.data.section}` : ''}
             {pdfs.has(i.day) && <a href={`/press/${i.day}.pdf`} target="_blank" rel="noopener">PDF</a>}
-            {htmls.has(i.day) && <a href={`/press/${i.day}.html`} target="_blank" rel="noopener">HTML</a>}
           </p>
           {i.data.glance && i.data.glance.length > 0 && (
             <div class="glance">
