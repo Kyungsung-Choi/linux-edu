@@ -13,27 +13,28 @@
 
 @layer tokens{
   :root{
+    /* 모노톤: 색은 캐릭터(코랄)만 쓰고 나머지는 무채색 */
     --h:215;
-    --ground:oklch(99.2% .003 var(--h));
-    --hover:oklch(96.5% .012 var(--h));
-    --band:oklch(95.5% .022 var(--h));
-    --ink:oklch(22% .03 250);
-    --ink2:oklch(42% .025 250);
-    --ink3:oklch(55% .02 250);
-    --line:oklch(91% .01 var(--h));
-    --accent:oklch(52% .125 var(--h));
-    --accent-dk:color-mix(in oklch, var(--accent), black 22%);
+    --ground:oklch(99.2% 0 0);
+    --hover:oklch(96.5% 0 0);
+    --band:oklch(97% 0 0);
+    --ink:oklch(20% 0 0);
+    --ink2:oklch(40% 0 0);
+    --ink3:oklch(52% 0 0);
+    --line:oklch(91% 0 0);
+    --accent:oklch(20% 0 0);
+    --accent-dk:oklch(38% 0 0);
     --accent-ink:oklch(100% 0 0);
     --sans:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
     --serif:'Nanum Myeongjo','Gowun Batang',serif;
     --col:760px; --pad:24px; --hdr:64px;
 
     /* 안쪽 페이지(브리핑·AI TIP)가 쓰는 이름 */
-    --surface:oklch(97% .008 var(--h));
-    --surface2:oklch(94% .014 var(--h));
+    --surface:oklch(97% 0 0);
+    --surface2:oklch(94% 0 0);
     --rule:var(--line);
-    --rule2:oklch(86% .015 var(--h));
-    --accent-line:color-mix(in oklch, var(--accent), white 55%);
+    --rule2:oklch(86% 0 0);
+    --accent-line:oklch(75% 0 0);
   }
 }
 
@@ -100,11 +101,11 @@
     h3{font-size:1.15rem; margin-block:1.8em .5em}
     :is(p,ul,ol){margin-bottom:1.1em}
     ul,ol{padding-left:1.3em}
-    a{color:var(--accent)}
+    a{color:var(--ink); text-decoration:underline; text-underline-offset:4px; text-decoration-color:var(--ink3)}
     img{height:auto; margin-block:1.4em}
     blockquote{margin-block:1.4em; padding:14px 20px; background:var(--hover); p:last-child{margin:0}}
     code{background:var(--hover); padding:1px 6px; font-size:.9em}
-    pre{background:oklch(25% .05 245); color:oklch(96% .01 215); padding:18px 22px; overflow-x:auto; line-height:1.6; code{background:none; padding:0}}
+    pre{background:oklch(22% 0 0); color:oklch(96% 0 0); padding:18px 22px; overflow-x:auto; line-height:1.6; code{background:none; padding:0}}
     table{border-collapse:collapse; width:100%; margin-block:1.4em; font-size:.95rem}
     :is(th,td){padding:9px 12px; text-align:left; background:var(--hover)}
     th{font-weight:600}

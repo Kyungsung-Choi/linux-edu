@@ -148,7 +148,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
   .contacts{list-style:none; display:flex; flex-direction:column; gap:6px;
     li{display:grid; grid-template-columns:120px 1fr; gap:16px}
     li span{color:var(--ink3)}
-    a{color:var(--accent); text-decoration:none; &:hover{text-decoration:underline; text-underline-offset:4px}}
+    a{color:var(--ink); text-decoration:underline; text-underline-offset:4px; text-decoration-color:var(--ink3); &:hover{text-decoration-color:var(--ink)}}
   }
 
   @media (max-width:600px){
