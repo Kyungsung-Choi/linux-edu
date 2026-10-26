@@ -2,6 +2,7 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { projects } from '../data/projects';
 import { getCollection } from 'astro:content';
+import Mascot from '../components/Mascot.astro';
 
 const TITLE = '최경성 · 교육 콘텐츠 기획자';
 const DESC = '교육 콘텐츠 기획자 · 기술 문서 작성자. 학습자의 눈높이에서 시작해, 왜 그렇게 설계됐는지부터 설명하는 자료를 만듭니다.';
@@ -51,11 +52,14 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 <SiteLayout title={TITLE} description={DESC} path="/" active="home" bleed>
   <div class="col">
     <section class="hero">
-      <h1 class="hero__h">혼자서도 이해되는 자료를 만듭니다</h1>
-      <p class="hero__p">
-        교육 콘텐츠 기획자 · 기술 문서 작성자 최경성입니다. 학습자의 눈높이에서 시작해,
-        왜 그렇게 설계됐는지부터 설명하는 교재와 문서를 만듭니다.
-      </p>
+      <div class="hero__text">
+        <h1 class="hero__h">혼자서도 이해되는 자료를 만듭니다</h1>
+        <p class="hero__p">
+          교육 콘텐츠 기획자 · 기술 문서 작성자 최경성입니다. 학습자의 눈높이에서 시작해,
+          왜 그렇게 설계됐는지부터 설명하는 교재와 문서를 만듭니다.
+        </p>
+      </div>
+      <Mascot />
     </section>
 
     <section class="sec" id="portfolio" aria-labelledby="portfolio-h">
@@ -129,7 +133,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 </SiteLayout>
 
 <style is:global>
-  .hero{padding-block:96px 24px}
+  .hero{padding-block:88px 24px; display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center}
   .hero .hero__h{font-size:clamp(2.2rem,6vw,3.6rem); font-weight:700; letter-spacing:-.035em; line-height:1.18; margin-bottom:24px}
   .hero .hero__p{font-size:1.15rem; color:var(--ink2); max-width:40ch}
 
@@ -150,7 +154,8 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
   }
 
   @media (max-width:600px){
-    .hero{padding-top:56px}
+    .hero{padding-top:40px; grid-template-columns:1fr}
+    .hero .mascot{order:-1; justify-self:start; width:140px}
     .cv,.contacts li{grid-template-columns:1fr; gap:0}
     .cv dd{margin-bottom:10px}
   }
