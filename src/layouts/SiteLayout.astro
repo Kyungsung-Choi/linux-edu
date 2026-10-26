@@ -24,9 +24,7 @@ const NAME = '최경성';
   <title>{title}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={SITE + path} />
-  <link rel="preconnect" href="https://api.fontshare.com" />
-  <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=boska@400,500&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <link rel="alternate" type="application/rss+xml" title="최경성 · 블로그" href="/rss.xml" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -48,26 +46,23 @@ const NAME = '최경성';
   <meta name="twitter:image" content={SITE + '/og.png'} />
 </head>
 <body>
-  <header class="mast">
-    <div class="mast__in">
-      <a href="/" class="mast__name">{NAME}</a>
-      <nav class="mast__nav">
+  <header class="site-head">
+    <div class={`site-head__in ${bleed ? "col" : "wrap"}`}>
+      <a href="/" class="site-head__name">{NAME}</a>
+      <nav class="site-head__nav">
         <a href="/#portfolio" aria-current={active === 'portfolio' ? 'page' : undefined}>포트폴리오</a>
         <a href="/#library" aria-current={active === 'library' ? 'page' : undefined}>자료실</a>
         <a href="/#blog" aria-current={active === 'blog' ? 'page' : undefined}>블로그</a>
-        <a href="/#about">소개</a>
         <a href="/#contact">연락처</a>
       </nav>
     </div>
   </header>
 
-  <main class={bleed ? "bleed" : "wrap"}>
+  <main class={bleed ? undefined : 'wrap'}>
     <slot />
   </main>
 
-  <footer class="foot">
-    <div class="wrap"><span class="foot__name">{NAME}</span><span class="foot__sm">© {new Date().getFullYear()} {NAME} · 배경 사진 Billy Lam, Unsplash License (picsum.photos)</span></div>
-  </footer>
+  <footer class={`site-foot ${bleed ? "col" : "wrap"}`}>© {new Date().getFullYear()} {NAME}</footer>
 
 
 </body>
