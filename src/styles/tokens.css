@@ -1,3 +1,4 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 @import url("https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap");
 
 /* ==========================================================================
@@ -41,9 +42,10 @@
   --sl-color-hairline-light:#4A3743;
   --sl-color-hairline-shade:#2A1F27;
 
-  --sl-font:"IBM Plex Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --sl-font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --sl-font-mono:"IBM Plex Mono","SFMono-Regular",Consolas,"D2Coding",monospace;
-  --serif:"Gowun Batang","Nanum Myeongjo",Georgia,serif;
+  /* 사이트 전체가 고딕 한 가지: 명조·고정폭 라벨도 모두 같은 글꼴로 */
+  --serif:var(--sl-font);
   --sans:var(--sl-font);
   --mono:var(--sl-font-mono);
 
@@ -59,40 +61,40 @@
 }
 
 :root[data-theme="light"] {
-  /* 새 사이트 디자인(site.css)과 같은 청록 계열 */
-  --ground:#F7FBFC; --surface:#FFFFFF; --surface2:#EEF5F8; --surface3:#E1EEF2;
-  --ink:#16202E; --ink2:#44505E; --ink3:#62707E;
-  --rule:#DCE9EE; --rule2:#C4D8DF;
-  --accent:#1B7189; --accent-soft:#E3F1F5; --accent-line:#A9D3DE;
-  --plum:#1E3A5F; --plum-soft:#E6EEF5; --plum-line:#C5D5E4;
-  --term-bg:#13202B; --term-ink:#E8F1F5; --term-dim:#8FA4B2;
-  --term-prompt:#5FB3C7; --term-cmt:#6B8393;
+  /* 사이트와 같은 모노톤(무채색) */
+  --ground:#FCFCFC; --surface:#FFFFFF; --surface2:#F5F5F5; --surface3:#EBEBEB;
+  --ink:#1A1A1A; --ink2:#4A4A4A; --ink3:#6B6B6B;
+  --rule:#E6E6E6; --rule2:#D2D2D2;
+  --accent:#1A1A1A; --accent-soft:#F0F0F0; --accent-line:#BDBDBD;
+  --plum:#333333; --plum-soft:#F0F0F0; --plum-line:#D2D2D2;
+  --term-bg:#1B1B1B; --term-ink:#ECECEC; --term-dim:#9A9A9A;
+  --term-prompt:#E58B63; --term-cmt:#7A7A7A;
   --ok:#1C6B4E; --ok-soft:#E4F1EA;
   --warn:#8E5400; --warn-soft:#FBF0DC;
   --danger:#A32519; --danger-soft:#FBE7E4;
-  --shadow:0 1px 2px rgba(22,32,46,.05), 0 8px 24px -14px rgba(22,32,46,.2);
+  --shadow:0 1px 2px rgba(0,0,0,.05), 0 8px 24px -14px rgba(0,0,0,.2);
 
-  --sl-color-accent:#1B7189;
-  --sl-color-accent-low:#E3F1F5;
-  --sl-color-accent-high:#16202E;
-  --sl-color-white:#16202E;
-  --sl-color-gray-1:#16202E;
-  --sl-color-gray-2:#44505E;
-  --sl-color-gray-3:#62707E;
-  --sl-color-gray-4:#C4D8DF;
-  --sl-color-gray-5:#EEF5F8;
-  --sl-color-gray-6:#F7FBFC;
+  --sl-color-accent:#1A1A1A;
+  --sl-color-accent-low:#F0F0F0;
+  --sl-color-accent-high:#1A1A1A;
+  --sl-color-white:#1A1A1A;
+  --sl-color-gray-1:#1A1A1A;
+  --sl-color-gray-2:#4A4A4A;
+  --sl-color-gray-3:#6B6B6B;
+  --sl-color-gray-4:#D2D2D2;
+  --sl-color-gray-5:#F5F5F5;
+  --sl-color-gray-6:#FCFCFC;
   --sl-color-gray-7:#FFFFFF;
   --sl-color-black:#FFFFFF;
-  --sl-color-bg:#F7FBFC;
-  --sl-color-bg-nav:#EEF5F8;
-  --sl-color-bg-sidebar:#EEF5F8;
-  --sl-color-bg-inline-code:#EEF5F8;
-  --sl-color-text:#16202E;
-  --sl-color-text-accent:#1B7189;
-  --sl-color-hairline:#DCE9EE;
-  --sl-color-hairline-light:#C4D8DF;
-  --sl-color-hairline-shade:#E1EEF2;
+  --sl-color-bg:#FCFCFC;
+  --sl-color-bg-nav:#F5F5F5;
+  --sl-color-bg-sidebar:#F5F5F5;
+  --sl-color-bg-inline-code:#F5F5F5;
+  --sl-color-text:#1A1A1A;
+  --sl-color-text-accent:#1A1A1A;
+  --sl-color-hairline:#E6E6E6;
+  --sl-color-hairline-light:#D2D2D2;
+  --sl-color-hairline-shade:#EBEBEB;
 }
 
 /* 라이트 한 가지만 쓴다 — 테마 선택 상자는 숨긴다 */
@@ -138,9 +140,10 @@ starlight-theme-select { display:none; }
   *{animation:none!important; transition:none!important;}
 }
 
-/* 페이지 제목 — 세리프 디스플레이 타이틀 */
+/* 페이지 제목 — 사이트 첫 화면 제목과 같은 굵은 고딕 */
 h1#_top {
-  font-family: var(--serif);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }

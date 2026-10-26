@@ -19,7 +19,7 @@ const { id, title, time } = Astro.props;
     align-items:baseline; gap:13px; border-bottom:1px solid var(--accent-line); flex-wrap:wrap;
   }
   .lab__k{
-    font-family:var(--mono); font-size:.68rem; font-weight:600; letter-spacing:.14em;
+    font-family:var(--sans); font-size:.68rem; font-weight:600; letter-spacing:.14em;
     text-transform:uppercase; color:var(--accent); white-space:nowrap;
   }
   .lab__t{font-weight:600; font-size:.98rem}
@@ -28,5 +28,5 @@ const { id, title, time } = Astro.props;
   .lab__b :global(p){max-width:none}
   .lab__b :global(ol){margin:0; padding-left:20px}
   .lab__b :global(ol > li){margin-bottom:1rem; padding-left:4px; max-width:none}
-  .lab__b :global(ol > li::marker){font-family:var(--mono); font-weight:600; color:var(--accent)}
+  .lab__b :global(ol > li::marker){font-family:var(--sans); font-weight:600; color:var(--accent)}
 </style>
