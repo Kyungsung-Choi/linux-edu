@@ -62,7 +62,7 @@ const NAME = '최경성';
     <slot />
   </main>
 
-  <footer class={`site-foot ${bleed ? "col" : "wrap"}`}>© {new Date().getFullYear()} {NAME}</footer>
+  <footer class={bleed ? "col" : "wrap"}><div class="site-foot">© {new Date().getFullYear()} {NAME}</div></footer>
 
 
 </body>
