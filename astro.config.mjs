@@ -51,6 +51,8 @@ export default defineConfig({
       // Starlight는 og:title·og:description·og:url·og:site_name 을 페이지마다 자동 생성한다.
       // 여기서는 이미지와 트위터 카드, 아이콘만 보탠다.
       head: [
+        // 라이트 테마로 고정(저장된 다크 설정이 있어도 덮어쓴다)
+        { tag: 'script', content: "try{localStorage.setItem('starlight-theme','light')}catch(e){}document.documentElement.dataset.theme='light'" },
         { tag: 'meta', attrs: { property: 'og:image', content: `${SITE}/og-linux.png` } },
         { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },

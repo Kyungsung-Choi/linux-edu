@@ -59,40 +59,44 @@
 }
 
 :root[data-theme="light"] {
-  --ground:#FBF8FA; --surface:#FFFFFF; --surface2:#F4EFF2; --surface3:#EDE5EA;
-  --ink:#241A20; --ink2:#5E4B55; --ink3:#8D7883;
-  --rule:#E5DCE1; --rule2:#D3C6CD;
-  --accent:#C93F10; --accent-soft:#FBEAE2; --accent-line:#F0C8B6;
-  --plum:#772953; --plum-soft:#F3E7EE; --plum-line:#DFC3D3;
-  --term-bg:#2B1A26; --term-ink:#F4EAEF; --term-dim:#A8919E;
-  --term-prompt:#F0855A; --term-cmt:#7E6B77;
+  /* 새 사이트 디자인(site.css)과 같은 청록 계열 */
+  --ground:#F7FBFC; --surface:#FFFFFF; --surface2:#EEF5F8; --surface3:#E1EEF2;
+  --ink:#16202E; --ink2:#44505E; --ink3:#62707E;
+  --rule:#DCE9EE; --rule2:#C4D8DF;
+  --accent:#1B7189; --accent-soft:#E3F1F5; --accent-line:#A9D3DE;
+  --plum:#1E3A5F; --plum-soft:#E6EEF5; --plum-line:#C5D5E4;
+  --term-bg:#13202B; --term-ink:#E8F1F5; --term-dim:#8FA4B2;
+  --term-prompt:#5FB3C7; --term-cmt:#6B8393;
   --ok:#1C6B4E; --ok-soft:#E4F1EA;
   --warn:#8E5400; --warn-soft:#FBF0DC;
   --danger:#A32519; --danger-soft:#FBE7E4;
-  --shadow:0 1px 2px rgba(36,26,32,.05), 0 8px 24px -14px rgba(36,26,32,.22);
+  --shadow:0 1px 2px rgba(22,32,46,.05), 0 8px 24px -14px rgba(22,32,46,.2);
 
-  --sl-color-accent:#C93F10;
-  --sl-color-accent-low:#FBEAE2;
-  --sl-color-accent-high:#241A20;
-  --sl-color-white:#241A20;
-  --sl-color-gray-1:#241A20;
-  --sl-color-gray-2:#5E4B55;
-  --sl-color-gray-3:#8D7883;
-  --sl-color-gray-4:#D3C6CD;
-  --sl-color-gray-5:#F4EFF2;
-  --sl-color-gray-6:#FBF8FA;
+  --sl-color-accent:#1B7189;
+  --sl-color-accent-low:#E3F1F5;
+  --sl-color-accent-high:#16202E;
+  --sl-color-white:#16202E;
+  --sl-color-gray-1:#16202E;
+  --sl-color-gray-2:#44505E;
+  --sl-color-gray-3:#62707E;
+  --sl-color-gray-4:#C4D8DF;
+  --sl-color-gray-5:#EEF5F8;
+  --sl-color-gray-6:#F7FBFC;
   --sl-color-gray-7:#FFFFFF;
   --sl-color-black:#FFFFFF;
-  --sl-color-bg:#FBF8FA;
-  --sl-color-bg-nav:#F4EFF2;
-  --sl-color-bg-sidebar:#F4EFF2;
-  --sl-color-bg-inline-code:#F4EFF2;
-  --sl-color-text:#241A20;
-  --sl-color-text-accent:#C93F10;
-  --sl-color-hairline:#E5DCE1;
-  --sl-color-hairline-light:#D3C6CD;
-  --sl-color-hairline-shade:#EDE5EA;
+  --sl-color-bg:#F7FBFC;
+  --sl-color-bg-nav:#EEF5F8;
+  --sl-color-bg-sidebar:#EEF5F8;
+  --sl-color-bg-inline-code:#EEF5F8;
+  --sl-color-text:#16202E;
+  --sl-color-text-accent:#1B7189;
+  --sl-color-hairline:#DCE9EE;
+  --sl-color-hairline-light:#C4D8DF;
+  --sl-color-hairline-shade:#E1EEF2;
 }
+
+/* 라이트 한 가지만 쓴다 — 테마 선택 상자는 숨긴다 */
+starlight-theme-select { display:none; }
 
 /* ── 한글 본문 가독성 ─────────────────────────────────────── */
 .sl-markdown-content { line-height:var(--lh-body); }

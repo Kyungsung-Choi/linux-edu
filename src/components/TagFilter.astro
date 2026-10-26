@@ -1,0 +1,30 @@
+---
+// 태그 필터 — 스크립트 없이 라디오 + :has() 만으로 목록을 거른다.
+// 사용: <TagFilter tags={['a','b']} /> 를 목록 바로 앞에 두고,
+// 각 행에 data-tags="0 2"(태그 번호) 를 붙인다. 목록 컨테이너는 .rows.
+interface Props { tags: string[] }
+const { tags } = Astro.props;
+---
+{tags.length > 1 && (
+  <form class="tf" aria-label="태그로 거르기">
+    <input class="tf__in" type="radio" name="tag" id="tf-all" checked />
+    <label class="tf__chip" for="tf-all">전체</label>
+    {tags.map((t, i) => (
+      <>
+        <input class="tf__in" type="radio" name="tag" id={`tf-${i}`} />
+        <label class="tf__chip" for={`tf-${i}`}>{t}</label>
+      </>
+    ))}
+  </form>
+)}
+<style is:global define:vars={{ n: tags.length }}>
+  .tf{display:flex; flex-wrap:wrap; gap:8px; margin:0 0 28px}
+  .tf__in{position:absolute; opacity:0; pointer-events:none}
+  .tf__chip{cursor:pointer; padding:6px 16px; background:var(--surface); transition:background .15s, color .15s}
+  .tf__chip:hover{background:var(--surface2)}
+  .tf__in:checked + .tf__chip{background:var(--accent); color:var(--accent-ink)}
+  .tf__in:focus-visible + .tf__chip{outline:2px solid var(--accent); outline-offset:3px}
+</style>
+{tags.map((_, i) => (
+  <style is:global set:html={`body:has(#tf-${i}:checked) .rows .row:not([data-tags~="${i}"]){display:none}`}></style>
+))}

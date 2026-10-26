@@ -1,5 +1,7 @@
 export interface Project {
   slug: string;
+  /** 어느 구역에 나오는지: portfolio(제작한 교재·과정) / library(계속 쌓이는 자료) */
+  section: 'portfolio' | 'library';
   title: string;
   kind: string;
   summary: string;
@@ -12,10 +14,11 @@ export interface Project {
   newWindow?: boolean;
 }
 
-/** 포트폴리오 항목을 추가하려면 이 배열에만 한 줄 넣으면 된다. */
+/** 항목을 추가하려면 이 배열에 객체 하나만 넣으면 된다. section 으로 포트폴리오/자료실을 가른다. */
 export const projects: Project[] = [
   {
     slug: 'linux',
+    section: 'portfolio',
     title: '윈도우 사용자를 위한 리눅스 입문',
     kind: '교육 커리큘럼',
     summary:
@@ -28,6 +31,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'econ',
+    section: 'portfolio',
     title: '연준 뉴스를 읽기 위한 경제 기초',
     kind: '교육 교재',
     summary:
@@ -40,6 +44,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'press',
+    section: 'library',
     title: '언론기사 브리핑',
     kind: '매일 업데이트',
     summary:
@@ -52,6 +57,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'ai-tips',
+    section: 'library',
     title: 'AI 활용 TIP',
     kind: 'TIP 모음',
     summary:

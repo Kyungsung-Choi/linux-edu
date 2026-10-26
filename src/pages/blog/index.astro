@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import TagFilter from '../../components/TagFilter.astro';
+
+const posts = (await getCollection('posts', (p) => !p.data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))];
+const idx = (t: string[]) => t.map((x) => tags.indexOf(x)).join(' ');
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
+---
+<SiteLayout title="블로그 · 최경성" description="교육 콘텐츠와 기술 문서를 쓰며 배운 것들." path="/blog/" active="blog">
+  <div class="wrap">
+    <header class="ph">
+      <h1 class="ph__h">블로그</h1>
+      <p class="ph__p">교육 콘텐츠와 기술 문서를 쓰며 배운 것들을 적습니다.</p>
+    </header>
+    {posts.length === 0 ? (
+      <p class="empty">아직 올라온 글이 없습니다.</p>
+    ) : (
+      <TagFilter tags={tags} />
+      <section class="rows" aria-label="글 목록">
+        {posts.map((p) => (
+          <a class="row" data-tags={idx(p.data.tags)} href={`/blog/${p.id}/`}>
+            <div>
+              <p class="row__meta">{fmt(p.data.date)}</p>
+              <h2 class="row__t">{p.data.title}</h2>
+            </div>
+            <div>
+              <p class="row__s">{p.data.summary}</p>
+              <ul class="tags">{p.data.tags.map((t) => <li>{t}</li>)}</ul>
+              <span class="row__go" aria-hidden="true">읽기 →</span>
+            </div>
+          </a>
+        ))}
+      </section>
+    )}
+  </div>
+</SiteLayout>
