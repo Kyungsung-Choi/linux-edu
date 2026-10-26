@@ -52,10 +52,10 @@ const NAME = '최경성';
     <div class="mast__in">
       <a href="/" class="mast__name">{NAME}</a>
       <nav class="mast__nav">
+        <a href="/#portfolio" aria-current={active === 'portfolio' ? 'page' : undefined}>포트폴리오</a>
+        <a href="/#library" aria-current={active === 'library' ? 'page' : undefined}>자료실</a>
+        <a href="/#blog" aria-current={active === 'blog' ? 'page' : undefined}>블로그</a>
         <a href="/#about">소개</a>
-        <a href="/portfolio/" aria-current={active === 'portfolio' ? 'page' : undefined}>포트폴리오</a>
-        <a href="/library/" aria-current={active === 'library' ? 'page' : undefined}>자료실</a>
-        <a href="/blog/" aria-current={active === 'blog' ? 'page' : undefined}>블로그</a>
         <a href="/#contact">연락처</a>
       </nav>
     </div>

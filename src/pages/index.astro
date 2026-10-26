@@ -53,7 +53,7 @@ const altOf: Record<string, string> = {
 
 const posts = (await getCollection('posts', (p) => !p.data.draft))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0, 3);
+  .slice(0, 12);
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
 const folders = [
@@ -80,7 +80,6 @@ const folders = [
   <section class="sec" id="portfolio" aria-labelledby="portfolio-h">
     <div class="sec__head">
       <h2 id="portfolio-h" class="sec__h">포트폴리오</h2>
-      <a class="sec__more" href="/portfolio/">전체 보기 →</a>
     </div>
     <div class="bands">
       {portfolio.map((p, i) => (
@@ -105,7 +104,6 @@ const folders = [
   <section class="sec" id="library" aria-labelledby="library-h">
     <div class="sec__head">
       <h2 id="library-h" class="sec__h">자료실</h2>
-      <a class="sec__more" href="/library/">전체 보기 →</a>
     </div>
     <div class="lib">
       {library.map((p) => (
@@ -122,7 +120,6 @@ const folders = [
   <section class="sec" id="blog" aria-labelledby="blog-h">
     <div class="sec__head">
       <h2 id="blog-h" class="sec__h">블로그</h2>
-      <a class="sec__more" href="/blog/">전체 보기 →</a>
     </div>
     {posts.length === 0 ? (
       <p class="empty">첫 글을 준비하고 있습니다.</p>
@@ -199,9 +196,8 @@ const folders = [
 
   /* 구역 공통 */
   .sec{padding:120px var(--pad) 0; max-width:calc(var(--max) + 2*var(--pad)); margin-inline:auto; container-type:inline-size}
-  .sec__head{display:flex; align-items:baseline; justify-content:space-between; gap:20px; margin-bottom:56px}
+  .sec__head{margin-bottom:56px}
   .sec__h{font-size:clamp(2.4rem,6vw,4.5rem); line-height:1; letter-spacing:-.03em}
-  .sec__more{color:var(--accent); text-decoration:none; font-weight:500; &:hover{text-decoration:underline; text-underline-offset:6px}}
   .sec .rows{padding-bottom:0}
 
   /* 포트폴리오: 위로 쌓이는 폴더 */

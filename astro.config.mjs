@@ -6,6 +6,10 @@ const SITE = 'https://linux-edu.vercel.app';
 export default defineConfig({
   site: SITE,
   redirects: {
+    // 한 페이지(홈)로 합쳤으므로 옛 목록 주소는 해당 구역으로 보낸다
+    '/portfolio/': '/#portfolio',
+    '/library/': '/#library',
+    '/blog/': '/#blog',
     '/linux/week-01/': '/portfolio/linux/chapter-01/',
     '/linux/week-02/': '/portfolio/linux/chapter-02/',
     '/linux/week-03/': '/portfolio/linux/chapter-03/',
