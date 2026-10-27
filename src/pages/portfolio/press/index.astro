@@ -20,13 +20,13 @@ const MARK = ' ▶ 첨언: ';
 const parts = (b: string): [string, string] => { const k = b.indexOf(MARK); return k < 0 ? [b, ''] : [b.slice(0, k), b.slice(k + MARK.length)]; };
 
 const TITLE = '언론기사 · 앵두아빠의 AI공부방';
-const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약해 날짜별로 쌓아 둡니다.';
+const DESC = '해외 경제·비즈니스 기사와 공시 리포트를 쉬운 한국어로 요약해 날짜별로 쌓아 둡니다.';
 ---
 <SiteLayout title={TITLE} description={DESC} path="/portfolio/press/" active="portfolio">
   
 
   {issues.length === 0 ? (
-    <p class="empty">아직 올라온 기사가 없습니다.</p>
+    <p class="empty">아직 올라온 문서가 없습니다.</p>
   ) : (
     <>
       <div class="cats" role="tablist" aria-label="분류">
@@ -34,12 +34,12 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
         {cats.map((c) => <button type="button" class="cat" data-cat={c}>{c} <i>{issues.filter((i) => i.cat === c).length}</i></button>)}
       </div>
       <div class="picker">
-        <button type="button" id="older" class="pbtn" aria-label="이전 날짜">← 이전</button>
-        <label class="picker__l" for="day">날짜</label>
+        <button type="button" id="older" class="pbtn" aria-label="이전 문서">← 이전</button>
+        <label class="picker__l" for="day">문서</label>
         <select id="day">
           {issues.map((i) => <option value={i.day} data-cat={i.cat} data-label={`${i.day.slice(0, 10)} · ${i.cat}`}>{i.day.slice(0, 10)} · {i.cat}</option>)}
         </select>
-        <button type="button" id="newer" class="pbtn" aria-label="다음 날짜">다음 →</button>
+        <button type="button" id="newer" class="pbtn" aria-label="다음 문서">다음 →</button>
         <span class="zoom" role="group" aria-label="글자 크기">
           <button type="button" id="fs-down" class="pbtn" aria-label="글자 작게">가−</button>
           <button type="button" id="fs-up" class="pbtn" aria-label="글자 크게">가＋</button>
