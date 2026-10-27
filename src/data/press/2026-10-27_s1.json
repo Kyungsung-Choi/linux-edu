@@ -32,8 +32,8 @@
       "scope": "전체",
       "images": [
         {
-          "src": "/press/img/2026-10-27_s1/01_revenue.png",
-          "alt": "연 매출 막대그래프"
+          "alt": "연 매출 막대그래프",
+          "src": "/press/img/2026-10-27_s1/01_revenue.png"
         }
       ]
     },
@@ -46,12 +46,12 @@
       "scope": "전체",
       "images": [
         {
-          "src": "/press/img/2026-10-27_s1/02_loss.png",
-          "alt": "2026 상반기 순손실 구성"
+          "alt": "2026 상반기 순손실 구성",
+          "src": "/press/img/2026-10-27_s1/02_loss.png"
         },
         {
-          "src": "/press/img/2026-10-27_s1/03_operating_loss.png",
-          "alt": "영업손실 추이"
+          "alt": "영업손실 추이",
+          "src": "/press/img/2026-10-27_s1/03_operating_loss.png"
         }
       ]
     },
@@ -64,8 +64,8 @@
       "scope": "전체",
       "images": [
         {
-          "src": "/press/img/2026-10-27_s1/04_customers.png",
-          "alt": "연 10만 달러 이상 고객 수"
+          "alt": "연 10만 달러 이상 고객 수",
+          "src": "/press/img/2026-10-27_s1/04_customers.png"
         }
       ]
     },
@@ -86,12 +86,12 @@
       "scope": "전체",
       "images": [
         {
-          "src": "/press/img/2026-10-27_s1/05_cash_vs_commitments.png",
-          "alt": "현금 대 컴퓨팅 약정"
+          "alt": "현금 대 컴퓨팅 약정",
+          "src": "/press/img/2026-10-27_s1/05_cash_vs_commitments.png"
         },
         {
-          "src": "/press/img/2026-10-27_s1/06_commitments.png",
-          "alt": "업체별 컴퓨팅 약정"
+          "alt": "업체별 컴퓨팅 약정",
+          "src": "/press/img/2026-10-27_s1/06_commitments.png"
         }
       ]
     },
@@ -104,8 +104,8 @@
       "scope": "전체",
       "images": [
         {
-          "src": "/press/img/2026-10-27_s1/07_voting.png",
-          "alt": "투표권 구성"
+          "alt": "투표권 구성",
+          "src": "/press/img/2026-10-27_s1/07_voting.png"
         }
       ]
     },
@@ -118,8 +118,8 @@
       "scope": "전체",
       "images": [
         {
-          "src": "/press/img/2026-10-27_s1/08_lockup.png",
-          "alt": "락업 타임라인"
+          "alt": "락업 타임라인",
+          "src": "/press/img/2026-10-27_s1/08_lockup.png"
         }
       ]
     },

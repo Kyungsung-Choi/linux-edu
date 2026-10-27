@@ -33,10 +33,24 @@ mkdirSync(join(ROOT, 'src/data/press'), { recursive: true });
 mkdirSync(join(ROOT, 'public/press'), { recursive: true });
 const dest = join(ROOT, 'src/data/press', `${date}.json`);
 const replaced = existsSync(dest);
+// 기사 images[].file (content.json 옆 경로)은 public/press/img/<날짜>/ 로 복사하고 src 로 바꿔 저장한다.
+const imgAdded = [];
+for (const a of issue.articles) {
+  for (const im of a.images ?? []) {
+    if (!im.file) continue;
+    const from = resolve(dirname(resolve(src)), im.file);
+    if (!existsSync(from)) { console.error(`이미지를 찾을 수 없어요: ${from}`); process.exit(1); }
+    mkdirSync(join(ROOT, 'public/press/img', date), { recursive: true });
+    copyFileSync(from, join(ROOT, 'public/press/img', date, basename(from)));
+    imgAdded.push(`public/press/img/${date}/${basename(from)}`);
+    im.src = `/press/img/${date}/${basename(from)}`;
+    delete im.file;
+  }
+}
 writeFileSync(dest, JSON.stringify(issue, null, 2) + '\n');
 
 const stem = join(dirname(resolve(src)), basename(src, extname(src)));
-const added = [`src/data/press/${date}.json`];
+const added = [`src/data/press/${date}.json`, ...imgAdded];
 for (const [ext, given] of [['pdf', pdfArg], ['html', htmlArg]]) {
   const f = given ?? `${stem}.${ext}`;
   if (existsSync(f)) { copyFileSync(f, join(ROOT, 'public/press', `${date}.${ext}`)); added.push(`public/press/${date}.${ext}`); }
