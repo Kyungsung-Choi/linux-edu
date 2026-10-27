@@ -84,7 +84,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
       <ul class="list">
         {portfolio.map((p) => (
           <li>
-            <a class="item" href={p.href}>
+            <a class="item" href={p.href} target="_blank" rel="noopener">
               <span class="item__top"><span class="item__t">{p.title}</span><span class="item__m">{p.kind} · {p.status}</span></span>
               <span class="item__s">{p.summary}</span>
             </a>
