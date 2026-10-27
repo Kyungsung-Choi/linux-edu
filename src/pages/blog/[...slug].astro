@@ -8,15 +8,38 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
+const all = (await getCollection('posts', (p) => !p.data.draft)).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const cats = [...new Set(all.map((p) => p.data.category))];
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
 const { Content } = await render(post);
 ---
 <SiteLayout title={`${post.data.title} · 최경성`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" bleed>
   <div class="col post-sheet">
+    <nav class="bcat" aria-label="블로그 카테고리">
+      <button type="button" class="bcat__b" data-cat="">전체 <i>{all.length}</i></button>
+      {cats.map((c) => (
+        <button type="button" class={`bcat__b${c === post.data.category ? ' is-on' : ''}`} data-cat={c}>{c} <i>{all.filter((p) => p.data.category === c).length}</i></button>
+      ))}
+    </nav>
     <article class="post">
-      <p class="post__meta">{post.data.date.toISOString().slice(0, 10)}</p>
+      <p class="post__meta">{post.data.category} · {fmt(post.data.date)}</p>
       <h1 class="post__t">{post.data.title}</h1>
       <div class="prose"><Content /></div>
     </article>
+    <section class="blist" aria-labelledby="blist-h">
+      <h2 id="blist-h" class="blist__h">글 목록</h2>
+      <ul class="blist__ul">
+        {all.map((p) => (
+          <li data-cat={p.data.category} class={p.id === post.id ? 'is-cur' : undefined}>
+            <a href={`/blog/${p.id}/`} aria-current={p.id === post.id ? 'page' : undefined}>
+              <span class="blist__t">{p.data.title}</span>
+              <span class="blist__m">{p.data.category} · {fmt(p.data.date)}{p.id === post.id ? ' · 읽는 중' : ''}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="blist__empty" hidden>이 카테고리에는 아직 글이 없습니다.</p>
+    </section>
   </div>
 </SiteLayout>
 
@@ -25,3 +48,32 @@ const { Content } = await render(post);
   body{background:var(--surface2)}
   .post-sheet{background:var(--ground); border-inline:1px solid var(--rule2); min-height:calc(100vh - var(--hdr)); padding-bottom:40px}
 </style>
+<style is:global>
+  .bcat{display:flex; flex-wrap:wrap; gap:8px; padding-top:28px}
+  .bcat__b{font:inherit; font-size:.88rem; padding:6px 14px; border-radius:999px; border:1px solid var(--rule2); background:var(--ground); color:var(--ink2); cursor:pointer}
+  .bcat__b i{font-style:normal; color:var(--ink3); margin-left:4px; font-variant-numeric:tabular-nums}
+  .bcat__b:hover{background:var(--surface)} .bcat__b.is-on{background:var(--ink); border-color:var(--ink); color:var(--ground)} .bcat__b.is-on i{color:inherit; opacity:.7}
+  .post{padding-top:28px}
+  .blist{max-width:700px; border-top:1px solid var(--rule2); margin-top:24px; padding-top:28px}
+  .blist__h{font-size:1.15rem; margin:0 0 12px; letter-spacing:-.01em}
+  .blist__ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column}
+  .blist__ul li{border-bottom:1px solid var(--rule)}
+  .blist__ul a{display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:12px 4px; text-decoration:none; color:var(--ink)}
+  .blist__ul a:hover{background:var(--surface)}
+  .blist__t{font-weight:600} .blist__m{font-size:.85rem; color:var(--ink3); white-space:nowrap; font-variant-numeric:tabular-nums}
+  .blist__ul .is-cur .blist__t{text-decoration:underline; text-underline-offset:4px}
+  .blist__empty{color:var(--ink3); font-size:.9rem; padding:12px 4px}
+  @media (max-width:560px){.blist__ul a{flex-direction:column; gap:2px}}
+</style>
+<script>
+  const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('.bcat__b'));
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.blist__ul li'));
+  const empty = document.querySelector<HTMLElement>('.blist__empty');
+  const show = (cat: string) => {
+    btns.forEach((b) => b.classList.toggle('is-on', b.dataset.cat === cat));
+    let n = 0;
+    items.forEach((li) => { const on = !cat || li.dataset.cat === cat; li.hidden = !on; if (on) n++; });
+    if (empty) empty.hidden = n > 0;
+  };
+  btns.forEach((b) => b.addEventListener('click', () => show(b.dataset.cat ?? '')));
+</script>

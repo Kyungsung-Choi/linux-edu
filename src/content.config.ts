@@ -11,6 +11,7 @@ const posts = defineCollection({
     title: z.string(),
     date: z.coerce.date(),
     summary: z.string(),
+    category: z.string().default('기타'),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
   }),

@@ -2,6 +2,7 @@
 title: 글 제목
 date: 2026-10-26
 summary: 목록에 보이는 한두 줄 요약
+category: 카테고리 이름   # 글 페이지 상단 카테고리와 하단 글 목록에 쓰인다
 tags: [태그1, 태그2]
 draft: false   # true 로 두면 사이트에 나오지 않는다
 ---
