@@ -44,6 +44,37 @@ const DESC = 'AI에게 화면을 시킬 때 도움이 되는 팁과 참고 사�
       </section>
     ))}
 
+    <section class="tgrp sc">
+      <h2 class="tip__h">shadcn/ui 컴포넌트, 이름과 모습</h2>
+      <p class="tgrp__lead">AI에게 "Card 안에 Badge랑 Button 넣어서"처럼 이름으로 시키려면 모습과 이름이 같이 기억나야 합니다. 자주 쓰는 12개를 이름과 함께 모았습니다.</p>
+      <div class="sc__grid">
+        <figure class="sc__c"><div class="sc__demo sc__row"><button class="sc-btn sc-btn--p">저장</button><button class="sc-btn sc-btn--s">보조</button><button class="sc-btn sc-btn--o">취소</button><button class="sc-btn sc-btn--g">더보기</button></div><figcaption><b>Button</b><span>누르는 버튼. 기본, 보조, 외곽선, 투명 같은 변형(variant)이 있습니다.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo sc__row"><span class="sc-badge sc-badge--p">신규</span><span class="sc-badge sc-badge--s">진행 중</span><span class="sc-badge sc-badge--o">초안</span><span class="sc-badge sc-badge--d">삭제됨</span></div><figcaption><b>Badge</b><span>상태나 분류를 알려 주는 작은 딱지.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><div class="sc-alert"><b>알림</b><span>변경 사항이 저장되었습니다.</span></div></div><figcaption><b>Alert</b><span>화면 안에 끼워 넣는 안내·경고 상자.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><div class="sc-card"><div class="sc-card__h"><b>프로젝트 이름</b><span>한 줄 설명이 들어갑니다.</span></div><div class="sc-card__b">본문 내용이 들어가는 자리입니다.</div><div class="sc-card__f"><button class="sc-btn sc-btn--p">열기</button></div></div></div><figcaption><b>Card</b><span>제목, 본문, 하단 버튼을 한 묶음으로 보여 주는 상자(CardHeader, CardContent, CardFooter).</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><label class="sc-lab">이메일</label><input class="sc-in" placeholder="name@example.com" readonly></div><figcaption><b>Input + Label</b><span>글자를 입력하는 칸과 그 이름표.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo sc__col"><label class="sc-chk"><i class="sc-chk__b sc-chk__b--on">✓</i>약관에 동의합니다</label><label class="sc-chk"><i class="sc-chk__b"></i>알림 받기</label></div><figcaption><b>Checkbox</b><span>여러 개 중 해당하는 것을 고르는 체크 칸.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo sc__col"><label class="sc-sw"><i class="sc-sw__t sc-sw__t--on"><u></u></i>다크 모드</label><label class="sc-sw"><i class="sc-sw__t"><u></u></i>알림</label></div><figcaption><b>Switch</b><span>켜고 끄는 스위치.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><div class="sc-tabs"><span class="sc-tabs__t sc-tabs__t--on">계정</span><span class="sc-tabs__t">비밀번호</span><span class="sc-tabs__t">알림</span></div><p class="sc-tabs__p">선택한 탭의 내용이 아래에 나옵니다.</p></div><figcaption><b>Tabs</b><span>같은 자리에서 내용을 바꿔 보여 주는 탭(TabsList, TabsTrigger, TabsContent).</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><div class="sc-prog"><i style="width:62%"></i></div><small class="sc-sm">62% 완료</small></div><figcaption><b>Progress</b><span>진행 정도를 막대로 보여 줍니다.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo sc__row"><span class="sc-av">최</span><span class="sc-av sc-av--b">AI</span><span class="sc-av sc-av--c">+3</span></div><figcaption><b>Avatar</b><span>사람이나 계정을 나타내는 동그란 이미지(없으면 글자).</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><details class="sc-acc" open><summary>컴포넌트는 무엇인가요?</summary><p>화면을 이루는 재사용 부품입니다.</p></details><details class="sc-acc"><summary>어디서 쓰나요?</summary><p>버튼, 카드, 입력칸 모두 해당됩니다.</p></details></div><figcaption><b>Accordion</b><span>제목을 누르면 내용이 펼쳐지는 접이식 목록. FAQ에 많이 씁니다.</span></figcaption></figure>
+
+        <figure class="sc__c"><div class="sc__demo"><div class="sc-dlg"><b>삭제할까요?</b><span>이 작업은 되돌릴 수 없습니다.</span><div class="sc__row sc__end"><button class="sc-btn sc-btn--o">취소</button><button class="sc-btn sc-btn--p">삭제</button></div></div></div><figcaption><b>Dialog</b><span>화면 위에 떠서 확인을 받는 창(모달). AlertDialog는 위험한 작업 확인용.</span></figcaption></figure>
+      </div>
+      <p class="tip__note">위 모습은 shadcn/ui의 기본(neutral) 스타일을 보고 이 사이트에서 비슷하게 다시 그린 미리보기입니다. 실제 라이브러리 화면은 <a href="https://ui.shadcn.com/docs/components" target="_blank" rel="noopener noreferrer">ui.shadcn.com/docs/components</a>에서 이름별로 볼 수 있습니다.</p>
+    </section>
+
     <p class="tip__note">링크는 외부 사이트로 새 창에서 열립니다. 서비스 내용이나 주소는 바뀔 수 있습니다.</p>
   </article>
 </SiteLayout>
@@ -63,4 +94,39 @@ const DESC = 'AI에게 화면을 시킬 때 도움이 되는 팁과 참고 사�
   .tlink__n{font-weight:600; color:var(--accent)}
   .tlink__d{font-size:.85rem; color:var(--ink2); line-height:1.6}
   .tip__note{margin-top:30px; font-size:.8rem; color:var(--ink3)}
+  .sc__grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:6px}
+  .sc__c{margin:0; border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--ground)}
+  .sc__demo{padding:22px 18px; min-height:118px; display:flex; flex-direction:column; justify-content:center; gap:8px; background:var(--surface)}
+  .sc__row{flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px}
+  .sc__col{gap:12px}.sc__end{justify-content:flex-end; margin-top:12px}
+  .sc__c figcaption{padding:12px 16px; display:flex; flex-direction:column; gap:3px; border-top:1px solid var(--rule)}
+  .sc__c figcaption b{font-size:.95rem}.sc__c figcaption span{font-size:.82rem; color:var(--ink2); line-height:1.55}
+  .sc-btn{font:inherit; font-size:.85rem; font-weight:500; height:34px; padding:0 11px; border-radius:8px; border:1px solid transparent; cursor:default}
+  .sc-btn--p{background:var(--ink); color:var(--ground)} .sc-btn--s{background:var(--surface2); color:var(--ink)}
+  .sc-btn--o{background:var(--ground); border-color:var(--rule2); color:var(--ink)} .sc-btn--g{background:transparent; color:var(--ink)}
+  .sc-badge{font-size:.75rem; font-weight:600; padding:2px 10px; border-radius:999px; border:1px solid transparent}
+  .sc-badge--p{background:var(--ink); color:var(--ground)} .sc-badge--s{background:var(--surface2); color:var(--ink)}
+  .sc-badge--o{border-color:var(--rule2); color:var(--ink)} .sc-badge--d{background:#dc2626; color:#fff}
+  .sc-alert{display:flex; flex-direction:column; gap:3px; padding:12px 14px; border:1px solid var(--rule2); border-radius:10px; background:var(--ground); font-size:.85rem}
+  .sc-alert span{color:var(--ink2)}
+  .sc-card{background:var(--ground); border:1px solid var(--rule2); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 1px 2px rgb(0 0 0/.05)}
+  .sc-card__h{display:flex; flex-direction:column; gap:2px} .sc-card__h span,.sc-card__b{font-size:.82rem; color:var(--ink2)}
+  .sc-lab{font-size:.85rem; font-weight:500}
+  .sc-in{font:inherit; font-size:.85rem; height:36px; padding:0 12px; border:1px solid var(--rule2); border-radius:8px; background:var(--ground); color:var(--ink); width:100%}
+  .sc-chk,.sc-sw{display:flex; align-items:center; gap:10px; font-size:.88rem}
+  .sc-chk__b{width:18px; height:18px; border:1.5px solid var(--ink3); border-radius:4px; display:inline-flex; align-items:center; justify-content:center; font-size:.7rem; font-style:normal; background:var(--ground)}
+  .sc-chk__b--on{background:var(--ink); color:var(--ground); border-color:var(--ink)}
+  .sc-sw__t{width:38px; height:22px; border-radius:999px; background:var(--rule2); position:relative; display:inline-block}
+  .sc-sw__t u{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--ground); transition:none}
+  .sc-sw__t--on{background:var(--ink)} .sc-sw__t--on u{left:18px}
+  .sc-tabs{display:inline-flex; padding:3px; background:var(--surface2); border-radius:9px; gap:2px; align-self:flex-start}
+  .sc-tabs__t{font-size:.8rem; padding:5px 12px; border-radius:7px; color:var(--ink2)} .sc-tabs__t--on{background:var(--ground); color:var(--ink); box-shadow:0 1px 2px rgb(0 0 0/.08); font-weight:500}
+  .sc-tabs__p{font-size:.82rem; color:var(--ink2); margin:10px 0 0}
+  .sc-prog{height:8px; background:var(--surface2); border-radius:999px; overflow:hidden; border:1px solid var(--rule)} .sc-prog i{display:block; height:100%; background:var(--ink)}
+  .sc-sm{font-size:.78rem; color:var(--ink3)}
+  .sc-av{width:40px; height:40px; border-radius:50%; background:var(--surface2); border:1px solid var(--rule2); display:inline-flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:600}
+  .sc-av--b{background:var(--ink); color:var(--ground)} .sc-av--c{margin-left:-14px; color:var(--ink2)}
+  .sc-acc{border-bottom:1px solid var(--rule2); padding:8px 0; font-size:.88rem} .sc-acc summary{cursor:pointer; font-weight:500} .sc-acc p{margin:6px 0 0; color:var(--ink2); font-size:.82rem}
+  .sc-dlg{background:var(--ground); border:1px solid var(--rule2); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:4px; box-shadow:0 8px 24px rgb(0 0 0/.12)} .sc-dlg span{font-size:.82rem; color:var(--ink2)}
+
 </style>
