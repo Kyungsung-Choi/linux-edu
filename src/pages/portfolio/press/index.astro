@@ -3,7 +3,7 @@ import SiteLayout from '../../../layouts/SiteLayout.astro';
 
 // 날짜별 기사 데이터: src/data/press/YYYY-MM-DD.json (scripts/press-upload.mjs 가 저장)
 // 같은 날짜의 PDF 가 public/press/YYYY-MM-DD.pdf 에 있으면 내려받기 링크가 생긴다.
-interface Article { kicker?: string; headline: string; sub?: string; body: string; source_title?: string; scope?: string }
+interface Article { images?: { src: string; alt: string }[]; kicker?: string; headline: string; sub?: string; body: string; source_title?: string; scope?: string }
 interface Issue { category?: string; title: string; band_left?: string; section?: string; date: string; source_label?: string; glance?: string[]; footnote?: string; articles: Article[] }
 
 const files = import.meta.glob<Issue>('../../../data/press/*.json', { eager: true, import: 'default' });
@@ -78,6 +78,7 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
                   {a.kicker && <span class="kick">{a.kicker}</span>}
                   <h2 class="art__h">{a.headline}</h2>
                   {a.sub && <p class="sub sub--s">{a.sub}</p>}
+                  {a.images && a.images.map((im) => <figure class="fig"><img src={im.src} alt={im.alt} loading="lazy" /></figure>)}
                   <p class="tx">{parts(a.body)[0]}</p>
                   {parts(a.body)[1] && <p class="note"><b>첨언</b>{parts(a.body)[1]}</p>}
                   <p class="by">{i.data.source_label ?? '원문 요약'}{a.source_title ? ` · ${a.source_title}` : ''}{a.scope ? ` · 확인 범위: ${a.scope}` : ''}</p>
@@ -183,6 +184,7 @@ const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약�
   .tx{margin:0; font-size:calc(1rem * var(--pz)); line-height:1.8; text-align:justify; text-indent:1em; word-break:normal; overflow-wrap:break-word; color:#111}
   .cols{column-count:2; column-gap:30px; column-rule:1px solid #8a8a8a}
   .others{column-count:2; column-gap:30px; column-rule:1px solid #8a8a8a; margin-top:14px}
+  .fig{margin:6px 0 10px} .fig img{display:block; width:100%; height:auto; border:1px solid #ddd}
   .art{border-top:1px solid #111; padding:12px 0 14px; break-inside:auto}
   .art:first-child{border-top:0}
   .art__h{font-family:'Nanum Myeongjo','Gowun Batang',serif; font-weight:800; font-size:calc(1.3rem * var(--pz)); line-height:1.35; letter-spacing:-.015em; margin:2px 0 8px; color:#111; word-break:keep-all; break-after:avoid; text-wrap:balance}
