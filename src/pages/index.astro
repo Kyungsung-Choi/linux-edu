@@ -105,17 +105,17 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 <style is:global>
   .hero{padding-block:40px 24px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:center}
   .hero .hero__h{font-size:clamp(2.2rem,4.6vw,3.6rem); word-break:keep-all; font-weight:700; letter-spacing:-.035em; line-height:1.18; margin-bottom:24px}
-  .hero .hero__p{font-size:1.15rem; color:var(--ink2); max-width:40ch}
+  .hero .hero__p{font-size:1.15rem; color:var(--ink2); max-width:22em; word-break:keep-all; text-wrap:pretty}
 
   .about{display:flex; flex-direction:column; gap:20px;
-    p{max-width:44ch}
+    p{max-width:36em; word-break:keep-all; text-wrap:pretty}
   }
   .cv{display:grid; grid-template-columns:120px 1fr; gap:10px 16px; font-variant-numeric:tabular-nums;
     dt{color:var(--ink3); font-size:.92rem}
     dd{margin:0}
   }
   .about .about__skills{color:var(--ink2)}
-  .about .about__note{color:var(--ink3); font-size:.9rem}
+  .about .about__note{color:var(--ink3); font-size:.9rem; max-width:none}
 
   .contacts{list-style:none; display:flex; flex-direction:column; gap:6px;
     li{display:grid; grid-template-columns:120px 1fr; gap:16px}
