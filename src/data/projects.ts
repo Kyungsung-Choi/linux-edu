@@ -44,7 +44,7 @@ export const projects: Project[] = [
   },
   {
     slug: 'press',
-    section: 'library',
+    section: 'portfolio',
     title: '언론기사 브리핑',
     kind: '매일 업데이트',
     summary:
