@@ -131,8 +131,8 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 </SiteLayout>
 
 <style is:global>
-  .hero{padding-block:88px 24px; display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center}
-  .hero .hero__h{font-size:clamp(2.2rem,6vw,3.6rem); font-weight:700; letter-spacing:-.035em; line-height:1.18; margin-bottom:24px}
+  .hero{padding-block:88px 24px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:center}
+  .hero .hero__h{font-size:clamp(2.2rem,4.6vw,3.6rem); word-break:keep-all; font-weight:700; letter-spacing:-.035em; line-height:1.18; margin-bottom:24px}
   .hero .hero__p{font-size:1.15rem; color:var(--ink2); max-width:40ch}
 
   .about{display:flex; flex-direction:column; gap:20px;
@@ -151,9 +151,11 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
     a{color:var(--ink); text-decoration:underline; text-underline-offset:4px; text-decoration-color:var(--ink3); &:hover{text-decoration-color:var(--ink)}}
   }
 
-  @media (max-width:600px){
+  @media (max-width:860px){
     .hero{padding-top:40px; grid-template-columns:1fr}
     .hero .mascot{order:-1; justify-self:start; width:min(100%,300px)}
+  }
+  @media (max-width:600px){
     .cv,.contacts li{grid-template-columns:1fr; gap:0}
     .cv dd{margin-bottom:10px}
   }
