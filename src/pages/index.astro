@@ -7,10 +7,6 @@ import Mascot from '../components/Mascot.astro';
 const TITLE = '앵두아빠의 AI공부방 · AI와 함께 배우고 만들고 기록합니다';
 const DESC = '클로드와 AI를 공부하며 직접 구현해 본 기능, 쌓아 가는 학습 자료, 꼭 짚어 둘 이슈를 정리하는 공부방입니다.';
 
-const contacts = [
-  { k: '이메일', label: 'runhi81@gmail.com', href: 'mailto:runhi81@gmail.com' },
-];
-
 const portfolio = projects.filter((p) => p.section === 'portfolio');
 const library = projects.filter((p) => p.section === 'library');
 
@@ -78,12 +74,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
     <section class="sec sec--a" id="contact" aria-labelledby="contact-h"><div class="col">
       <h2 id="contact-h" class="sec__h">문의</h2>
-      <p class="contact__lead">협업, 강의, 비즈니스 문의는 이메일로 보내 주세요.</p>
-      <ul class="contacts">
-        {contacts.map((c) => (
-          <li><span>{c.k}</span><a href={c.href}>{c.label}</a></li>
-        ))}
-      </ul>
+      <p class="contact__lead">협업, 강의, 비즈니스 문의: <a href="mailto:runhi81@gmail.com">runhi81@gmail.com</a></p>
     </div></section>
 </SiteLayout>
 
@@ -92,18 +83,11 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
   .hero .hero__h{font-size:clamp(2.2rem,4.6vw,3.6rem); word-break:keep-all; font-weight:700; letter-spacing:-.035em; line-height:1.18; margin-bottom:24px}
   .hero .hero__p{font-size:1.15rem; color:var(--ink2); max-width:22em; word-break:keep-all; text-wrap:pretty}
 
-  .contact__lead{margin-bottom:10px; word-break:keep-all}
-  .contacts{list-style:none; display:flex; flex-direction:column; gap:6px;
-    li{display:grid; grid-template-columns:120px 1fr; gap:16px}
-    li span{color:var(--ink3)}
-    a{color:var(--ink); text-decoration:underline; text-underline-offset:4px; text-decoration-color:var(--ink3); &:hover{text-decoration-color:var(--ink)}}
-  }
+  .contact__lead{word-break:keep-all}
+  .contact__lead a{color:var(--ink); text-decoration:underline; text-underline-offset:4px; text-decoration-color:var(--ink3); &:hover{text-decoration-color:var(--ink)}}
 
   @media (max-width:860px){
     .hero{padding-top:20px; grid-template-columns:1fr}
     .hero .mascot{order:-1; justify-self:start; width:min(100%,300px)}
-  }
-  @media (max-width:600px){
-    .contacts li{grid-template-columns:1fr; gap:0}
   }
 </style>
