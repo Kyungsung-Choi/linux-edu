@@ -3,7 +3,35 @@
 // 공식 Claude 로고/캐릭터가 아니라 분위기만 가져온 오리지널 그림이다.
 ---
 <div class="mascot" aria-hidden="true">
-  <svg viewBox="0 0 220 210" width="220" height="210" focusable="false">
+  <!-- 배경: 맑은 하늘, 산, 바다, 모래사장 -->
+  <svg class="m-scene" viewBox="0 0 320 280" preserveAspectRatio="xMidYMid slice" focusable="false">
+    <defs>
+      <linearGradient id="ms-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63b8f5"/><stop offset=".7" stop-color="#bfe6ff"/><stop offset="1" stop-color="#eaf8ff"/></linearGradient>
+      <linearGradient id="ms-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3aa7d9"/><stop offset="1" stop-color="#1b7fb8"/></linearGradient>
+      <radialGradient id="ms-sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6c8"/><stop offset=".45" stop-color="#ffe98a" stop-opacity=".9"/><stop offset="1" stop-color="#ffe98a" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="320" height="280" fill="url(#ms-sky)"/>
+    <circle class="ms-sun" cx="56" cy="52" r="46" fill="url(#ms-sun)"/>
+    <circle cx="56" cy="52" r="17" fill="#fff3b0"/>
+    <g class="ms-cloud ms-cloud--a" fill="#fff" opacity=".95"><ellipse cx="206" cy="48" rx="30" ry="10"/><ellipse cx="190" cy="42" rx="16" ry="11"/><ellipse cx="222" cy="40" rx="18" ry="12"/></g>
+    <g class="ms-cloud ms-cloud--b" fill="#fff" opacity=".85"><ellipse cx="120" cy="86" rx="22" ry="7"/><ellipse cx="110" cy="81" rx="11" ry="8"/><ellipse cx="132" cy="80" rx="12" ry="8"/></g>
+    <!-- 먼 산 -->
+    <path d="M0 176 L48 112 L72 138 L108 96 L152 158 L178 128 L226 176 Z" fill="#7aa5c9"/>
+    <path d="M108 96 L96 112 L104 108 L110 116 L118 108 L124 114 Z" fill="#fff" opacity=".9"/>
+    <!-- 가까운 산 -->
+    <path d="M130 176 L196 104 L230 142 L262 112 L320 172 L320 176 Z" fill="#4f8f7e"/>
+    <path d="M196 104 L184 118 L194 114 L200 122 L208 114 L212 120 Z" fill="#fff" opacity=".85"/>
+    <path d="M0 176 L0 160 L36 140 L74 164 L110 150 L140 176 Z" fill="#5da08a"/>
+    <!-- 바다 -->
+    <rect x="0" y="172" width="320" height="76" fill="url(#ms-sea)"/>
+    <g class="ms-waves" fill="none" stroke="#e8f8ff" stroke-width="2" stroke-linecap="round" opacity=".7">
+      <path d="M20 190 q8 -5 16 0 t16 0"/><path d="M110 200 q8 -5 16 0 t16 0"/><path d="M230 192 q8 -5 16 0 t16 0"/>
+      <path d="M60 214 q8 -5 16 0 t16 0"/><path d="M170 220 q8 -5 16 0 t16 0"/><path d="M270 212 q8 -5 16 0 t16 0"/>
+    </g>
+    <path d="M0 244 Q80 232 160 240 T320 236 L320 280 L0 280 Z" fill="#f4e3b8"/>
+    <path d="M0 262 Q90 252 170 260 T320 256 L320 280 L0 280 Z" fill="#ecd49b" opacity=".8"/>
+  </svg>
+  <svg class="m-main" viewBox="0 0 220 210" width="220" height="210" focusable="false">
     <ellipse class="m-shadow" cx="110" cy="196" rx="50" ry="8"/>
     <g class="m-char">
       <!-- 반짝이는 별 안테나 -->
@@ -43,8 +71,15 @@
 </div>
 
 <style is:global>
-  .mascot{--c:oklch(73% .14 45); --c-dk:oklch(63% .15 42); --ink-m:oklch(22% 0 0); width:220px; flex:none; justify-self:end}
-  .mascot svg{width:100%; height:auto; overflow:visible}
+  .mascot{--c:oklch(73% .14 45); --c-dk:oklch(63% .15 42); --ink-m:oklch(22% 0 0); position:relative; width:320px; aspect-ratio:320/280; flex:none; justify-self:end; border-radius:24px; overflow:hidden; box-shadow:0 10px 30px rgb(30 90 140/.18)}
+  .mascot .m-scene{position:absolute; inset:0; width:100%; height:100%}
+  .mascot .m-main{position:absolute; left:50%; bottom:3.5%; width:62.5%; height:auto; transform:translateX(-50%); overflow:visible}
+  .mascot .ms-cloud--a{animation:ms-drift 26s linear infinite alternate} .mascot .ms-cloud--b{animation:ms-drift 34s linear infinite alternate-reverse}
+  .mascot .ms-sun{transform-origin:56px 52px; animation:ms-glow 5s ease-in-out infinite}
+  .mascot .ms-waves{animation:ms-wave 4s ease-in-out infinite}
+  @keyframes ms-drift{from{transform:translateX(-14px)} to{transform:translateX(22px)}}
+  @keyframes ms-glow{0%,100%{transform:scale(1)} 50%{transform:scale(1.08)}}
+  @keyframes ms-wave{0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)}}
   .mascot .m-shadow{fill:var(--ink-m); opacity:.1; transform-origin:110px 196px; animation:m-shadow 3.2s ease-in-out infinite}
   .mascot .m-char{animation:m-bob 3.2s ease-in-out infinite}
   .mascot .m-body{fill:var(--c)}
