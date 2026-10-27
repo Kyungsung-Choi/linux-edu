@@ -22,7 +22,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 <h2 class="hi" data-i="file">이 서류는 무엇이고, 지금 무엇이 비어 있나</h2>
 
-*상장 신청서의 첫 버전이라 '가격'이 아직 없다.*
+상장 신청서의 첫 버전이라 '가격'이 아직 없다.
 
 <figure><img src="/blog/anthropic-s1/sec.jpg" alt="미국 증권거래위원회(SEC) 본부. 상장 신청서를 접수하는 기관입니다." loading="lazy"><figcaption>미국 증권거래위원회(SEC) 본부. 상장 신청서를 접수하는 기관입니다.<br>[출처: David(Flickr: dbking), CC BY 2.0, Wikimedia Commons]</figcaption></figure>
 
@@ -34,7 +34,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 <h2 class="hi" data-i="up">벌이는 폭발적으로 늘었다</h2>
 
-*6개월 매출이 지난해 1년 매출의 3.5배이다.*
+6개월 매출이 지난해 1년 매출의 3.5배이다.
 
 <div class="ic" data-chart="revenue"><img src="/blog/anthropic-s1/01_revenue.png" alt="매출 막대 그래프" loading="lazy"></div>
 
@@ -50,7 +50,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 <h2 class="hi" data-i="down">손실 807억 달러, 놀라지 말고 나눠서 보자</h2>
 
-*본업 손실과 장부상 손실은 다른 이야기이다.*
+본업 손실과 장부상 손실은 다른 이야기이다.
 
 <div class="ic" data-chart="loss"><img src="/blog/anthropic-s1/02_loss.png" alt="순손실 구성 막대" loading="lazy"></div>
 
@@ -68,7 +68,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 <h2 class="hi" data-i="building">누가 사는가: 큰 기업이 늘고, 있던 고객이 더 쓴다</h2>
 
-*특정 고객 한두 곳에 기대지는 않지만 '최신 모델'에 기댄다.*
+특정 고객 한두 곳에 기대지는 않지만 '최신 모델'에 기댄다.
 
 <div class="ic" data-chart="customers"><img src="/blog/anthropic-s1/04_customers.png" alt="큰 기업 고객 수 막대 그래프" loading="lazy"></div>
 
@@ -84,7 +84,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 <h2 class="hi" data-i="wallet">가진 돈과 빚: 현금은 많은데 쓸 곳도 크다</h2>
 
-*빚은 적지만 새로 맺은 대출에 지켜야 할 조건이 붙었다.*
+빚은 적지만 새로 맺은 대출에 지켜야 할 조건이 붙었다.
 
 <div class="ic" data-chart="cashmix"></div>
 
@@ -92,7 +92,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 <h2 class="hi" data-i="server">가장 큰 부담: 컴퓨터 설비 사용 약속</h2>
 
-*쓰든 안 쓰든 내야 하는 돈이 수천억 달러이다.*
+쓰든 안 쓰든 내야 하는 돈이 수천억 달러이다.
 
 <div class="ic" data-chart="cash"><img src="/blog/anthropic-s1/05_cash_vs_commitments.png" alt="현금과 컴퓨팅 약정 비교" loading="lazy"></div>
 
@@ -114,7 +114,7 @@ AI 모델을 만들고 돌리려면 칩과 서버가 들어 있는 데이터센�
 
 <h2 class="hi" data-i="vote">주식을 사도 회사 결정에 영향을 주기 어렵다</h2>
 
-*투표권이 창업자 회사와 신탁에 모여 있다.*
+투표권이 창업자 회사와 신탁에 모여 있다.
 
 <figure><img src="/blog/anthropic-s1/dario.jpg" alt="공동창업자·CEO 다리오 아모데이" loading="lazy"><figcaption>공동창업자·CEO 다리오 아모데이<br>[출처: TechCrunch, CC BY 2.0, Wikimedia Commons]</figcaption></figure>
 
@@ -134,7 +134,7 @@ N종은 투표권이 없는 주식으로, 투자자들의 우선주와 전환사
 
 <h2 class="hi" data-i="lock">내 지분이 묽어질 수 있는 이유와 팔릴 물량</h2>
 
-*희석(내 몫이 줄어듦)과 락업 해제 시점을 알아 두자.*
+희석(내 몫이 줄어듦)과 락업 해제 시점을 알아 두자.
 
 <figure><img src="/blog/anthropic-s1/clark.jpg" alt="공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다." loading="lazy"><figcaption>공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다.<br>[출처: Mvolz, CC0, Wikimedia Commons]</figcaption></figure>
 
@@ -150,13 +150,13 @@ N종은 투표권이 없는 주식으로, 투자자들의 우선주와 전환사
 
 <h2 class="hi" data-i="alert">회사가 서류에 직접 적은 위험</h2>
 
-*위험요인은 약 94쪽이다. 일반 투자자가 알아야 할 것만 뽑았다.*
+위험요인은 약 94쪽이다. 일반 투자자가 알아야 할 것만 뽑았다.
 
 <div class="ic" data-chart="risks"><p>회사가 적은 위험은 이렇습니다.<br><br>- 첫째, AI 모델 경쟁에서 계속 앞서야 하며 경쟁이 매우 치열합니다.<br>- 둘째, 컴퓨터 설비를 구하지 못하거나 비싸질 수 있습니다.<br>- 셋째, 창업자 등 핵심 인력에 크게 의존합니다.<br>- 넷째, 회사 역사가 짧아 과거 성장이 미래를 보장하지 않습니다.<br>- 다섯째, AI가 오용되거나 의도치 않게 행동할 수 있습니다.<br><br>서류에는 모델이 스스로를 지키려는 듯 행동하거나 협박 같은 행동을 한 시험 사례, 치명적인 사고 가능성이 적혀 있습니다. 소송을 당하면 보험으로 다 막지 못할 수 있습니다.<br><br>- 여섯째, 저작권 소송이 있습니다.<br><br>2025년 9월 책 저자들의 집단소송에서 합의금 15억 달러를 냈고 법원이 2026년 7월 승인했으며, 다른 청구도 있습니다.<br><br>- 일곱째, 각국 규제가 바뀔 수 있습니다.<br>- 여덟째, 빚에 붙은 조건과 큰 약정 때문에 자금 압박이 생길 수 있습니다.<br>- 아홉째, 위에서 본 대로 주주 권리가 약하고 공익 목적이 수익과 부딪칠 수 있습니다.<br>- 열째, 락업이 풀리거나 새 주식이 나오면 주가에 부담이 될 수 있습니다.<br><br>투자자가 숫자로 직접 따져 볼 만한 것은 약정 규모 대비 매출, 4분기부터 지켜야 하는 현금 50억 달러 조건, 최신 모델에 대한 매출 의존도, 락업 해제 날짜입니다.</p></div>
 
 <h2 class="hi" data-i="search">지금 알 수 있는 것과 없는 것</h2>
 
-*가격이 나오기 전에는 '비싸다·싸다'를 말할 수 없다.*
+가격이 나오기 전에는 '비싸다·싸다'를 말할 수 없다.
 
 <div class="ic" data-chart="known"><p>서류로 확인되는 것은 매출이 매우 빠르게 늘고 있고, 본업 손실이 줄고 있으며, 현금은 많지만 미래 설비 약속이 훨씬 크다는 점입니다. 또 일반 주주의 투표권이 약하고 희석과 락업 해제 같은 물량 요인이 있다는 점입니다.<br><br>확인할 수 없는 것은 공모가, 공모 주식 수, 9월 말 분기 매출과 연환산 매출(1년치로 환산한 매출), 약정 총액의 최종 수치, 상장 뒤 지분표 일부입니다. 가격이 없으니 주가수익비율(PER)이나 주가매출비율(PSR) 같은 '비싼지 싼지' 지표도 계산할 수 없습니다.</p></div>
 
