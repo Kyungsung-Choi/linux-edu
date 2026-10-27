@@ -47,32 +47,34 @@ const DESC = 'AI에게 화면을 시킬 때 도움이 되는 팁과 참고 사�
     <section class="tgrp sc">
       <h2 class="tip__h">shadcn/ui 컴포넌트, 이름과 모습</h2>
       <p class="tgrp__lead">AI에게 "Card 안에 Badge랑 Button 넣어서"처럼 이름으로 시키려면 모습과 이름이 같이 기억나야 합니다. 자주 쓰는 12개를 이름과 함께 모았습니다.</p>
+      <p class="sc__hint">마우스로 직접 눌러 보세요. 버튼, 스위치, 탭, 아코디언, 대화상자가 실제처럼 움직입니다.</p>
       <div class="sc__grid">
-        <figure class="sc__c"><div class="sc__demo sc__row"><button class="sc-btn sc-btn--p">저장</button><button class="sc-btn sc-btn--s">보조</button><button class="sc-btn sc-btn--o">취소</button><button class="sc-btn sc-btn--g">더보기</button></div><figcaption><b>Button</b><span>누르는 버튼. 기본, 보조, 외곽선, 투명 같은 변형(variant)이 있습니다.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo"><div class="sc__row"><button type="button" class="sc-btn sc-btn--p" data-click>저장</button><button type="button" class="sc-btn sc-btn--s" data-click>보조</button><button type="button" class="sc-btn sc-btn--o" data-click>취소</button><button type="button" class="sc-btn sc-btn--g" data-click>더보기</button></div><small class="sc-sm" data-click-out>버튼을 눌러 보세요.</small></div><figcaption><b>Button</b><span>누르는 버튼. 기본, 보조, 외곽선, 투명 같은 변형(variant)이 있습니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo sc__row"><span class="sc-badge sc-badge--p">신규</span><span class="sc-badge sc-badge--s">진행 중</span><span class="sc-badge sc-badge--o">초안</span><span class="sc-badge sc-badge--d">삭제됨</span></div><figcaption><b>Badge</b><span>상태나 분류를 알려 주는 작은 딱지.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo sc__row"><button type="button" class="sc-badge sc-badge--p">신규</button><button type="button" class="sc-badge sc-badge--s">진행 중</button><button type="button" class="sc-badge sc-badge--o">초안</button><button type="button" class="sc-badge sc-badge--d">삭제됨</button></div><figcaption><b>Badge</b><span>상태나 분류를 알려 주는 작은 딱지. 마우스를 올리면 색이 바뀝니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><div class="sc-alert"><b>알림</b><span>변경 사항이 저장되었습니다.</span></div></div><figcaption><b>Alert</b><span>화면 안에 끼워 넣는 안내·경고 상자.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo" data-alert><div class="sc-alert"><div><b>알림</b><span>변경 사항이 저장되었습니다.</span></div><button type="button" class="sc-x" data-alert-close aria-label="닫기">×</button></div><button type="button" class="sc-btn sc-btn--o" data-alert-open hidden>알림 다시 보기</button></div><figcaption><b>Alert</b><span>화면 안에 끼워 넣는 안내·경고 상자. ×로 닫을 수 있습니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><div class="sc-card"><div class="sc-card__h"><b>프로젝트 이름</b><span>한 줄 설명이 들어갑니다.</span></div><div class="sc-card__b">본문 내용이 들어가는 자리입니다.</div><div class="sc-card__f"><button class="sc-btn sc-btn--p">열기</button></div></div></div><figcaption><b>Card</b><span>제목, 본문, 하단 버튼을 한 묶음으로 보여 주는 상자(CardHeader, CardContent, CardFooter).</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo"><div class="sc-card" data-card><div class="sc-card__h"><b>프로젝트 이름</b><span>한 줄 설명이 들어갑니다.</span></div><div class="sc-card__b" data-card-out>본문 내용이 들어가는 자리입니다.</div><div class="sc-card__f"><button type="button" class="sc-btn sc-btn--p" data-card-btn>열기</button></div></div></div><figcaption><b>Card</b><span>제목, 본문, 하단 버튼을 한 묶음으로 보여 주는 상자(CardHeader, CardContent, CardFooter).</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><label class="sc-lab">이메일</label><input class="sc-in" placeholder="name@example.com" readonly></div><figcaption><b>Input + Label</b><span>글자를 입력하는 칸과 그 이름표.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo"><label class="sc-lab" for="sc-email">이메일</label><input id="sc-email" class="sc-in" placeholder="name@example.com" data-input><small class="sc-sm" data-input-out>직접 입력해 보세요.</small></div><figcaption><b>Input + Label</b><span>글자를 입력하는 칸과 그 이름표. 칸을 누르면 테두리가 강조됩니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo sc__col"><label class="sc-chk"><i class="sc-chk__b sc-chk__b--on">✓</i>약관에 동의합니다</label><label class="sc-chk"><i class="sc-chk__b"></i>알림 받기</label></div><figcaption><b>Checkbox</b><span>여러 개 중 해당하는 것을 고르는 체크 칸.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo sc__col"><label class="sc-chk"><input type="checkbox" checked><i class="sc-chk__b">✓</i>약관에 동의합니다</label><label class="sc-chk"><input type="checkbox"><i class="sc-chk__b">✓</i>알림 받기</label></div><figcaption><b>Checkbox</b><span>여러 개 중 해당하는 것을 고르는 체크 칸. 글자를 눌러도 됩니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo sc__col"><label class="sc-sw"><i class="sc-sw__t sc-sw__t--on"><u></u></i>다크 모드</label><label class="sc-sw"><i class="sc-sw__t"><u></u></i>알림</label></div><figcaption><b>Switch</b><span>켜고 끄는 스위치.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo sc__col"><label class="sc-sw"><input type="checkbox" role="switch" checked><i class="sc-sw__t"><u></u></i>다크 모드</label><label class="sc-sw"><input type="checkbox" role="switch"><i class="sc-sw__t"><u></u></i>알림</label></div><figcaption><b>Switch</b><span>켜고 끄는 스위치.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><div class="sc-tabs"><span class="sc-tabs__t sc-tabs__t--on">계정</span><span class="sc-tabs__t">비밀번호</span><span class="sc-tabs__t">알림</span></div><p class="sc-tabs__p">선택한 탭의 내용이 아래에 나옵니다.</p></div><figcaption><b>Tabs</b><span>같은 자리에서 내용을 바꿔 보여 주는 탭(TabsList, TabsTrigger, TabsContent).</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo" data-tabs><div class="sc-tabs" role="tablist"><button type="button" role="tab" class="sc-tabs__t sc-tabs__t--on" data-tab="0">계정</button><button type="button" role="tab" class="sc-tabs__t" data-tab="1">비밀번호</button><button type="button" role="tab" class="sc-tabs__t" data-tab="2">알림</button></div><p class="sc-tabs__p" data-tab-panel="0">계정 탭: 이름과 이메일을 바꿉니다.</p><p class="sc-tabs__p" data-tab-panel="1" hidden>비밀번호 탭: 새 비밀번호를 정합니다.</p><p class="sc-tabs__p" data-tab-panel="2" hidden>알림 탭: 받을 알림을 고릅니다.</p></div><figcaption><b>Tabs</b><span>같은 자리에서 내용을 바꿔 보여 주는 탭(TabsList, TabsTrigger, TabsContent).</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><div class="sc-prog"><i style="width:62%"></i></div><small class="sc-sm">62% 완료</small></div><figcaption><b>Progress</b><span>진행 정도를 막대로 보여 줍니다.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo" data-prog><div class="sc-prog" data-prog-bar role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><i style="width:60%"></i></div><div class="sc__row sc__between"><small class="sc-sm" data-prog-out>60% 완료</small><span class="sc__row"><button type="button" class="sc-btn sc-btn--o sc-btn--sm" data-prog-step="-10">−10</button><button type="button" class="sc-btn sc-btn--o sc-btn--sm" data-prog-step="10">+10</button></span></div></div><figcaption><b>Progress</b><span>진행 정도를 막대로 보여 줍니다. 막대를 누르거나 버튼으로 바꿔 보세요.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo sc__row"><span class="sc-av">최</span><span class="sc-av sc-av--b">AI</span><span class="sc-av sc-av--c">+3</span></div><figcaption><b>Avatar</b><span>사람이나 계정을 나타내는 동그란 이미지(없으면 글자).</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo sc__row"><span class="sc-av" data-tip="최경성">최</span><span class="sc-av sc-av--b" data-tip="AI 도우미">AI</span><span class="sc-av sc-av--c" data-tip="외 3명">+3</span></div><figcaption><b>Avatar</b><span>사람이나 계정을 나타내는 동그란 이미지(없으면 글자). 마우스를 올리면 설명(Tooltip)이 뜹니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><details class="sc-acc" open><summary>컴포넌트는 무엇인가요?</summary><p>화면을 이루는 재사용 부품입니다.</p></details><details class="sc-acc"><summary>어디서 쓰나요?</summary><p>버튼, 카드, 입력칸 모두 해당됩니다.</p></details></div><figcaption><b>Accordion</b><span>제목을 누르면 내용이 펼쳐지는 접이식 목록. FAQ에 많이 씁니다.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo"><details class="sc-acc" name="sc-acc" open><summary>컴포넌트는 무엇인가요?</summary><p>화면을 이루는 재사용 부품입니다.</p></details><details class="sc-acc" name="sc-acc"><summary>어디서 쓰나요?</summary><p>버튼, 카드, 입력칸 모두 해당됩니다.</p></details><details class="sc-acc" name="sc-acc"><summary>AI에게는 어떻게 시키나요?</summary><p>"Card 안에 Badge와 Button"처럼 이름으로 말합니다.</p></details></div><figcaption><b>Accordion</b><span>제목을 누르면 내용이 펼쳐지는 접이식 목록. 하나를 열면 다른 것은 닫힙니다.</span></figcaption></figure>
 
-        <figure class="sc__c"><div class="sc__demo"><div class="sc-dlg"><b>삭제할까요?</b><span>이 작업은 되돌릴 수 없습니다.</span><div class="sc__row sc__end"><button class="sc-btn sc-btn--o">취소</button><button class="sc-btn sc-btn--p">삭제</button></div></div></div><figcaption><b>Dialog</b><span>화면 위에 떠서 확인을 받는 창(모달). AlertDialog는 위험한 작업 확인용.</span></figcaption></figure>
+        <figure class="sc__c"><div class="sc__demo"><button type="button" class="sc-btn sc-btn--o" data-dlg-open>삭제 창 열기</button></div><figcaption><b>Dialog</b><span>화면 위에 떠서 확인을 받는 창(모달). Esc 키나 바깥을 눌러도 닫힙니다. AlertDialog는 위험한 작업 확인용.</span></figcaption></figure>
       </div>
-      <p class="tip__note">위 모습은 shadcn/ui의 기본(neutral) 스타일을 보고 이 사이트에서 비슷하게 다시 그린 미리보기입니다. 실제 라이브러리 화면은 <a href="https://ui.shadcn.com/docs/components" target="_blank" rel="noopener noreferrer">ui.shadcn.com/docs/components</a>에서 이름별로 볼 수 있습니다.</p>
+      <div class="sc-ov" data-dlg hidden><div class="sc-dlg" role="dialog" aria-modal="true" aria-labelledby="sc-dlg-t"><b id="sc-dlg-t">삭제할까요?</b><span>이 작업은 되돌릴 수 없습니다.</span><div class="sc__row sc__end"><button type="button" class="sc-btn sc-btn--o" data-dlg-close>취소</button><button type="button" class="sc-btn sc-btn--p" data-dlg-close>삭제</button></div></div></div>
+      <p class="tip__note">위 모습은 shadcn/ui의 기본(neutral) 스타일을 보고 이 사이트에서 비슷하게 다시 만든 체험용입니다. 실제 라이브러리 화면은 <a href="https://ui.shadcn.com/docs/components" target="_blank" rel="noopener noreferrer">ui.shadcn.com/docs/components</a>에서 이름별로 볼 수 있습니다.</p>
     </section>
 
     <p class="tip__note">링크는 외부 사이트로 새 창에서 열립니다. 서비스 내용이나 주소는 바뀔 수 있습니다.</p>
@@ -128,5 +130,74 @@ const DESC = 'AI에게 화면을 시킬 때 도움이 되는 팁과 참고 사�
   .sc-av--b{background:var(--ink); color:var(--ground)} .sc-av--c{margin-left:-14px; color:var(--ink2)}
   .sc-acc{border-bottom:1px solid var(--rule2); padding:8px 0; font-size:.88rem} .sc-acc summary{cursor:pointer; font-weight:500} .sc-acc p{margin:6px 0 0; color:var(--ink2); font-size:.82rem}
   .sc-dlg{background:var(--ground); border:1px solid var(--rule2); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:4px; box-shadow:0 8px 24px rgb(0 0 0/.12)} .sc-dlg span{font-size:.82rem; color:var(--ink2)}
+  .sc [hidden]{display:none!important}
+  .sc__hint{font-size:.85rem; color:var(--ink3); margin:-4px 0 12px}
+  .sc__between{justify-content:space-between; width:100%}
+  .sc-btn{transition:background .15s,border-color .15s,transform .05s; cursor:pointer} .sc-btn:active{transform:translateY(1px)}
+  .sc-btn:focus-visible,.sc-badge:focus-visible,.sc-tabs__t:focus-visible,.sc-x:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+  .sc-btn--p:hover{background:color-mix(in oklab,var(--ink) 85%,var(--ground))} .sc-btn--s:hover{background:var(--rule2)}
+  .sc-btn--o:hover,.sc-btn--g:hover{background:var(--surface2)} .sc-btn--sm{height:28px; padding:0 9px; font-size:.78rem}
+  .sc-badge{font:inherit; font-size:.75rem; font-weight:600; cursor:pointer; transition:filter .15s} .sc-badge:hover{filter:brightness(.88)} .sc-badge--o:hover{background:var(--surface2); filter:none}
+  .sc-alert{flex-direction:row; align-items:flex-start; justify-content:space-between; gap:8px} .sc-alert>div{display:flex; flex-direction:column; gap:3px}
+  .sc-x{font:inherit; font-size:1.1rem; line-height:1; border:0; background:transparent; color:var(--ink3); cursor:pointer; padding:0 4px; border-radius:4px} .sc-x:hover{color:var(--ink); background:var(--surface2)}
+  .sc-card{transition:box-shadow .2s} .sc-card:hover{box-shadow:0 6px 18px rgb(0 0 0/.1)}
+  .sc-in{transition:border-color .15s,box-shadow .15s} .sc-in:focus{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px color-mix(in oklab,var(--ink) 18%,transparent)}
+  .sc-chk,.sc-sw{position:relative; cursor:pointer} .sc-chk input,.sc-sw input{position:absolute; opacity:0; width:0; height:0}
+  .sc-chk__b{color:transparent; transition:background .15s} .sc-chk input:checked+.sc-chk__b{background:var(--ink); color:var(--ground); border-color:var(--ink)} .sc-chk input:focus-visible+.sc-chk__b,.sc-sw input:focus-visible+.sc-sw__t{outline:2px solid var(--ink); outline-offset:2px}
+  .sc-sw__t{transition:background .2s} .sc-sw__t u{transition:left .2s} .sc-sw input:checked+.sc-sw__t{background:var(--ink)} .sc-sw input:checked+.sc-sw__t u{left:18px}
+  .sc-tabs__t{font:inherit; font-size:.8rem; border:0; background:transparent; cursor:pointer} .sc-tabs__t:hover{color:var(--ink)}
+  .sc-prog{cursor:pointer} .sc-prog i{transition:width .3s}
+  .sc-av{position:relative; cursor:default} .sc-av[data-tip]:hover::after{content:attr(data-tip); position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:var(--ink); color:var(--ground); font-size:.72rem; font-weight:500; padding:3px 8px; border-radius:6px; white-space:nowrap; z-index:2}
+  .sc-acc summary:hover{text-decoration:underline}
+  .sc-ov{position:fixed; inset:0; background:rgb(0 0 0/.45); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px} .sc-ov[hidden]{display:none}
+  .sc-ov .sc-dlg{width:min(380px,100%); background:var(--ground)}
 
 </style>
+
+<script>
+  const $ = (s: string, r: ParentNode = document) => r.querySelector(s);
+  const $$ = (s: string, r: ParentNode = document) => Array.from(r.querySelectorAll(s));
+  // Button
+  let clicks = 0;
+  $$('[data-click]').forEach((b) => b.addEventListener('click', () => { clicks++; const o = $('[data-click-out]'); if (o) o.textContent = `'${b.textContent}' 버튼을 ${clicks}번 눌렀습니다.`; }));
+  // Alert
+  const al = $('[data-alert]'); if (al) {
+    const box = $('.sc-alert', al) as HTMLElement, re = $('[data-alert-open]', al) as HTMLElement;
+    $('[data-alert-close]', al)?.addEventListener('click', () => { box.hidden = true; re.hidden = false; });
+    re.addEventListener('click', () => { box.hidden = false; re.hidden = true; });
+  }
+  // Card
+  const cb = $('[data-card-btn]'), co = $('[data-card-out]');
+  let cardOpen = false;
+  cb?.addEventListener('click', () => { cardOpen = !cardOpen; if (co) co.textContent = cardOpen ? '카드가 열렸습니다. 한 번 더 누르면 닫힙니다.' : '본문 내용이 들어가는 자리입니다.'; if (cb) cb.textContent = cardOpen ? '닫기' : '열기'; });
+  // Input
+  const inp = $('[data-input]') as HTMLInputElement | null, io = $('[data-input-out]');
+  inp?.addEventListener('input', () => { if (io) io.textContent = inp.value ? `입력한 값: ${inp.value}` : '직접 입력해 보세요.'; });
+  // Tabs
+  const tabs = $('[data-tabs]'); if (tabs) {
+    const ts = $$('[data-tab]', tabs), ps = $$('[data-tab-panel]', tabs);
+    ts.forEach((t) => t.addEventListener('click', () => {
+      const n = (t as HTMLElement).dataset.tab;
+      ts.forEach((x) => x.classList.toggle('sc-tabs__t--on', x === t));
+      ps.forEach((p) => ((p as HTMLElement).hidden = (p as HTMLElement).dataset.tabPanel !== n));
+    }));
+  }
+  // Progress
+  const pr = $('[data-prog]'); if (pr) {
+    const bar = $('[data-prog-bar]', pr) as HTMLElement, fill = $('i', bar) as HTMLElement, out = $('[data-prog-out]', pr) as HTMLElement;
+    let v = 60;
+    const set = (n: number) => { v = Math.max(0, Math.min(100, n)); fill.style.width = v + '%'; bar.setAttribute('aria-valuenow', String(v)); out.textContent = v + '% 완료'; };
+    $$('[data-prog-step]', pr).forEach((b) => b.addEventListener('click', () => set(v + Number((b as HTMLElement).dataset.progStep))));
+    bar.addEventListener('click', (e) => { const r = bar.getBoundingClientRect(); set(Math.round(((e.clientX - r.left) / r.width) * 10) * 10); });
+  }
+  // Dialog
+  const dlg = $('[data-dlg]') as HTMLElement | null;
+  if (dlg) {
+    const open = () => { dlg.hidden = false; ($('[data-dlg-close]', dlg) as HTMLElement)?.focus(); };
+    const close = () => { dlg.hidden = true; ($('[data-dlg-open]') as HTMLElement)?.focus(); };
+    $('[data-dlg-open]')?.addEventListener('click', open);
+    $$('[data-dlg-close]', dlg).forEach((b) => b.addEventListener('click', close));
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !dlg.hidden) close(); });
+  }
+</script>
