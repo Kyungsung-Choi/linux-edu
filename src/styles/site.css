@@ -29,7 +29,7 @@
     --serif:'Nanum Myeongjo','Gowun Batang',serif;
     --col:760px; --pad:24px; --hdr:64px;
 
-    /* 안쪽 페이지(브리핑·AI TIP)가 쓰는 이름 */
+    /* 안쪽 페이지(브리핑·AI UI 구성 TIP)가 쓰는 이름 */
     --surface:oklch(97% 0 0);
     --surface2:oklch(94% 0 0);
     --rule:var(--line);

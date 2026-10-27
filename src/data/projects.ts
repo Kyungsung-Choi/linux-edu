@@ -58,7 +58,7 @@ export const projects: Project[] = [
   {
     slug: 'ai-tips',
     section: 'library',
-    title: 'AI 활용 TIP',
+    title: 'AI UI 구성 TIP',
     kind: 'TIP 모음',
     summary:
       'AI에게 화면을 시킬 때 도움이 되는 팁. UI 컴포넌트 이름과 웹사이트 시안을 많이 보면 왜 좋은지 설명하고, 눌러서 들어가 볼 수 있는 참고 사이트를 모았습니다.',
