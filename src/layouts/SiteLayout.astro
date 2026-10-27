@@ -62,7 +62,10 @@ const NAME = '앵두아빠의 AI공부방';
     <slot />
   </main>
 
-  <footer class={bleed ? "col" : "wrap"}><div class="site-foot">© {new Date().getFullYear()} {NAME}</div></footer>
+  <footer class={bleed ? "col" : "wrap"}><div class="site-foot">
+    <p>© {new Date().getFullYear()} {NAME}. All rights reserved.</p>
+    <p class="site-foot__n">이 사이트의 글, 그림, 디자인에 대한 저작권은 운영자에게 있으며, 사전 허락 없는 무단 복제·배포를 금합니다. 출처를 밝힌 외부 자료(기사, 사진, 서류 등)의 저작권은 각 저작권자에게 있습니다.</p>
+  </div></footer>
 
 
 </body>
