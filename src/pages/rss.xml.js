@@ -6,7 +6,7 @@ export async function GET(context) {
     (a, b) => b.data.date.getTime() - a.data.date.getTime(),
   );
   return rss({
-    title: '최경성 · 블로그',
+    title: '앵두아빠의 AI공부방 · 블로그',
     description: '교육 콘텐츠와 기술 문서를 쓰며 배운 것들.',
     site: context.site,
     items: posts.map((p) => ({

@@ -13,7 +13,7 @@ const cats = [...new Set(all.map((p) => p.data.category))];
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
 const { Content } = await render(post);
 ---
-<SiteLayout title={`${post.data.title} · 최경성`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" bleed>
+<SiteLayout title={`${post.data.title} · 앵두아빠의 AI공부방`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" bleed>
   <div class="col post-sheet">
     <nav class="bcat" aria-label="블로그 카테고리">
       <button type="button" class="bcat__b" data-cat="">전체 <i>{all.length}</i></button>

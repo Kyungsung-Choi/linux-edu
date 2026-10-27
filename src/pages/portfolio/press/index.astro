@@ -19,7 +19,7 @@ const pdfs = new Set(Object.keys(import.meta.glob('../../../../public/press/*.pd
 const MARK = ' ▶ 첨언: ';
 const parts = (b: string): [string, string] => { const k = b.indexOf(MARK); return k < 0 ? [b, ''] : [b.slice(0, k), b.slice(k + MARK.length)]; };
 
-const TITLE = '언론기사 · 최경성';
+const TITLE = '언론기사 · 앵두아빠의 AI공부방';
 const DESC = '해외 경제·비즈니스 기사를 쉬운 한국어로 요약해 날짜별로 쌓아 둡니다.';
 ---
 <SiteLayout title={TITLE} description={DESC} path="/portfolio/press/" active="portfolio">
