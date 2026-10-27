@@ -8,7 +8,7 @@ imageAlt: 앤스로픽 상장 신청서 쉬운 정리 - 상반기 매출 162.9�
 tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥, 주식초보, 기업분석]
 ---
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/logo.jpg" alt="앤스로픽 로고" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">앤스로픽 로고<br>[출처: 앤스로픽(Wikimedia Commons에 퍼블릭 도메인으로 등록), https://commons.wikimedia.org/wiki/File:Anthropic_logo.svg]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/logo.jpg" alt="앤스로픽 로고" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">앤스로픽 로고<br>[출처: 앤스로픽(Wikimedia Commons에 퍼블릭 도메인으로 등록)]</figcaption></figure>
 
 **2026년 10월 26일, 앤스로픽(Anthropic)이 미국 증권거래위원회(SEC)에 상장 신청서를 냈습니다.**
 
@@ -23,13 +23,13 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 - 창업자 7명의 회사가 투표권의 50.1%를 고정으로 가집니다. 일반 주주가 회사의 큰 결정에 영향을 주기는 어렵습니다.
 - 주식 가격(공모가)과 공모 주식 수가 서류에 비어 있어서, 지금은 '비싼지 싼지' 따질 수 없습니다.
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/nasdaq.jpg" alt="나스닥 마켓사이트 방송 스튜디오. 앤스로픽은 나스닥에 상장을 신청했습니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">나스닥 마켓사이트 방송 스튜디오. 앤스로픽은 나스닥에 상장을 신청했습니다.<br>[출처: Luca Marfè, CC BY 2.0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:NASDAQ_Market_Site_201506.jpg]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/nasdaq.jpg" alt="나스닥 마켓사이트 방송 스튜디오. 앤스로픽은 나스닥에 상장을 신청했습니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">나스닥 마켓사이트 방송 스튜디오. 앤스로픽은 나스닥에 상장을 신청했습니다.<br>[출처: Luca Marfè, CC BY 2.0, Wikimedia Commons]</figcaption></figure>
 
 ## 이 서류는 무엇이고, 지금 무엇이 비어 있나
 
 *상장 신청서의 첫 버전이라 '가격'이 아직 없다.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/sec.jpg" alt="미국 증권거래위원회(SEC) 본부. 상장 신청서를 접수하는 기관입니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">미국 증권거래위원회(SEC) 본부. 상장 신청서를 접수하는 기관입니다.<br>[출처: David(Flickr: dbking), CC BY 2.0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Facade_of_the_U.S._Securities_and_Exchange_Commission_headquarters,_Washington,_D.C.jpg]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/sec.jpg" alt="미국 증권거래위원회(SEC) 본부. 상장 신청서를 접수하는 기관입니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">미국 증권거래위원회(SEC) 본부. 상장 신청서를 접수하는 기관입니다.<br>[출처: David(Flickr: dbking), CC BY 2.0, Wikimedia Commons]</figcaption></figure>
 
 회사가 주식시장에 처음으로 주식을 파는 것을 상장(IPO, 기업공개)이라고 합니다. 미국에서는 상장 전에 회사의 사업, 재무, 위험을 모두 적은 신청서(Form S-1)를 공개해야 하고, 앤스로픽은 2026년 10월 26일 이를 냈습니다.
 
@@ -115,9 +115,9 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 AI 모델을 만들고 돌리려면 칩과 서버가 들어 있는 데이터센터가 필요하고, 이를 '컴퓨팅'이라고 부릅니다. 앤스로픽은 여러 회사와 몇 년에서 십 년 가까이 쓰기로 약속했고 대부분 중간에 해지할 수 없습니다.
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/tpu.jpg" alt="구글 TPU v4 보드. 구글 약정은 이런 AI 전용 칩 사용권입니다. 앤스로픽 설비 사진이 아닙니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">구글 TPU v4 보드. 구글 약정은 이런 AI 전용 칩 사용권입니다. 앤스로픽 설비 사진이 아닙니다.<br>[출처: Norman P. Jouppi 외, CC BY 4.0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:TPU_v4.png]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/tpu.jpg" alt="구글 TPU v4 보드. 구글 약정은 이런 AI 전용 칩 사용권입니다. 앤스로픽 설비 사진이 아닙니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">구글 TPU v4 보드. 구글 약정은 이런 AI 전용 칩 사용권입니다. 앤스로픽 설비 사진이 아닙니다.<br>[출처: Norman P. Jouppi 외, CC BY 4.0, Wikimedia Commons]</figcaption></figure>
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/aws.jpg" alt="아마존웹서비스(AWS) 데이터센터 항공사진. 아마존 약정과 같은 종류의 시설이며 앤스로픽 전용 시설이 아닙니" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">아마존웹서비스(AWS) 데이터센터 항공사진. 아마존 약정과 같은 종류의 시설이며 앤스로픽 전용 시설이 아닙니다.<br>[출처: Tedder, CC BY-SA 4.0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Amazon_AWS_us-west-2_morrow_east_AZ_01.jpg]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/aws.jpg" alt="아마존웹서비스(AWS) 데이터센터 항공사진. 아마존 약정과 같은 종류의 시설이며 앤스로픽 전용 시설이 아닙니" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">아마존웹서비스(AWS) 데이터센터 항공사진. 아마존 약정과 같은 종류의 시설이며 앤스로픽 전용 시설이 아닙니다.<br>[출처: Tedder, CC BY-SA 4.0, Wikimedia Commons]</figcaption></figure>
 
 서류에 적힌 금액은 구글 최소 약 1,145억 달러(2026년 4월\~2033년 7월)에 추가 TPU(구글이 만든 AI 칩) 1,250억\~1,500억 달러, 아마존 최소 1,100억 달러(\~2036년 4월), 마이크로소프트 최소 449억 달러(\~2033년 5월), 스페이스X.AI 최대 1,205억 달러(2029년까지, 2027년 초 이후 90일 전에 알리면 해지 가능), 엔스케일 약 446억 달러, 람다 약 413억 달러, AMD 200억 달러 이상입니다. 또 브로드컴 장비를 5년 빌려 쓰는데 임대료가 약 1,612억 달러이고 앤스로픽이 지급을 보증합니다.
 
@@ -129,7 +129,7 @@ AI 모델을 만들고 돌리려면 칩과 서버가 들어 있는 데이터센�
 
 *투표권이 창업자 회사와 신탁에 모여 있다.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/dario.jpg" alt="공동창업자·CEO 다리오 아모데이" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">공동창업자·CEO 다리오 아모데이<br>[출처: TechCrunch, CC BY 2.0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Dario_Amodei_at_TechCrunch_Disrupt_2023_01.jpg]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/dario.jpg" alt="공동창업자·CEO 다리오 아모데이" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">공동창업자·CEO 다리오 아모데이<br>[출처: TechCrunch, CC BY 2.0, Wikimedia Commons]</figcaption></figure>
 
 <div class="ic" data-chart="voting"><img src="/blog/anthropic-s1/07_voting.png" alt="투표권 비율" loading="lazy"></div>
 
@@ -147,7 +147,7 @@ N종은 투표권이 없는 주식으로, 투자자들의 우선주와 전환사
 
 *희석(내 몫이 줄어듦)과 락업 해제 시점을 알아 두자.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/clark.jpg" alt="공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다.<br>[출처: Mvolz, CC0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Jack_Clark,_co-founder_of_Anthropic,_giving_a_talk_on_AI_at_the_Schwarzman_Centre_in_Oxford.jpg]</figcaption></figure>
+<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/clark.jpg" alt="공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다.<br>[출처: Mvolz, CC0, Wikimedia Commons]</figcaption></figure>
 
 <div class="ic" data-chart="lockup"><img src="/blog/anthropic-s1/08_lockup.png" alt="락업 기간 타임라인" loading="lazy"></div>
 
@@ -198,6 +198,8 @@ N종은 투표권이 없는 주식으로, 투자자들의 우선주와 전환사
 
 처음 상장하는 주식은 상장 직후 가격이 크게 흔들릴 수 있다는 점도 기억해 두세요.
 
-<small>이 문서는 앤스로픽 PBC의 Form S-1(SEC 접수번호 0001628280-26-067168, 2026-10-26 제출)을 주식 용어에 익숙하지 않은 분을 위해 쉬운 한국어로 풀어 쓴 설명 자료입니다. 숫자는 서류 기준이며 '제 계산'이라고 적은 값만 정리한 쪽의 추정입니다. 이 문서를 만든 AI는 앤스로픽이 만든 모델이라 이 회사에 이해관계가 있을 수 있으므로, 해석은 줄이고 원문 숫자 위주로 적었습니다. 투자 권유가 아니며 투자 판단과 책임은 본인에게 있습니다. 1달러는 환율에 따라 달라지므로 원화 환산은 하지 않았습니다. 원문: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm</small>
+<small>이 문서는 앤스로픽 PBC의 Form S-1(SEC 접수번호 0001628280-26-067168, 2026-10-26 제출)을 주식 용어에 익숙하지 않은 분을 위해 쉬운 한국어로 풀어 쓴 설명 자료입니다. 숫자는 서류 기준이며 '제 계산'이라고 적은 값만 정리한 쪽의 추정입니다. 이 문서를 만든 AI는 앤스로픽이 만든 모델이라 이 회사에 이해관계가 있을 수 있으므로, 해석은 줄이고 원문 숫자 위주로 적었습니다. 1달러는 환율에 따라 달라지므로 원화 환산은 하지 않았습니다. 원문: https://www.sec.gov/Archives/edgar/data/2130357/000162828026067168/anthropicpbc-sx1.htm</small>
+
+<div style="margin:2rem 0 1rem;padding:16px 20px;border:1px solid #f0c9cf;border-left:5px solid #ff5a6e;background:#fff6f7;border-radius:6px;font-size:.92rem;line-height:1.75;color:#5a2630;word-break:keep-all"><b>투자 유의사항</b><br>이 글은 공개된 서류를 쉽게 풀어 쓴 정보 제공용 글이며, 특정 종목의 매수·매도를 권유하거나 투자 결과를 보장하지 않습니다. 상장 전 정보는 바뀔 수 있고, 주식 투자는 원금을 잃을 수 있습니다. 투자 판단과 그에 따른 책임은 투자자 본인에게 있으니, 투자 전에 원문 서류와 공식 자료를 직접 확인하고 필요하면 전문가와 상담하세요.</div>
 
 #앤스로픽 #앤스로픽상장 #앤스로픽IPO #앤스로픽S1 #Anthropic #클로드 #ANT #AI주식 #AI관련주 #미국주식 #미국IPO #미국주식초보 #나스닥 #나스닥상장 #상장

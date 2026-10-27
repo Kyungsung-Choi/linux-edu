@@ -2,7 +2,6 @@
    스크롤로 화면에 들어오면 막대가 자라고 숫자가 올라가며, 마우스를 올리거나 눌러 설명을 볼 수 있다.
    자바스크립트가 꺼져 있으면 자리 안에 넣어 둔 이미지가 그대로 보인다. */
 (function () {
-  var SRC = '출처: 앤스로픽 Form S-1 (SEC, 2026-10-26) · 투자 권유 아님';
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // ---- 숫자 올라가기 -----------------------------------------------------
@@ -33,10 +32,10 @@
   }
 
   // ---- 공통 틀 -----------------------------------------------------------
-  function card(c, inner, extraSrc) {
+  function card(c, inner) {
     return '<div class="ic__card"><button type="button" class="ic__replay" aria-label="애니메이션 다시 보기">↻ 다시 보기</button>' +
       '<div class="ic__kicker"><i></i>' + c.kicker + '</div><div class="ic__t" role="heading" aria-level="3">' + c.title + '</div>' +
-      '<div class="ic__sub">' + c.sub + '</div>' + inner + '<div class="ic__src">' + (extraSrc || SRC) + '</div></div>';
+      '<div class="ic__sub">' + c.sub + '</div>' + inner + '</div>';
   }
   function pills(list) {
     if (!list) return '';
