@@ -10,8 +10,8 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await render(post);
 ---
-<SiteLayout title={`${post.data.title} · 최경성`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog">
-  <div>
+<SiteLayout title={`${post.data.title} · 최경성`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" bleed>
+  <div class="col">
     <article class="post">
       <p class="post__meta">{post.data.date.toISOString().slice(0, 10)}</p>
       <h1 class="post__t">{post.data.title}</h1>
