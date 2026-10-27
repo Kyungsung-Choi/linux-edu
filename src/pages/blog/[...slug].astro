@@ -11,7 +11,7 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 ---
 <SiteLayout title={`${post.data.title} · 최경성`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" bleed>
-  <div class="col">
+  <div class="col post-sheet">
     <article class="post">
       <p class="post__meta">{post.data.date.toISOString().slice(0, 10)}</p>
       <h1 class="post__t">{post.data.title}</h1>
@@ -19,3 +19,9 @@ const { Content } = await render(post);
     </article>
   </div>
 </SiteLayout>
+
+<style is:global>
+  /* 글 페이지: 가운데 글 칸은 밝게, 양옆 빈 공간은 옅은 회색으로 구분 */
+  body{background:var(--surface2)}
+  .post-sheet{background:var(--ground); border-inline:1px solid var(--rule2); min-height:calc(100vh - var(--hdr)); padding-bottom:40px}
+</style>
