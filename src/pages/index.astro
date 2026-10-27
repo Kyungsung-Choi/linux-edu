@@ -14,7 +14,7 @@ const what = [
 ];
 
 const contacts = [
-  { k: '비즈니스 문의', label: 'runhi81@gmail.com', href: 'mailto:runhi81@gmail.com' },
+  { k: '이메일', label: 'runhi81@gmail.com', href: 'mailto:runhi81@gmail.com' },
 ];
 
 const portfolio = projects.filter((p) => p.section === 'portfolio');
@@ -93,7 +93,8 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
     </div></section>
 
     <section class="sec sec--b" id="contact" aria-labelledby="contact-h"><div class="col">
-      <h2 id="contact-h" class="sec__h">연락처</h2>
+      <h2 id="contact-h" class="sec__h">문의</h2>
+      <p class="contact__lead">협업, 강의, 비즈니스 문의는 이메일로 보내 주세요.</p>
       <ul class="contacts">
         {contacts.map((c) => (
           <li><span>{c.k}</span><a href={c.href}>{c.label}</a></li>
@@ -117,6 +118,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
   .about .about__skills{color:var(--ink2)}
   .about .about__note{color:var(--ink3); font-size:.9rem; max-width:none}
 
+  .contact__lead{margin-bottom:10px; word-break:keep-all}
   .contacts{list-style:none; display:flex; flex-direction:column; gap:6px;
     li{display:grid; grid-template-columns:120px 1fr; gap:16px}
     li span{color:var(--ink3)}
