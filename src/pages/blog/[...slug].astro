@@ -12,8 +12,12 @@ const all = (await getCollection('posts', (p) => !p.data.draft)).sort((a, b) => 
 const cats = [...new Set(all.map((p) => p.data.category))];
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
 const { Content } = await render(post);
+// 링크 미리보기 그림: image 지정 > 본문 첫 그림 > 사이트 공용
+const firstImg = (post.body ?? '').match(/<img[^>]+src="([^"]+)"/)?.[1] ?? (post.body ?? '').match(/!\[[^\]]*\]\(([^)\s]+)/)?.[1];
+const ogImage = post.data.image ?? (firstImg?.startsWith('/') ? firstImg : undefined);
+const hasCharts = (post.body ?? '').includes('data-chart');
 ---
-<SiteLayout title={`${post.data.title} · 앵두아빠의 AI공부방`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" bleed>
+<SiteLayout title={`${post.data.title} · 앵두아빠의 AI공부방`} description={post.data.summary} path={`/blog/${post.id}/`} active="blog" ogImage={ogImage} ogImageSized={!!post.data.image} ogImageAlt={post.data.imageAlt ?? post.data.title} bleed>
   <div class="col">
     <nav class="bcat" aria-label="블로그 카테고리">
       <button type="button" class="bcat__b" data-cat="">전체 <i>{all.length}</i></button>
@@ -25,6 +29,7 @@ const { Content } = await render(post);
       <p class="post__meta">{post.data.category} · {fmt(post.data.date)}</p>
       <h1 class="post__t">{post.data.title}</h1>
       <div class="prose"><Content /></div>
+      {hasCharts && <><link rel="stylesheet" href="/charts/infochart.css" /><script is:inline src="/charts/infochart.js" defer></script></>}
     </article>
     <section class="blist" aria-labelledby="blist-h">
       <h2 id="blist-h" class="blist__h">글 목록</h2>

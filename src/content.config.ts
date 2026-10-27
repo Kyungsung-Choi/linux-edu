@@ -13,6 +13,8 @@ const posts = defineCollection({
     summary: z.string(),
     category: z.string().default('기타'),
     tags: z.array(z.string()).default([]),
+    image: z.string().optional(), // 링크 미리보기(대표) 그림. 1200x630 권장. 없으면 본문 첫 그림, 그것도 없으면 사이트 공용 그림
+    imageAlt: z.string().optional(),
     draft: z.boolean().default(false),
   }),
 });

@@ -3,6 +3,8 @@ title: 앤스로픽 상장 신청서 쉬운 정리
 date: 2026-10-27
 summary: 앤스로픽이 SEC에 낸 상장 신청서(S-1)를 주식 용어를 모르는 분도 읽을 수 있게 매출·손실·약정·주주 권리·위험 순서로 정리했습니다.
 category: 주식·투자
+image: /blog/anthropic-s1/og.png
+imageAlt: 앤스로픽 상장 신청서 쉬운 정리 - 상반기 매출 162.9억 달러, 약 14배
 tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥, 주식초보, 기업분석]
 ---
 
@@ -43,9 +45,9 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 *6개월 매출이 지난해 1년 매출의 3.5배이다.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/01_revenue.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="revenue"><img src="/blog/anthropic-s1/01_revenue.png" alt="매출 막대 그래프" loading="lazy"></div>
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/09_table.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="table"><img src="/blog/anthropic-s1/09_table.png" alt="핵심 재무 숫자 표" loading="lazy"></div>
 
 매출은 회사가 상품을 팔아 번 돈 전체입니다. 앤스로픽의 매출은 2023년 0.41억 달러, 2024년 3.86억 달러, 2025년 45.9억 달러였고, 2026년 상반기(1\~6월)에만 162.9억 달러입니다.
 
@@ -59,9 +61,9 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 *본업 손실과 장부상 손실은 다른 이야기이다.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/02_loss.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="loss"><img src="/blog/anthropic-s1/02_loss.png" alt="순손실 구성 막대" loading="lazy"></div>
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/03_operating_loss.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="oploss"><img src="/blog/anthropic-s1/03_operating_loss.png" alt="영업손실 막대 그래프" loading="lazy"></div>
 
 회사의 손실에는 두 종류가 있어 나눠 봐야 합니다. 먼저 영업손실은 본업으로 벌고 쓴 결과입니다.
 
@@ -77,7 +79,7 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 *특정 고객 한두 곳에 기대지는 않지만 '최신 모델'에 기댄다.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/04_customers.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="customers"><img src="/blog/anthropic-s1/04_customers.png" alt="큰 기업 고객 수 막대 그래프" loading="lazy"></div>
 
 연 10만 달러 넘게 쓰는 고객이 11,900곳이 넘습니다. 2025년 말 약 1,500곳, 2024년 약 200곳, 2023년 약 20곳이었으니 가파르게 늘었습니다.
 
@@ -107,9 +109,9 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 *쓰든 안 쓰든 내야 하는 돈이 수천억 달러이다.*
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/05_cash_vs_commitments.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="cash"><img src="/blog/anthropic-s1/05_cash_vs_commitments.png" alt="현금과 컴퓨팅 약정 비교" loading="lazy"></div>
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/06_commitments.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="commitments"><img src="/blog/anthropic-s1/06_commitments.png" alt="회사별 약정 금액" loading="lazy"></div>
 
 AI 모델을 만들고 돌리려면 칩과 서버가 들어 있는 데이터센터가 필요하고, 이를 '컴퓨팅'이라고 부릅니다. 앤스로픽은 여러 회사와 몇 년에서 십 년 가까이 쓰기로 약속했고 대부분 중간에 해지할 수 없습니다.
 
@@ -129,7 +131,7 @@ AI 모델을 만들고 돌리려면 칩과 서버가 들어 있는 데이터센�
 
 <figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/dario.jpg" alt="공동창업자·CEO 다리오 아모데이" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">공동창업자·CEO 다리오 아모데이<br>[출처: TechCrunch, CC BY 2.0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Dario_Amodei_at_TechCrunch_Disrupt_2023_01.jpg]</figcaption></figure>
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/07_voting.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="voting"><img src="/blog/anthropic-s1/07_voting.png" alt="투표권 비율" loading="lazy"></div>
 
 주주는 보통 주식 1주마다 1표를 가지고 이사 선출 같은 큰 결정에 투표합니다. 그런데 앤스로픽은 주식 종류를 나눠 투표권을 모아 두었습니다.
 
@@ -147,7 +149,7 @@ N종은 투표권이 없는 주식으로, 투자자들의 우선주와 전환사
 
 <figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/clark.jpg" alt="공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다." style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">공동창업자 잭 클라크. 이번 공모에서 주식을 파는 공동창업자 5명 중 한 명입니다.<br>[출처: Mvolz, CC0, Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Jack_Clark,_co-founder_of_Anthropic,_giving_a_talk_on_AI_at_the_Schwarzman_Centre_in_Oxford.jpg]</figcaption></figure>
 
-<figure style="margin:1.4rem 0;text-align:center"><img src="/blog/anthropic-s1/08_lockup.png" alt="[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]" style="max-width:100%;height:auto" loading="lazy"><figcaption style="font-size:.85rem;color:#666;margin-top:.4rem;line-height:1.6;word-break:break-all">[출처: 앤스로픽 Form S-1(SEC 제출, 2026-10-26), 단위는 그림 위에 표시]</figcaption></figure>
+<div class="ic" data-chart="lockup"><img src="/blog/anthropic-s1/08_lockup.png" alt="락업 기간 타임라인" loading="lazy"></div>
 
 희석이란 주식 수가 늘어 같은 주식 1주가 차지하는 회사 몫이 줄어드는 것을 말합니다. 앤스로픽에는 희석 요인이 여럿 있습니다.
 

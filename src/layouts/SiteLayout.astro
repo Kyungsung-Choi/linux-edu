@@ -9,11 +9,14 @@ interface Props {
   path: string;
   active: 'home' | 'portfolio' | 'library' | 'blog';
   ogImageAlt?: string;
+  ogImage?: string;      // 링크 미리보기 그림(사이트 기준 경로). 없으면 사이트 공용 /og.png
+  ogImageSized?: boolean; // 1200x630 이 맞으면 true
   bleed?: boolean;
 }
 
-const { title, description, path, active, ogImageAlt, bleed } = Astro.props;
+const { title, description, path, active, ogImageAlt, ogImage, ogImageSized = !ogImage, bleed } = Astro.props;
 const SITE = 'https://linux-edu.vercel.app';
+const OG = SITE + (ogImage ?? '/og.png');
 const NAME = '앵두아빠의 AI공부방';
 ---
 <!doctype html>
@@ -35,15 +38,15 @@ const NAME = '앵두아빠의 AI공부방';
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   <meta property="og:url" content={SITE + path} />
-  <meta property="og:image" content={SITE + '/og.png'} />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta property="og:image" content={OG} />
+  {ogImageSized && <meta property="og:image:width" content="1200" />}
+  {ogImageSized && <meta property="og:image:height" content="630" />}
   <meta property="og:image:alt" content={ogImageAlt ?? description} />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content={SITE + '/og.png'} />
+  <meta name="twitter:image" content={OG} />
 </head>
 <body>
   <header class="site-head">

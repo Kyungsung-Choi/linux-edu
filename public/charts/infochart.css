@@ -1,0 +1,137 @@
+/* 블로그용 동적 인포그래픽. .ic 안에서만 쓴다. 배경은 항상 밝은 카드라 다크 모드에서도 같은 모습. */
+.ic{--ink:#0f1226;--ink2:#4a4f6a;--ink3:#8b90a8;--line:#e8eaf4;--violet:#6d4aff;--coral:#ff5a6e;--amber:#ffb020;--teal:#12c2a5;--navy:#14173a;--soft:#f4f5fb;
+  --hot:linear-gradient(135deg,#6d4aff 0%,#c13dff 50%,#ff5a6e 100%);--cool:linear-gradient(135deg,#3b5bff 0%,#12c2a5 100%);--dark:linear-gradient(135deg,#14173a 0%,#2b2f6b 100%);
+  margin:1.6em 0; color:var(--ink); line-height:1.4; font-variant-numeric:tabular-nums}
+.ic *{box-sizing:border-box}
+.ic__card{position:relative; padding:28px 32px 20px; border:1px solid #d9d9d9; background:
+  radial-gradient(520px 200px at 100% -10%,rgba(109,74,255,.10),transparent 70%),
+  radial-gradient(420px 180px at -5% 0%,rgba(255,90,110,.07),transparent 70%),#fff; overflow:hidden}
+.ic__kicker{display:inline-flex; align-items:center; gap:8px; font-size:.75rem; font-weight:700; color:var(--violet); letter-spacing:.03em; margin-bottom:6px}
+.ic__kicker i{width:20px; height:5px; border-radius:3px; background:var(--hot)}
+.ic__t{font-size:1.65rem; font-weight:800; letter-spacing:-.03em; line-height:1.25; margin:0}
+.ic__sub{font-size:.95rem; color:var(--ink3); font-weight:500; margin-top:4px}
+.ic__replay{position:absolute; top:14px; right:14px; border:1px solid var(--line); background:#fff; color:var(--ink2); border-radius:999px; padding:4px 12px; font-size:.78rem; font-weight:600; cursor:pointer; font-family:inherit}
+.ic__replay:hover{border-color:var(--violet); color:var(--violet)}
+.ic__src{font-size:.72rem; color:var(--ink3); margin-top:14px}
+.ic__pills{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px}
+.ic__pill{display:inline-block; padding:7px 14px; border-radius:999px; background:var(--navy); color:#fff; font-size:.9rem; font-weight:700; box-shadow:0 8px 18px -8px rgba(20,23,58,.5)}
+.ic__pill em{font-style:normal; color:#ffd166; font-weight:800}
+.ic__pill--soft{background:#fff0f2; color:#e0334b; box-shadow:none}
+.ic__pill--line{background:#fff; color:var(--ink2); border:1px solid var(--line); box-shadow:none; font-weight:600}
+.ic__pill--line b{color:var(--coral)}
+
+/* 세로 막대 */
+.ic__bars{display:flex; align-items:flex-end; justify-content:space-around; height:260px; margin-top:22px; border-bottom:2px solid var(--ink); gap:10px}
+.ic__bar{flex:1; max-width:150px; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; cursor:pointer; outline:none; border-radius:10px 10px 0 0}
+.ic__v{font-size:1.1rem; font-weight:800; margin-bottom:6px; white-space:nowrap; letter-spacing:-.02em; transition:transform .25s}
+.ic__col{width:100%; height:0; border-radius:12px 12px 0 0; background:linear-gradient(180deg,#d9dcff,#c3c8f7); transition:height 1.1s cubic-bezier(.2,.9,.25,1.05), filter .2s, transform .25s; transform-origin:bottom}
+.ic__bar--hot .ic__col{background:var(--hot); box-shadow:0 14px 28px -10px rgba(193,61,255,.55)}
+.ic__bar--hot .ic__v{color:var(--violet); font-size:1.3rem}
+.ic__bar--cool .ic__col{background:var(--cool); box-shadow:0 14px 28px -10px rgba(18,194,165,.55)}
+.ic__bar--cool .ic__v{color:#0a9c85; font-size:1.3rem}
+.ic__bar--navy .ic__col{background:var(--dark)}
+.ic__bar--amber .ic__col{background:linear-gradient(180deg,#ffd166,#ffb020)}
+.is-in .ic__col{height:var(--h)}
+.ic__bar:hover .ic__col,.ic__bar:focus-visible .ic__col,.ic__bar.is-sel .ic__col{filter:brightness(1.06) saturate(1.15); transform:scaleX(1.05)}
+.ic__bar:hover .ic__v,.ic__bar.is-sel .ic__v{transform:translateY(-3px)}
+.ic__bar:focus-visible{box-shadow:0 0 0 3px rgba(109,74,255,.35)}
+.ic__labels{display:flex; justify-content:space-around; gap:10px; margin-top:8px}
+.ic__labels div{flex:1; max-width:150px; text-align:center; font-size:.88rem; font-weight:600; color:var(--ink2)}
+.ic__labels div.on{color:var(--ink); font-weight:800}
+.ic__info{margin-top:14px; min-height:3.1em; padding:12px 16px; border-radius:14px; background:var(--soft); font-size:.92rem; color:var(--ink2); line-height:1.55; transition:background .2s}
+.ic__info b{color:var(--ink)}
+.ic__info.is-hit{background:#eceeff}
+
+/* 가로 막대 */
+.ic__hb{margin-top:20px; border-left:2px solid var(--ink)}
+.ic__hr{display:flex; align-items:center; padding:5px 0; cursor:pointer; outline:none; border-radius:0 10px 10px 0; transition:background .2s}
+.ic__hr:hover,.ic__hr:focus-visible,.ic__hr.is-sel{background:rgba(109,74,255,.07)}
+.ic__hn{width:34%; text-align:right; padding-right:14px; font-size:.88rem; font-weight:600; color:var(--ink2)}
+.ic__hw{flex:1; display:flex; align-items:center; min-width:0}
+.ic__hbar{height:26px; width:0; border-radius:0 10px 10px 0; background:linear-gradient(90deg,#8b8cff,#b8baff); transition:width 1.1s cubic-bezier(.2,.9,.25,1.05); transition-delay:var(--d,0s)}
+.ic__hr--hot .ic__hbar{background:var(--hot)}
+.is-in .ic__hbar{width:var(--w)}
+.ic__hv{font-size:.95rem; font-weight:800; margin-left:10px; white-space:nowrap}
+
+/* 쌓은 막대 */
+.ic__big{font-size:3.1rem; font-weight:900; letter-spacing:-.04em; line-height:1.05; background:var(--hot); -webkit-background-clip:text; background-clip:text; color:transparent; margin-top:6px}
+.ic__bignote{font-size:.9rem; color:var(--ink2); font-weight:600; margin-top:18px}
+.ic__stack{display:flex; height:64px; border-radius:16px; overflow:hidden; margin-top:12px; box-shadow:0 16px 28px -14px rgba(193,61,255,.5)}
+.ic__seg{display:flex; align-items:center; justify-content:center; text-align:center; flex-basis:0; flex-grow:0; overflow:hidden; font-weight:800; font-size:1rem; transition:flex-grow 1.2s cubic-bezier(.2,.9,.25,1), filter .2s; cursor:pointer; outline:none; padding:0 6px; white-space:nowrap}
+.is-in .ic__seg{flex-grow:var(--g)}
+.ic__seg:hover,.ic__seg:focus-visible,.ic__seg.is-sel{filter:brightness(1.08) saturate(1.1)}
+.ic__seg--hot{background:var(--hot); color:#fff}
+.ic__seg--soft{background:#d9dcff; color:#3b3f78}
+.ic__seg--dark{background:var(--dark); color:#fff}
+.ic__seg--lav{background:#e4e6ff; color:var(--ink)}
+.ic__segl{display:flex; justify-content:space-between; margin-top:8px; font-size:.78rem; color:var(--ink3); font-weight:600}
+.ic__vs{display:flex; flex-direction:column; align-items:center; line-height:1.1}
+.ic__vs small{font-size:.78rem; font-weight:600; opacity:.85; margin-bottom:2px}
+.ic__vs strong{font-size:2.2rem; letter-spacing:-.03em; font-weight:900}
+.ic__vs strong.y{color:#ffd166}
+.ic__vs strong.p{color:var(--violet)}
+.ic__vs span{font-size:.75rem; opacity:.8; margin-top:2px}
+
+/* 타임라인 */
+.ic__tl{position:relative; height:150px; margin:18px 12px 0}
+.ic__tr{position:absolute; left:0; right:0; top:84px; height:12px; border-radius:6px; background:#e4e6ff}
+.ic__tf{position:absolute; left:0; top:84px; height:12px; border-radius:6px; background:linear-gradient(90deg,#6d4aff,#c13dff 50%,#ff5a6e); width:0}
+.ic__dot{position:absolute; top:76px; width:28px; height:28px; margin-left:-14px; border-radius:50%; background:#fff; border:5px solid var(--navy); box-shadow:0 4px 10px -2px rgba(20,23,58,.4)}
+.ic__tt{position:absolute; transform:translateX(-50%); text-align:center; white-space:nowrap; font-size:.78rem; color:var(--ink3); font-weight:600; opacity:0; transition:opacity .5s .6s}
+.ic__tt b{display:block; font-size:1.3rem; font-weight:900; letter-spacing:-.03em}
+.is-in .ic__tt{opacity:1}
+.ic__tt--0{left:0; top:20px; transform:none; text-align:left}
+.ic__tt--0 b{color:var(--ink)}
+.ic__tt--180 b{color:#c13dff}
+.ic__tt--365{transform:translateX(-100%); text-align:right}
+.ic__tt--365 b{color:var(--coral)}
+.ic__range{width:100%; margin-top:6px; accent-color:var(--violet); cursor:pointer}
+.ic__day{display:flex; justify-content:space-between; align-items:baseline; margin-top:14px; font-size:.82rem; color:var(--ink3); font-weight:600}
+.ic__day b{font-size:1.5rem; color:var(--ink); font-weight:900; letter-spacing:-.03em}
+.ic__state{margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.ic__st{padding:12px 14px; border-radius:14px; background:var(--soft); font-size:.88rem; color:var(--ink3); transition:background .3s,color .3s}
+.ic__st b{display:block; color:inherit; font-size:.8rem; font-weight:700; margin-bottom:2px}
+.ic__st.is-open{background:#fff0f2; color:#c0273d}
+.ic__st.is-open span{font-weight:800}
+
+/* 표 */
+.ic__tw{overflow-x:auto; margin-top:18px}
+.ic table{width:100%; border-collapse:separate; border-spacing:0; font-size:1.05rem; min-width:480px; margin:0}
+.ic th,.ic td{padding:13px 10px; text-align:center; border:0; border-bottom:2px solid var(--line); background:transparent}
+.ic th{background:var(--navy); color:#fff; font-weight:700; font-size:.9rem}
+.ic th:first-child{border-radius:14px 0 0 0; text-align:left; padding-left:18px}
+.ic th:last-child{border-radius:0 14px 0 0; background:var(--hot)}
+.ic td:first-child{text-align:left; padding-left:18px; font-weight:700; color:var(--ink)}
+.ic td{font-weight:600; color:var(--ink2)}
+.ic td:last-child{background:linear-gradient(180deg,#f3eeff,#ffeef1); font-weight:900; color:var(--ink); font-size:1.15rem}
+.ic tbody tr{transition:background .2s}
+.ic tbody tr:hover td{background:#eceeff}
+.ic tbody tr:hover td:last-child{background:#e5d9ff}
+.ic tbody tr:last-child td{border-bottom:0}
+
+/* 설명 카드 2개 */
+.ic__two{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
+.ic__two div{background:var(--soft); border-radius:14px; padding:12px 16px; font-size:.9rem; color:var(--ink2); line-height:1.55}
+.ic__two b.v{color:var(--violet)} .ic__two b.c{color:var(--coral)}
+
+@media (max-width:600px){
+  .ic__card{padding:22px 16px 16px}
+  .ic__t{font-size:1.3rem}
+  .ic__bars{height:210px; gap:4px}
+  .ic__v{font-size:.85rem} .ic__bar--hot .ic__v,.ic__bar--cool .ic__v{font-size:1rem}
+  .ic__labels div{font-size:.72rem}
+  .ic__big{font-size:2.2rem}
+  .ic__hn{width:38%; font-size:.74rem; padding-right:8px}
+  .ic__hv{font-size:.78rem; margin-left:6px}
+  .ic__seg{font-size:.78rem}
+  .ic__two,.ic__state{grid-template-columns:1fr}
+  .ic table{font-size:.8rem; min-width:0; table-layout:fixed}
+  .ic th,.ic td{padding:10px 3px}
+  .ic th{font-size:.72rem; line-height:1.25}
+  .ic th:first-child,.ic td:first-child{padding-left:8px; width:30%}
+  .ic td:last-child{font-size:.9rem}
+  .ic__replay{top:8px; right:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  .ic *{transition:none!important}
+}
