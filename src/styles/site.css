@@ -68,7 +68,8 @@
   /* 맺음말 */
   .site-foot{padding-block:40px 48px; color:var(--ink3); font-size:.9rem}
   .site-foot p{margin:0}
-  .site-foot__n{margin-top:6px; font-size:.8rem; line-height:1.7; max-width:60ch}
+  .site-foot__c span,.site-foot .nw{display:inline-block}
+  .site-foot__n{margin-top:4px; font-size:.8rem; line-height:1.7; word-break:keep-all; text-wrap:pretty}
 
   /* 구역 */
   .sec{padding-block:72px;
