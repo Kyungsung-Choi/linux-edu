@@ -72,14 +72,14 @@
   .site-foot__n{margin-top:4px; font-size:.8rem; line-height:1.7; word-break:keep-all; text-wrap:pretty}
 
   /* 구역 */
-  .sec{padding-block:44px;
-    .sec__h{font-size:1.05rem; color:var(--ink3); font-weight:500; letter-spacing:0; margin-bottom:14px}
+  .sec{padding-block:28px;
+    .sec__h{font-size:1.05rem; color:var(--ink3); font-weight:500; letter-spacing:0; margin-bottom:6px}
   }
 
   /* 목록: 제목 · 한 줄 설명 · 오른쪽 메타. 선 없이 간격과 hover 로만 구분 */
   .list{list-style:none; margin-inline:calc(-1*var(--pad)); display:flex; flex-direction:column}
   .item{
-    display:block; padding:16px var(--pad); text-decoration:none; transition:background .15s;
+    display:block; padding:10px var(--pad); text-decoration:none; transition:background .15s;
     &:hover,&:focus-visible{background:var(--hover)}
     .item__top{display:flex; align-items:baseline; justify-content:space-between; gap:16px}
     .item__t{font-size:1.2rem; font-weight:600; letter-spacing:-.02em}

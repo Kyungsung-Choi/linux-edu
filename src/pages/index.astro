@@ -131,7 +131,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 </SiteLayout>
 
 <style is:global>
-  .hero{padding-block:56px 36px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:center}
+  .hero{padding-block:40px 24px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:24px; align-items:center}
   .hero .hero__h{font-size:clamp(2.2rem,4.6vw,3.6rem); word-break:keep-all; font-weight:700; letter-spacing:-.035em; line-height:1.18; margin-bottom:24px}
   .hero .hero__p{font-size:1.15rem; color:var(--ink2); max-width:40ch}
 
@@ -152,7 +152,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
   }
 
   @media (max-width:860px){
-    .hero{padding-top:28px; grid-template-columns:1fr}
+    .hero{padding-top:20px; grid-template-columns:1fr}
     .hero .mascot{order:-1; justify-self:start; width:min(100%,300px)}
   }
   @media (max-width:600px){
