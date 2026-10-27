@@ -61,34 +61,6 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
       <Mascot />
     </section>
 
-    <section class="sec sec--b" id="portfolio" aria-labelledby="portfolio-h"><div class="col">
-      <h2 id="portfolio-h" class="sec__h">포트폴리오</h2>
-      <ul class="list">
-        {portfolio.map((p) => (
-          <li>
-            <a class="item" href={p.href}>
-              <span class="item__top"><span class="item__t">{p.title}</span><span class="item__m">{p.kind} · {p.status}</span></span>
-              <span class="item__s">{p.summary}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div></section>
-
-    <section class="sec sec--a" id="library" aria-labelledby="library-h"><div class="col">
-      <h2 id="library-h" class="sec__h">자료실</h2>
-      <ul class="list">
-        {library.map((p) => (
-          <li>
-            <a class="item" href={p.href} target={p.newWindow ? '_blank' : undefined} rel={p.newWindow ? 'noopener' : undefined}>
-              <span class="item__top"><span class="item__t">{p.title}</span><span class="item__m">{p.kind} · {p.status}</span></span>
-              <span class="item__s">{p.summary}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div></section>
-
     <section class="sec sec--b" id="blog" aria-labelledby="blog-h"><div class="col">
       <h2 id="blog-h" class="sec__h">블로그</h2>
       {posts.length === 0 ? (
@@ -105,6 +77,34 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
           ))}
         </ul>
       )}
+    </div></section>
+
+    <section class="sec sec--a" id="portfolio" aria-labelledby="portfolio-h"><div class="col">
+      <h2 id="portfolio-h" class="sec__h">포트폴리오</h2>
+      <ul class="list">
+        {portfolio.map((p) => (
+          <li>
+            <a class="item" href={p.href}>
+              <span class="item__top"><span class="item__t">{p.title}</span><span class="item__m">{p.kind} · {p.status}</span></span>
+              <span class="item__s">{p.summary}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div></section>
+
+    <section class="sec sec--b" id="library" aria-labelledby="library-h"><div class="col">
+      <h2 id="library-h" class="sec__h">자료실</h2>
+      <ul class="list">
+        {library.map((p) => (
+          <li>
+            <a class="item" href={p.href} target={p.newWindow ? '_blank' : undefined} rel={p.newWindow ? 'noopener' : undefined}>
+              <span class="item__top"><span class="item__t">{p.title}</span><span class="item__m">{p.kind} · {p.status}</span></span>
+              <span class="item__s">{p.summary}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </div></section>
 
     <section class="sec sec--a" id="about" aria-labelledby="about-h"><div class="col">
