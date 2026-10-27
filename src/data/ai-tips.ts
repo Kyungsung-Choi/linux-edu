@@ -10,7 +10,7 @@ export interface TipGroup {
   links: TipLink[];
 }
 
-/** AI UI 구성 TIP 페이지의 링크 모음. 항목을 늘리려면 이 배열에 한 줄씩 넣으면 된다. */
+/** AI를 활용한 UI구성 TIP 페이지의 링크 모음. 항목을 늘리려면 이 배열에 한 줄씩 넣으면 된다. */
 export const uiTipGroups: TipGroup[] = [
   {
     title: 'React UI 컴포넌트 문서',
