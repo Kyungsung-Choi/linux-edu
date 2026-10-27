@@ -33,7 +33,7 @@
 
   // ---- 공통 틀 -----------------------------------------------------------
   function card(c, inner) {
-    return '<div class="ic__card' + (c.cls ? ' ic__card--' + c.cls : '') + '"><button type="button" class="ic__replay" aria-label="애니메이션 다시 보기">↻ 다시 보기</button>' +
+    return '<div class="ic__card' + (c.cls ? ' ic__card--' + c.cls : '') + '">' +
       '<div class="ic__kicker"><i></i>' + c.kicker + '</div><div class="ic__t" role="heading" aria-level="3">' + c.title + '</div>' +
       '<div class="ic__sub">' + c.sub + '</div>' + inner + '</div>';
   }
@@ -43,38 +43,37 @@
       return '<span class="ic__pill' + (p.cls ? ' ic__pill--' + p.cls : '') + '">' + p.html + '</span>';
     }).join('') + '</div>';
   }
-  var HINT = '막대를 누르거나 마우스를 올려 보세요.';
-  function info(txt) { return '<div class="ic__info" aria-live="polite" data-default="' + txt + '">' + txt + '</div>'; }
+  function nt(c) { return c.note ? '<div class="ic__nt">' + c.note + '</div>' : ''; }
 
   // ---- 차트 종류 ---------------------------------------------------------
   function vbars(c) {
     var max = c.max, H = 200;
     var cols = c.items.map(function (it, i) {
       var h = Math.max(5, it.v / max * H);
-      return '<div class="ic__bar' + (it.cls ? ' ic__bar--' + it.cls : '') + '" tabindex="0" role="button" aria-label="' + it.label.replace(/<br>/g, ' ') + ' ' + it.text + '" data-i="' + i + '" style="--h:' + h + 'px;transition-delay:' + (i * 0.12) + 's">' +
+      return '<div class="ic__bar' + (it.cls ? ' ic__bar--' + it.cls : '') + '" role="img" aria-label="' + it.label.replace(/<br>/g, ' ') + ' ' + it.text + '" data-i="' + i + '" style="--h:' + h + 'px;transition-delay:' + (i * 0.12) + 's">' +
         '<b class="ic__v" data-text="' + it.text + '">' + it.text + '</b><div class="ic__col" style="transition-delay:' + (i * 0.12) + 's"></div></div>';
     }).join('');
     var labs = c.items.map(function (it) { return '<div class="' + (it.cls ? 'on' : '') + '">' + it.label + '</div>'; }).join('');
-    return card(c, pills(c.pills) + '<div class="ic__bars">' + cols + '</div><div class="ic__labels">' + labs + '</div>' + info(c.hint || HINT));
+    return card(c, pills(c.pills) + '<div class="ic__bars">' + cols + '</div><div class="ic__labels">' + labs + '</div>' + nt(c));
   }
 
   function hbars(c) {
     var rows = c.items.map(function (it, i) {
-      return '<div class="ic__hr' + (it.cls ? ' ic__hr--' + it.cls : '') + '" tabindex="0" role="button" data-i="' + i + '">' +
+      return '<div class="ic__hr' + (it.cls ? ' ic__hr--' + it.cls : '') + '" data-i="' + i + '">' +
         '<div class="ic__hn">' + it.label + '</div><div class="ic__hw"><div class="ic__hbar" style="--w:' + (it.v / c.max * 76) + '%;--d:' + (i * 0.09) + 's"></div>' +
         '<b class="ic__hv" data-text="' + it.text + '">' + it.text + '</b></div></div>';
     }).join('');
-    return card(c, '<div class="ic__hb">' + rows + '</div>' + info(c.hint || HINT));
+    return card(c, '<div class="ic__hb">' + rows + '</div>' + nt(c));
   }
 
   function stack(c) {
     var segs = c.segs.map(function (s, i) {
-      return '<div class="ic__seg ic__seg--' + s.cls + '" tabindex="0" role="button" data-i="' + i + '" style="--g:' + s.g + '">' + s.html + '</div>';
+      return '<div class="ic__seg ic__seg--' + s.cls + '" data-i="' + i + '" style="--g:' + s.g + '">' + s.html + '</div>';
     }).join('');
     var ls = '<div class="ic__segl">' + c.segs.map(function (s) { return '<span>' + (s.cap || '') + '</span>'; }).join('') + '</div>';
     var head = c.big ? '<div class="ic__bignote">' + c.big.note + '</div><div class="ic__big" data-text="' + c.big.text + '">' + c.big.text + '</div>' : '';
     var two = c.two ? '<div class="ic__two">' + c.two.map(function (t) { return '<div>' + t + '</div>'; }).join('') + '</div>' : '';
-    return card(c, pills(c.pills) + head + '<div class="ic__stack" style="' + (c.h ? 'height:' + c.h + 'px' : '') + '">' + segs + '</div>' + ls + info(c.hint || HINT) + two);
+    return card(c, pills(c.pills) + head + '<div class="ic__stack" style="' + (c.h ? 'height:' + c.h + 'px' : '') + '">' + segs + '</div>' + ls + nt(c) + two);
   }
 
   function timeline(c) {
@@ -84,10 +83,7 @@
       '<div class="ic__tt ic__tt--0"><small>0일</small><b>상장</b></div>' +
       '<div class="ic__tt ic__tt--180" style="left:' + X(180) + ';top:10px">일반 주주<b>최대 180일</b></div>' +
       '<div class="ic__tt ic__tt--365" style="left:100%;top:0">창업자 · 0.5% 이상 주주<b>최대 365일</b></div></div>' +
-      '<input class="ic__range" type="range" min="0" max="365" value="0" step="1" aria-label="상장 후 지난 날짜">' +
-      '<div class="ic__day"><span>슬라이더를 움직여 보세요</span><span>상장 후 <b>0</b>일</span></div>' +
-      '<div class="ic__state"><div class="ic__st" data-g="a"><b>일반 주주</b><span>묶여 있음</span></div><div class="ic__st" data-g="f"><b>창업자 · 0.5% 이상 주주</b><span>묶여 있음</span></div></div>' +
-      '<div class="ic__info" style="margin-top:12px"><b>실적 발표 조건에 따라 더 일찍 풀릴 수 있고, 주간사가 앞당겨 풀어 줄 수도 있습니다.</b><br>일반 주주: 2027년 1분기 실적 후 2거래일 또는 180일 중 빠른 날 / 창업자 등: 2027년 3분기 실적 후 2거래일 또는 365일 중 빠른 날</div>';
+      '<div class="ic__nt" style="margin-top:14px"><b>실적 발표 조건에 따라 더 일찍 풀릴 수 있고, 주간사가 앞당겨 풀어 줄 수도 있습니다.</b><br>일반 주주: 2027년 1분기 실적 후 2거래일 또는 180일 중 빠른 날 / 창업자 등: 2027년 3분기 실적 후 2거래일 또는 365일 중 빠른 날</div>';
     return card(c, html);
   }
 
@@ -139,16 +135,17 @@
     var rows = c.items.map(function (it, i) {
       var l = (it.s - a) / W * 100, w = (it.e - it.s) / W * 100;
       var mk = (it.marks || []).map(function (m) { return '<i class="ic__gm" style="left:' + ((m - a) / W * 100) + '%"></i>'; }).join('');
-      return '<div class="ic__gr" tabindex="0" role="button" data-i="' + i + '"><div class="ic__gn">' + it.label + '</div><div class="ic__gt">' +
+      return '<div class="ic__gr" data-i="' + i + '"><div class="ic__gn">' + it.label + '</div><div class="ic__gt">' +
         '<div class="ic__gb' + (it.soft ? ' ic__gb--soft' : '') + '" style="left:' + l + '%;width:' + w + '%;--d:' + (i * 0.1) + 's">' + it.end + '</div>' + mk + '</div></div>';
     }).join('');
-    return card(c, '<div class="ic__gantt">' + ax + rows + '</div>' + info(c.hint || HINT));
+    return card(c, '<div class="ic__gantt">' + ax + rows + '</div>' + nt(c));
   }
 
   // ---- 데이터 ------------------------------------------------------------
   var CH = {
     revenue: { t: vbars, kicker: 'REVENUE', title: '매출이 폭발적으로 늘었다', sub: '단위: 억 달러 (2026년은 상반기 6개월 합계)', max: 162.9,
       pills: [{ html: '2026 상반기 = 2025 상반기(11.6억)의 약 <em data-count="14">14</em>배' }],
+      note: '2026년 상반기 6개월 매출은 2025년 한 해의 약 <b>3.5배</b>이고, 2분기(4~6월) 매출은 1년 전보다 <b>1,368%</b> 늘었다고 회사가 밝혔습니다.',
       items: [
         { label: '2023', v: .41, text: '0.41억', tip: '<b>2023년</b> 매출은 0.41억 달러였습니다.' },
         { label: '2024', v: 3.86, text: '3.86억', tip: '<b>2024년</b> 매출 3.86억 달러. 전년의 약 9.4배입니다(제 계산).' },
@@ -181,7 +178,7 @@
         { label: '컴퓨팅 약정<br>(임대료 제외, 제 계산)', v: 4758, text: '4,758억 달러', cls: 'hot', tip: '<b>컴퓨팅 약정 약 4,758억 달러</b>(제 계산). 월스트리트저널이 보도한 4,750억 달러 이상과 맞습니다. 서류의 약정 총액 칸은 비어 있습니다.' },
         { label: '브로드컴 장비<br>임대료(5년)', v: 1612, text: '1,612억 달러', cls: 'amber', tip: '<b>브로드컴 장비 임대료</b> 5년간 1,612억 달러.' }] },
     commitments: { t: hbars, kicker: 'WHO GETS HOW MUCH', title: '누구에게 얼마를 쓰기로 했나', sub: "단위: 억 달러 (서류의 '최소·최대' 표시 기준)", max: 1612,
-      hint: '줄을 누르거나 마우스를 올려 보세요. 구글 추가 TPU 1,250~1,500억은 별도입니다.',
+      note: '※ 구글 추가 TPU 1,250~1,500억 달러는 별도입니다.',
       items: [
         { label: '브로드컴 장비 임대료(5년)', v: 1612, text: '1,612억 달러', cls: 'hot', tip: '<b>브로드컴</b> 장비 임대료 5년 1,612억 달러. 최대 420억 달러의 전환사채 발행도 가능합니다.' },
         { label: '스페이스X.AI (최대)', v: 1205, text: '1,205억 달러', cls: 'hot', tip: '<b>스페이스X.AI</b> 최대 1,205억 달러(2029년까지). 2027년 초 이후 90일 전에 알리면 해지할 수 있습니다.' },
@@ -224,7 +221,8 @@
     no: { title: '✕ 아직 비어 있는 것', items: ['<b>공모가</b> (처음 파는 1주 가격)', '<b>공모 주식 수</b>', '<b>조달 금액</b>'] },
     note: '기업가치 1조 5천억~2조 달러, 조달 목표 약 1,000억 달러라는 보도가 있지만 <b>서류에는 없습니다.</b>' };
 
-  CH.ladder = { t: hbars, kicker: 'BIG CUSTOMERS', title: '연간 사용액별 고객 수', sub: '단위: 곳 (2026년 최근 기준, "이상")', max: 11900, hint: '줄을 누르거나 마우스를 올려 보세요.',
+  CH.ladder = { t: hbars, kicker: 'BIG CUSTOMERS', title: '연간 사용액별 고객 수', sub: '단위: 곳 (2026년 최근 기준, "이상")', max: 11900,
+    note: '미국 매출 상위 500대 기업의 <b>절반 넘게</b>가 연 10만 달러 이상 고객입니다. 2026년 1~9월에 매출의 10%를 넘은 단일 고객은 없어 특정 고객 의존도는 낮습니다.',
     items: [
       { label: '연 10만 달러 이상', v: 11900, text: '11,900곳 이상', cls: 'hot', tip: '<b>연 10만 달러 이상 11,900곳 이상.</b> 미국 매출 상위 500대 기업의 절반 넘게가 여기 속합니다.' },
       { label: '연 100만 달러 이상', v: 1900, text: '1,900곳 이상', cls: 'hot', tip: '<b>연 100만 달러 이상 1,900곳 넘음.</b>' },
@@ -253,7 +251,7 @@
     note: '회사는 2023~2025년 영업과 투자로 현금이 계속 빠져나갔고 앞으로도 크게 빠져나갈 것이라고 밝혔지만, <b>최소 앞으로 12개월은 버틸 돈</b>이 있다고 설명합니다.' };
 
   CH.terms = { t: gantt, kicker: 'CONTRACT TERMS', title: '약정은 언제까지 이어지나', sub: '서류에 적힌 기간 (끝나는 시점 기준, 시작이 적히지 않은 곳은 흐리게)', from: 2026, to: 2037, ticks: [2026, 2028, 2030, 2032, 2034, 2036],
-    hint: '줄을 누르거나 마우스를 올려 보세요. 노란 표시는 해지 가능 시작 시점입니다.',
+    note: '<b>노란 표시</b>는 스페이스X.AI 약정을 해지할 수 있게 되는 시점(2027년 초 이후, 90일 전 통보)입니다. 아마존·마이크로소프트·스페이스X.AI는 시작 시점이 서류에 표시되지 않았습니다.',
     items: [
       { label: '구글 (최소)', s: 2026.25, e: 2033.55, end: '2033.7', tip: '<b>구글</b> 2026년 4월~2033년 7월, 최소 1,145억 달러. 추가 TPU 1,250~1,500억 달러는 별도입니다.' },
       { label: '아마존 (최소)', s: 2026, e: 2036.3, end: '~2036.4', soft: 1, tip: '<b>아마존</b> 2036년 4월까지, 최소 1,100억 달러. 시작 시점은 서류에 표시되지 않았습니다.' },
@@ -308,50 +306,12 @@
     root.querySelectorAll('em[data-count]').forEach(function (el) {
       var t = el.getAttribute('data-count'); countUp(el, t, 500);
     });
-    if (c.t === timeline) { var r = root.querySelector('.ic__range'); r.value = 0; tl(root); }
-  }
-
-  function tl(root) {
-    var r = root.querySelector('.ic__range'), v = +r.value;
-    root.querySelector('.ic__tf').style.width = (v / 365 * 100) + '%';
-    root.querySelector('.ic__day b').textContent = v;
-    var a = root.querySelector('[data-g="a"]'), f = root.querySelector('[data-g="f"]');
-    function set(el, open, openTxt) { el.classList.toggle('is-open', open); el.querySelector('span').textContent = open ? openTxt : '묶여 있음'; }
-    set(a, v >= 180, '팔 수 있는 주식이 늘어날 수 있음');
-    set(f, v >= 365, '팔 수 있는 주식이 늘어날 수 있음');
-  }
-
-  function bindInfo(root, c) {
-    var box = root.querySelector('.ic__info');
-    if (!box || !c.items && !c.segs) return;
-    var list = c.items || c.segs;
-    var els = root.querySelectorAll('[data-i]');
-    function show(i) {
-      els.forEach(function (e) { e.classList.toggle('is-sel', +e.getAttribute('data-i') === i); });
-      box.innerHTML = list[i].tip; box.classList.add('is-hit');
-    }
-    function reset() {
-      els.forEach(function (e) { e.classList.remove('is-sel'); });
-      box.innerHTML = box.getAttribute('data-default'); box.classList.remove('is-hit');
-    }
-    els.forEach(function (e) {
-      var i = +e.getAttribute('data-i');
-      e.addEventListener('mouseenter', function () { show(i); });
-      e.addEventListener('focus', function () { show(i); });
-      e.addEventListener('click', function () { show(i); });
-      e.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); show(i); } });
-    });
-    root.addEventListener('mouseleave', function () { if (!root.contains(document.activeElement)) reset(); });
   }
 
   function init(root) {
     var c = CH[root.getAttribute('data-chart')];
     if (!c) return;
     root.innerHTML = c.t(c);
-    bindInfo(root, c);
-    root.querySelector('.ic__replay').addEventListener('click', function () { play(root, c); });
-    var r = root.querySelector('.ic__range');
-    if (r) r.addEventListener('input', function () { tl(root); });
     if (reduce || !('IntersectionObserver' in window)) { root.classList.add('is-in'); root.querySelectorAll('em[data-count]').forEach(function (e) { e.textContent = e.getAttribute('data-count'); }); return; }
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { io.disconnect(); play(root, c); } });
