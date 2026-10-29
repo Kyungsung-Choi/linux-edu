@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
-const SITE = 'https://linux-edu.vercel.app';
+const SITE = 'https://angdo.vercel.app';
 
 export default defineConfig({
   site: SITE,

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://linux-edu.vercel.app/sitemap-index.xml
+Sitemap: https://angdo.vercel.app/sitemap-index.xml
