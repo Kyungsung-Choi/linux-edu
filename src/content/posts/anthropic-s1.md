@@ -14,6 +14,10 @@ tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥,
 
 주식을 잘 모르는 분도 이해할 수 있게 핵심만 쉬운 말로 정리했습니다.
 
+<div style="position:relative;padding-bottom:56.25%;height:0;margin:1.5em 0"><iframe src="https://www.youtube-nocookie.com/embed/TYdADgxxRH4" title="앤스로픽 상장 신청서 핵심 5가지 (100초 영상)" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+
+<p style="font-size:14px">100초 영상으로 먼저 보셔도 됩니다. 영상의 음성은 AI 음성이며, 투자 권유가 아닙니다. <a href="https://youtu.be/TYdADgxxRH4" target="_blank" rel="noopener">유튜브에서 보기</a></p>
+
 **한눈에 보기**
 
 <div class="ic" data-chart="glance"><ul><li>AI 기업 앤스로픽(Anthropic)이 주식시장에 처음 상장하겠다며 미국 증권거래위원회(SEC)에 신청서(Form S-1)를 냈습니다. 종목 이름표(티커)는 ANT, 거래소는 나스닥입니다.</li><li>벌어들인 돈(매출)은 2025년 한 해 45.9억 달러였는데, 2026년은 상반기 6개월에만 162.9억 달러입니다. 1년 전 같은 기간의 약 14배입니다.</li><li>본업의 손실(영업손실)은 상반기에 6.9억 달러로 줄었습니다. 최종 손실(순손실) 807억 달러는 대부분 '장부상 평가 손실'이라 실제로 나간 현금이 아닙니다.</li><li>앞으로 컴퓨터 설비를 쓰기로 한 약속이 수천억 달러이고 대부분 중간에 그만둘 수 없습니다. 회사도 당분간 현금이 많이 빠져나갈 것이라고 밝혔습니다.</li><li>창업자 7명의 회사가 투표권의 50.1%를 고정으로 가집니다. 일반 주주가 회사의 큰 결정에 영향을 주기는 어렵습니다.</li><li>주식 가격(공모가)과 공모 주식 수가 서류에 비어 있어서, 지금은 '비싼지 싼지' 따질 수 없습니다.</li></ul></div>
