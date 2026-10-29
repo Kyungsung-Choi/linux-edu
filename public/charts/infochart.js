@@ -308,6 +308,43 @@
     });
   }
 
+  CH.fomc_glance = { t: cards, kicker: 'AT A GLANCE', title: '10월 FOMC, 숫자 4개로 보기', sub: '2026년 10월 28일(현지시간) 결정', cols: 2,
+    items: [
+      { lab: '기준금리 목표 범위', big: '3.75~4.00%', dk: 1, text: '연준이 그대로 유지했습니다 (9월에 0.25%p 인상)' },
+      { lab: '표결 (찬성 : 반대)', big: '10 : 2', text: '반대 2표는 모두 0.25%p 인상을 원했습니다' },
+      { lab: '9월 소비자물가 (1년 전 대비)', big: '3.7%', text: '연준 목표 2%보다 높습니다 (Fortune 보도)' },
+      { lab: '경기 표현 (성명)', big: '강한', text: '9월 "견조한(solid)"에서 "강한(strong)"으로 올랐습니다' }] };
+
+  CH.fomc_vote = { t: stack, kicker: 'VOTE', title: '표결은 10대 2, 반대는 모두 인상 쪽', sub: '단위: 명 (FOMC 투표 위원 12명)', h: 110,
+    segs: [
+      { cls: 'dark', g: 10, html: '<div class="ic__vs"><small>동결 찬성</small><strong class="y" data-text="10명">10명</strong><span>3.75~4.00% 유지</span></div>', tip: '<b>10명</b>이 금리를 그대로 두는 안에 찬성했습니다.' },
+      { cls: 'hot', g: 2, html: '<div class="ic__vs"><small>반대</small><strong class="p" data-text="2명">2명</strong></div>', tip: '<b>리사 쿡 이사, 베스 해맥 클리블랜드 연은 총재.</b> 0.25%p 인상을 원했습니다. 이유는 확인한 자료에 나오지 않습니다.' }],
+    two: ['<b class="v">쿡 이사</b>의 반대는<br>예상 밖이었다고 Fortune이 전했습니다.', '<b class="c">해맥 총재</b>의 반대는<br>회의 전부터 예상됐습니다.'] };
+
+  CH.fomc_infl = { t: hbars, kicker: 'INFLATION', title: '물가는 연준 목표 2%보다 높다', sub: '단위: % (2026년 9월, 1년 전 대비 상승률)', max: 3.7,
+    note: '소비자물가 상승은 주로 휘발유 때문이고, 근원물가(식품·에너지 제외)는 예상보다 높았다고 Fortune이 전했습니다.',
+    items: [
+      { label: '소비자물가', v: 3.7, text: '3.7%', cls: 'hot', tip: '<b>소비자물가</b> 1년 전보다 3.7% 상승.' },
+      { label: '근원물가', v: 2.6, text: '2.6%', tip: '<b>근원물가</b> 1년 전보다 2.6% 상승.' },
+      { label: '연준 목표', v: 2, text: '2.0%', cls: 'cool', tip: '연준이 장기적으로 잡은 물가 목표는 2%입니다.' }] };
+
+  CH.fomc_words = { t: table, kicker: 'STATEMENT', title: '성명에서 달라진 것과 그대로인 것', sub: '2026년 9월 → 10월 (요지, 원문 전문 아님)', cls: 'plain',
+    head: ['항목', '9월', '10월'],
+    rows: [['경기 표현', '견조한(solid)', '<b>강한(strong)</b>'],
+      ['물가 표현', '여전히 높다', '여전히 높다 (그대로)'],
+      ['정보가 더 필요하다는 문장', '없음', '<b>새로 들어감</b>'],
+      ['마지막 문장', '"물가 안정을 이루겠다"', '같은 문장 (그대로)']] };
+
+  CH.fomc_sched = { t: table, kicker: 'SCHEDULE', title: '2027년부터 회의 방식이 바뀐다', sub: '단위: 회 (연 8회 회의 중 구성, 워시 의장 설명 기준)', cls: 'plain',
+    head: ['연도', '전체 회의', '금리 결정 회의', '전략 논의 회의'],
+    rows: [['2026', '8', '8', '0'], ['2027', '8', '7 (제 계산)', '1'], ['2028 (전망)', '8', '6', '2']],
+    note: '전략 논의 회의에서는 금리 표결과 성명이 없을 것으로 예상됩니다. 회의 뒤 무엇을 알릴지는 워시 의장도 "아직 분명하지 않다"고 했습니다.' };
+
+  CH.fomc_known = { t: have, kicker: 'KNOWN / UNKNOWN', title: '지금 알 수 있는 것, 아직 모르는 것', sub: '12월 회의 전 상황',
+    yes: { title: '✓ 알 수 있는 것', items: ['금리는 <b>3.75~4.00%로 동결</b>', '표결은 <b>10대 2</b>, 반대는 모두 인상 쪽', '9월 소비자물가 <b>3.7%</b>, 목표 2%보다 높음', '회의 전 인상 확률은 10% 미만이었음'] },
+    no: { title: '✕ 아직 모르는 것', items: ['12월에 <b>실제로 올릴지</b>', '12월 인상 확률의 구체적 숫자', '쿡·해맥이 반대한 <b>이유</b>', '그날 주가·금리의 정확한 움직임'] },
+    note: '회의 뒤 12월 인상 가능성이 높다는 보도가 나왔지만 구체적 확률은 확인하지 못했습니다.' };
+
   function init(root) {
     var c = CH[root.getAttribute('data-chart')];
     if (!c) return;
