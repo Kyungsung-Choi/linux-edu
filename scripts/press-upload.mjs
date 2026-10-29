@@ -36,7 +36,8 @@ const replaced = existsSync(dest);
 // 기사 images[].file (content.json 옆 경로)은 public/press/img/<날짜>/ 로 복사하고 src 로 바꿔 저장한다.
 const imgAdded = [];
 for (const a of issue.articles) {
-  for (const im of a.images ?? []) {
+  a.images = (a.images ?? []).filter((im) => !im.private); // 개인용(원문 사진 등)은 공개 사이트에 올리지 않는다
+  for (const im of a.images) {
     if (!im.file) continue;
     const from = resolve(dirname(resolve(src)), im.file);
     if (!existsSync(from)) { console.error(`이미지를 찾을 수 없어요: ${from}`); process.exit(1); }

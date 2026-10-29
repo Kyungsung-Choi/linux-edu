@@ -1,0 +1,33 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+// 개인용 브리핑(원문 사진 포함). 파일은 비밀번호로 암호화되어 public/press/private/ 에 있고, 이 페이지가 브라우저에서 복호화한다.
+---
+<SiteLayout title="개인용 열람" description="개인용 페이지" path="/portfolio/press/private/" active="portfolio" noindex>
+  <h1>개인용 열람</h1>
+  <p>비밀번호를 입력하면 이 기기의 브라우저에서만 암호를 풀어 보여 줍니다. 비밀번호는 어디에도 저장하거나 전송하지 않습니다.</p>
+  <form id="f" style="display:flex;gap:8px;flex-wrap:wrap;margin:1em 0">
+    <select id="day" aria-label="날짜" style="padding:8px"></select>
+    <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password" style="padding:8px;min-width:200px" />
+    <button type="submit" style="padding:8px 16px">열기</button>
+  </form>
+  <p id="msg" role="status" style="color:#b00"></p>
+  <iframe id="view" title="개인용 브리핑" style="display:none;width:100%;height:85vh;border:1px solid #ccc"></iframe>
+  <script is:inline>
+    (async () => {
+      const $ = (i) => document.getElementById(i), msg = $('msg');
+      try { const idx = await (await fetch('/press/private/index.json')).json(); $('day').innerHTML = idx.map((d) => '<option>' + d + '</option>').join(''); if (!idx.length) msg.textContent = '올려 둔 문서가 없습니다.'; }
+      catch { msg.textContent = '올려 둔 문서가 없습니다.'; }
+      $('f').addEventListener('submit', async (e) => {
+        e.preventDefault(); msg.textContent = '여는 중...';
+        try {
+          const buf = new Uint8Array(await (await fetch('/press/private/' + $('day').value + '.enc')).arrayBuffer());
+          const salt = buf.slice(0, 16), iv = buf.slice(16, 28), ct = buf.slice(28);
+          const base = await crypto.subtle.importKey('raw', new TextEncoder().encode($('pw').value), 'PBKDF2', false, ['deriveKey']);
+          const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+          const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+          const v = $('view'); v.src = URL.createObjectURL(new Blob([pt], { type: 'text/html' })); v.style.display = 'block'; msg.textContent = ''; $('pw').value = '';
+        } catch { msg.textContent = '비밀번호가 맞지 않거나 파일을 열 수 없습니다.'; }
+      });
+    })();
+  </script>
+</SiteLayout>

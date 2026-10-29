@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /portfolio/press/private/
+Disallow: /press/private/
 
 Sitemap: https://angdo.vercel.app/sitemap-index.xml
