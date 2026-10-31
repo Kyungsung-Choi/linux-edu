@@ -210,3 +210,23 @@
   .ic__labels--dense{gap:2px}
   .ic__labels--dense div{font-size:.58rem}
 }
+
+/* 선 그래프·음수 막대 (lines, pnbars) */
+.ic__lsvg{width:100%; height:auto; display:block; margin-top:14px; overflow:visible}
+.ic__lsvg .g{stroke:var(--line); stroke-width:1}
+.ic__lsvg .z{stroke:var(--ink); stroke-width:1.5}
+.ic__lsvg .ya{fill:var(--ink3); text-anchor:end}
+.ic__lsvg .xa{fill:var(--ink2); text-anchor:middle; font-weight:600}
+.ic__lsvg .pv{text-anchor:middle; font-weight:800; fill:var(--ink); opacity:0; transition:opacity .4s .9s}
+.ic__lsvg .ev{font-weight:800; opacity:0; transition:opacity .4s 1.3s}
+.ic__lsvg .ln{fill:none; stroke-width:3; stroke-linejoin:round; stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset 1.4s ease var(--d)}
+.ic__lsvg circle{opacity:0; transition:opacity .3s calc(.7s + var(--d))}
+.ic__lsvg .pb{fill:#b9b4ff; transform-box:fill-box; transform-origin:bottom; transform:scaleY(0); transition:transform .7s cubic-bezier(.2,.8,.2,1) var(--d)}
+.ic__lsvg .pb.neg{fill:var(--coral); transform-origin:top}
+.ic__lsvg .pb.hot{fill:var(--violet)}
+.ic__lsvg .negt{fill:#d23a4f}
+.ic.is-in .ic__lsvg .ln{stroke-dashoffset:0}
+.ic.is-in .ic__lsvg circle,.ic.is-in .ic__lsvg .pv,.ic.is-in .ic__lsvg .ev{opacity:1}
+.ic.is-in .ic__lsvg .pb{transform:scaleY(1)}
+.ic__leg{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:12px; font-size:.82rem; font-weight:600; color:var(--ink2)}
+.ic__leg i{display:inline-block; width:16px; height:4px; border-radius:2px; margin-right:6px; vertical-align:middle}
