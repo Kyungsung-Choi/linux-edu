@@ -1,18 +1,16 @@
 ---
 title: 앤스로픽 상장 신청서 쉬운 정리
 date: 2026-10-27
-summary: 앤스로픽이 SEC에 낸 상장 신청서(S-1)를 주식 용어를 모르는 분도 읽을 수 있게 매출·손실·약정·주주 권리·위험 순서로 정리했습니다.
+summary: 앤스로픽이 SEC에 낸 상장 신청서(S-1)를 매출·손실·약정·주주 권리·위험 순서로 정리했습니다.
 category: 주식·투자
 image: /blog/anthropic-s1/og.png
 imageAlt: 앤스로픽 상장 신청서 쉬운 정리 - 상반기 매출 162.9억 달러, 약 14배
-tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥, 주식초보, 기업분석]
+tags: [앤스로픽, 앤스로픽상장, IPO, 미국주식, AI주식, 나스닥, 기업분석]
 ---
 
 <figure><img src="/blog/anthropic-s1/logo.jpg" alt="앤스로픽 로고" loading="lazy"><figcaption>앤스로픽 로고<br>[출처: 앤스로픽(Wikimedia Commons에 퍼블릭 도메인으로 등록)]</figcaption></figure>
 
 **2026년 10월 26일, 앤스로픽(Anthropic)이 미국 증권거래위원회(SEC)에 상장 신청서를 냈습니다.**
-
-주식을 잘 모르는 분도 이해할 수 있게 핵심만 쉬운 말로 정리했습니다.
 
 <div style="position:relative;padding-bottom:56.25%;height:0;margin:1.5em 0"><iframe src="https://www.youtube-nocookie.com/embed/TYdADgxxRH4" title="앤스로픽 상장 신청서 핵심 5가지 (100초 영상)" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
 
@@ -172,4 +170,4 @@ N종은 투표권이 없는 주식으로, 투자자들의 우선주와 전환사
 
 <div class="note"><b>투자 유의사항</b><br>이 글은 공개된 서류를 정리한 정보 제공용 글이며, 특정 종목의 매수·매도를 권유하거나 투자 결과를 보장하지 않습니다. 상장 전 정보는 바뀔 수 있고, 주식 투자는 원금을 잃을 수 있습니다. 투자 판단과 그에 따른 책임은 투자자 본인에게 있으니, 투자 전에 원문 서류와 공식 자료를 직접 확인하고 필요하면 전문가와 상담하세요.</div>
 
-#앤스로픽 #앤스로픽상장 #앤스로픽IPO #앤스로픽S1 #Anthropic #클로드 #ANT #AI주식 #AI관련주 #미국주식 #미국IPO #미국주식초보 #나스닥 #나스닥상장 #상장
+#앤스로픽 #앤스로픽상장 #앤스로픽IPO #앤스로픽S1 #Anthropic #클로드 #ANT #AI주식 #AI관련주 #미국주식 #미국IPO #나스닥 #나스닥상장 #상장
