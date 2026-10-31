@@ -198,3 +198,15 @@
   .ic__card--plain td[data-l]::before{content:attr(data-l) " · "; font-size:.72rem; color:var(--ink3); font-weight:700}
   .ic__card--plain td:last-child{background:transparent!important}
 }
+
+/* 막대가 많을 때(8개 이상): 간격과 숫자를 줄인다 */
+.ic__bars--dense{gap:4px}
+.ic__bars--dense .ic__v,.ic__bars--dense .ic__bar--hot .ic__v{font-size:.78rem; letter-spacing:-.04em}
+.ic__labels--dense{gap:4px}
+.ic__labels--dense div{font-size:.72rem}
+@media (max-width:640px){
+  .ic__bars--dense{gap:2px}
+  .ic__bars--dense .ic__v,.ic__bars--dense .ic__bar--hot .ic__v{font-size:.6rem; writing-mode:vertical-rl; transform:rotate(180deg); margin-bottom:4px}
+  .ic__labels--dense{gap:2px}
+  .ic__labels--dense div{font-size:.58rem}
+}
