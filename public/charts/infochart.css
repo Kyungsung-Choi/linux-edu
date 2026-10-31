@@ -230,3 +230,8 @@
 .ic.is-in .ic__lsvg .pb{transform:scaleY(1)}
 .ic__leg{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:12px; font-size:.82rem; font-weight:600; color:var(--ink2)}
 .ic__leg i{display:inline-block; width:16px; height:4px; border-radius:2px; margin-right:6px; vertical-align:middle}
+/* 재무제표 표의 증감률: 한국식 빨강=증가, 파랑=감소 (좋고 나쁨이 아니라 방향) */
+.ic__ch{display:block; font-size:.72rem; font-weight:700; color:var(--ink3); white-space:nowrap; margin-top:2px}
+.ic__ch.up{color:#e0313b} .ic__ch.dn{color:#2563eb}
+.ic__fs td{white-space:nowrap}
+@media (max-width:600px){ .ic__fs td{white-space:normal} .ic__ch{display:inline; margin-left:6px} }
