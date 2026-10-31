@@ -8,7 +8,7 @@ imageAlt: 알파벳 기업 상황 정밀분석 - 분기 매출 863억에서 1,27
 tags: [알파벳, 구글, 실적분석, 구글클라우드, 제미나이, TPU, 설비투자, 빅테크비교, 미국주식]
 ---
 
-<figure><img src="/blog/alphabet-3y/googleplex.jpg" alt="미국 캘리포니아 마운틴뷰에 있는 구글 본사(구글플렉스) 건물. 이 글이 다루는 알파벳의 대표 사업장입니다" loading="lazy"><figcaption>미국 캘리포니아 마운틴뷰에 있는 구글 본사(구글플렉스) 건물. 이 글이 다루는 알파벳의 대표 사업장입니다<br>[출처: David Nagle, CC BY-SA 4.0, Wikimedia Commons]</figcaption></figure>
+<figure><img src="/blog/alphabet-3y/googleplex.jpg" alt="미국 캘리포니아 마운틴뷰에 있는 구글 본사 캠퍼스를 위에서 내려다본 사진. 이 글이 다루는 알파벳의 대표 사업장입니다" loading="lazy"><figcaption>미국 캘리포니아 마운틴뷰에 있는 구글 본사 캠퍼스를 위에서 내려다본 사진. 이 글이 다루는 알파벳의 대표 사업장입니다<br>[출처: Austin McKinley, CC BY 3.0, Wikimedia Commons]</figcaption></figure>
 
 **지난 3년 동안 알파벳은 검색 회사에서 "AI 칩·모델·클라우드를 함께 파는 회사"로 바뀌었고, 그 대가로 번 돈보다 많은 돈을 투자에 쓰기 시작했습니다.**
 
@@ -131,7 +131,7 @@ AI 모델과 자체 칩 수요가 몰리며 매출·이익률·계약 잔고가 
 
 비용도 빠르게 내려갔습니다. AI 개요 한 건을 만드는 비용은 18개월 사이 90% 넘게 줄었고, 2025년 한 해 제미나이 서비스 단가는 78% 줄었다고 합니다.
 
-<figure><img src="/blog/alphabet-3y/tpu.jpg" alt="구글 TPU 3.0 칩 보드. 구글이 직접 설계한 AI 전용 칩의 예로, 아래 표에 나오는 최신 세대 사진이 아닙니다 (2018년에 나온 세대)" loading="lazy"><figcaption>구글 TPU 3.0 칩 보드. 구글이 직접 설계한 AI 전용 칩의 예로, 아래 표에 나오는 최신 세대 사진이 아닙니다 (2018년에 나온 세대)<br>[출처: Zinskauf, CC BY-SA 4.0, Wikimedia Commons]</figcaption></figure>
+<figure><img src="/blog/alphabet-3y/tpu.jpg" alt="구글 TPU v4 서버 보드. 구글이 직접 설계한 AI 전용 칩 4개를 물로 식히는 구조이며, 표에 나오는 최신 세대 사진이 아닙니다 (2021년 공개된 세대)" loading="lazy"><figcaption>구글 TPU v4 서버 보드. 구글이 직접 설계한 AI 전용 칩 4개를 물로 식히는 구조이며, 표에 나오는 최신 세대 사진이 아닙니다 (2021년 공개된 세대)<br>[출처: Norman P. Jouppi 외, CC BY 4.0, Wikimedia Commons]</figcaption></figure>
 
 <div class="ic" data-chart="a3_tpu"></div>
 
@@ -183,7 +183,7 @@ TPU는 다른 길로도 갑니다. 앤트로픽은 칩 회사 브로드컴(구�
 
 3년 동안 경영진의 고민은 "어떻게 아낄까"에서 "어떻게 더 빨리 지을까"로 바뀌었다.
 
-<figure><img src="/blog/alphabet-3y/pichai23.jpg" alt="순다르 피차이 알파벳 CEO. 12번의 컨퍼런스콜에서 매번 AI 전략을 설명했습니다 (2023년 사진)" loading="lazy"><figcaption>순다르 피차이 알파벳 CEO. 12번의 컨퍼런스콜에서 매번 AI 전략을 설명했습니다 (2023년 사진)<br>[출처: Lukasz Kobus(유럽연합 집행위원회), CC BY 4.0, Wikimedia Commons]</figcaption></figure>
+<figure><img src="/blog/alphabet-3y/pichai.jpg" alt="순다르 피차이 알파벳 CEO. 12번의 컨퍼런스콜에서 매번 AI 전략을 설명했습니다 (2017년 구글 I/O 기조연설 사진)" loading="lazy"><figcaption>순다르 피차이 알파벳 CEO. 12번의 컨퍼런스콜에서 매번 AI 전략을 설명했습니다 (2017년 구글 I/O 기조연설 사진)<br>[출처: Steven Zimmerman, CC BY-SA 4.0, Wikimedia Commons]</figcaption></figure>
 
 <div class="ic" data-chart="a3_mood"></div>
 
@@ -223,7 +223,7 @@ TPU는 다른 길로도 갑니다. 앤트로픽은 칩 회사 브로드컴(구�
 
 일회성 비용이 이익률을 흔든 분기도 있습니다. 사무실 정리(2023년 4분기 12억 달러), EC(유럽연합 집행위원회) 과징금(2025년 3분기 35억 달러), 웨이모 주식보상 비용(2025년 4분기 21억 달러)이 그렇습니다.
 
-<figure><img src="/blog/alphabet-3y/datacenter.jpg" alt="미국 아이오와주 카운슬블러프스의 구글 데이터센터. 설비투자가 들어가는 시설의 예로, 특정 분기 투자가 집행된 시설 사진은 아닙니다" loading="lazy"><figcaption>미국 아이오와주 카운슬블러프스의 구글 데이터센터. 설비투자가 들어가는 시설의 예로, 특정 분기 투자가 집행된 시설 사진은 아닙니다<br>[출처: Chad Davis, CC BY 2.0, Wikimedia Commons]</figcaption></figure>
+<figure><img src="/blog/alphabet-3y/datacenter.jpg" alt="미국 오클라호마주 메이스 카운티의 구글 데이터센터 단지를 위에서 본 사진. 설비투자가 들어가는 시설의 예로, 특정 분기 투자가 집행된 시설 사진은 아닙니다" loading="lazy"><figcaption>미국 오클라호마주 메이스 카운티의 구글 데이터센터 단지를 위에서 본 사진. 설비투자가 들어가는 시설의 예로, 특정 분기 투자가 집행된 시설 사진은 아닙니다<br>[출처: Xpda, CC BY-SA 4.0, Wikimedia Commons]</figcaption></figure>
 
 <div class="ic" data-chart="a3_capex"></div>
 
@@ -277,7 +277,7 @@ TPU는 다른 길로도 갑니다. 앤트로픽은 칩 회사 브로드컴(구�
 
 빅테크 네 곳이 같은 방향으로 달리지만 속도와 버는 방식은 다르다.
 
-<figure><img src="/blog/alphabet-3y/spheres.jpg" alt="미국 시애틀 아마존 본사의 유리 구조물 아마존 스피어스. 클라우드 1위 AWS를 가진 경쟁사 아마존의 사업장입니다" loading="lazy"><figcaption>미국 시애틀 아마존 본사의 유리 구조물 아마존 스피어스. 클라우드 1위 AWS를 가진 경쟁사 아마존의 사업장입니다<br>[출처: Sea Cow, CC BY-SA 4.0, Wikimedia Commons]</figcaption></figure>
+<figure><img src="/blog/alphabet-3y/spheres.jpg" alt="미국 시애틀 아마존 본사의 유리 구조물 아마존 스피어스. 클라우드 1위 AWS를 가진 경쟁사 아마존의 사업장입니다" loading="lazy"><figcaption>미국 시애틀 아마존 본사의 유리 구조물 아마존 스피어스. 클라우드 1위 AWS를 가진 경쟁사 아마존의 사업장입니다<br>[출처: Andy Li, CC0, Wikimedia Commons]</figcaption></figure>
 
 <div class="ic" data-chart="a3_capexcomp"></div>
 

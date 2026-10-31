@@ -1,10 +1,4 @@
 {
- "pichai23.jpg": {
-  "title": "File:Sundar Pichai - 2023 (cropped).jpg",
-  "author": "Photographer: Lukasz Kobus (European Commission)",
-  "license": "CC BY 4.0",
-  "page": "https://commons.wikimedia.org/wiki/File:Sundar_Pichai_-_2023_(cropped).jpg"
- },
  "kurian.jpg": {
   "title": "File:Thomas Kurian Google Cloud CEO 2022.jpg",
   "author": "Eric Dietrich",
@@ -12,26 +6,33 @@
   "page": "https://commons.wikimedia.org/wiki/File:Thomas_Kurian_Google_Cloud_CEO_2022.jpg"
  },
  "tpu.jpg": {
-  "title": "File:Tensor Processing Unit 3.0.jpg",
-  "author": "Zinskauf",
-  "license": "CC BY-SA 4.0",
-  "page": "https://commons.wikimedia.org/wiki/File:Tensor_Processing_Unit_3.0.jpg"
+  "title": "File:TPU v4.png",
+  "author": "Norman P. Jouppi, George Kurian, Sheng Li, Peter Ma, Rahul Nagarajan, Lifeng Nai, Nishant Patil, Suvinay\n\nSubramanian, Andy Swing, Brian Towles, Cliff Young, Xiang Zhou, Zongwei Zhou, and David Patterson",
+  "license": "CC BY 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:TPU_v4.png"
  },
  "datacenter.jpg": {
-  "title": "File:Google Data Center, Council Bluffs Iowa (49062863796).jpg",
-  "author": "Chad Davis",
-  "license": "CC BY 2.0",
-  "page": "https://commons.wikimedia.org/wiki/File:Google_Data_Center,_Council_Bluffs_Iowa_(49062863796).jpg"
+  "title": "File:Google Mayes County P0004974a.jpg",
+  "author": "Xpda",
+  "license": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Google_Mayes_County_P0004974a.jpg"
  },
  "googleplex.jpg": {
-  "title": "File:Outside Googleplex in Mountain View, California.jpg",
-  "author": "David Nagle",
-  "license": "CC BY-SA 4.0",
-  "page": "https://commons.wikimedia.org/wiki/File:Outside_Googleplex_in_Mountain_View,_California.jpg"
+  "title": "File:Google Campus, Mountain View, CA.jpg",
+  "author": "Austin McKinley",
+  "license": "CC BY 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Google_Campus,_Mountain_View,_CA.jpg"
  },
  "spheres.jpg": {
-  "author": "Sea Cow",
+  "title": "File:Amazon Spheres 2018.jpg",
+  "author": "Andy Li",
+  "license": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Amazon_Spheres_2018.jpg"
+ },
+ "pichai.jpg": {
+  "title": "File:Sundar Pichai at Google IO 2017 Keynote.jpg",
+  "author": "Steven Zimmerman",
   "license": "CC BY-SA 4.0",
-  "note": "amzn-intc-20261030 글에서 재사용"
+  "page": "https://commons.wikimedia.org/wiki/File:Sundar_Pichai_at_Google_IO_2017_Keynote.jpg"
  }
 }
