@@ -233,5 +233,25 @@
 /* 재무제표 표의 증감률: 한국식 빨강=증가, 파랑=감소 (좋고 나쁨이 아니라 방향) */
 .ic__ch{display:block; font-size:.72rem; font-weight:700; color:var(--ink3); white-space:nowrap; margin-top:2px}
 .ic__ch.up{color:#e0313b} .ic__ch.dn{color:#2563eb}
-.ic__fs td{white-space:nowrap}
+.ic__fs td{white-space:nowrap; vertical-align:middle}
+.ic__sp{display:block}
+.ic__card--fsc .ic__k .big{font-size:1.35rem}
+.ic__card--fsc .ic__sp{width:100%; height:30px; margin:2px 0 6px}
+.ic__ln{font-size:.72rem; font-weight:700; color:var(--ink3); line-height:1.6}
+.ic__ln .ic__ch{display:inline; margin:0}
+.ic__fsq table{min-width:0; table-layout:fixed}
+.ic__card--plain.ic__fsq th,.ic__card--plain.ic__fsq td{padding:7px 2px; font-size:.72rem; text-align:right; width:7.2%}
+.ic__card--plain.ic__fsq th:first-child,.ic__card--plain.ic__fsq td:first-child{width:auto}
+.ic__card--plain.ic__fsq th:first-child,.ic__card--plain.ic__fsq td:first-child{text-align:left; padding-left:10px}
+.ic__fsq .ic__ch{font-size:.6rem}
+.fs-more{margin:4px 0 28px} .fs-more>summary{cursor:pointer; font-weight:700; color:#6d4aff}
 @media (max-width:600px){ .ic__fs td{white-space:normal} .ic__ch{display:inline; margin-left:6px} }
+/* 12분기 표는 모바일에서도 가로 표 유지(옆으로 밀어 보기) */
+@media (max-width:600px){
+  .ic__card--plain.ic__fsq table{min-width:640px}
+  .ic__card--plain.ic__fsq thead{display:table-header-group}
+  .ic__card--plain.ic__fsq tr{display:table-row}
+  .ic__card--plain.ic__fsq td{display:table-cell; border-bottom:2px solid var(--line); padding:6px 2px; white-space:nowrap!important}
+  .ic__card--plain.ic__fsq td[data-l]::before{content:none}
+  .ic__fsq .ic__ch{display:block; margin:0}
+}
