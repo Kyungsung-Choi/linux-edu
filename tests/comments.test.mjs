@@ -38,18 +38,18 @@ test('구글·네이버 로그인 성공 → 세션 쿠키(HttpOnly·Secure), �
 test('변조·만료된 세션은 거부', async () => {
   const g = await signIn('google', 'g-1', 'A'); const bad = g.sid.slice(0, -2) + (g.sid.endsWith('A') ? 'BB' : 'AA');
   assert.equal((await call(me, { headers: { cookie: bad } })).body.user, null);
-  assert.equal((await post(bad, { slug: 'alphabet-3y', text: 'hi' })).code, 401);
+  assert.equal((await post(bad, { slug: 'alphabet-3y', nick: '테스터', text: 'hi' })).code, 401);
 });
 test('댓글: 로그인 없이 쓰기 불가, 로그인하면 가능, 목록 조회는 누구나', async () => {
-  assert.equal((await post(null, { slug: 'alphabet-3y', text: 'hi' })).code, 401);
-  const g = await signIn('google', 'g-2', '댓글러'); const ok = await post(g.sid, { slug: 'alphabet-3y', text: '  안녕하세요  ' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.text, '안녕하세요'); assert.equal(ok.body.comment.mine, true);
+  assert.equal((await post(null, { slug: 'alphabet-3y', nick: '테스터', text: 'hi' })).code, 401);
+  const g = await signIn('google', 'g-2', '댓글러'); const ok = await post(g.sid, { slug: 'alphabet-3y', nick: '테스터', text: '  안녕하세요  ' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.text, '안녕하세요'); assert.equal(ok.body.comment.mine, true);
   const list = await call(comments, { query: { slug: 'alphabet-3y' } }); assert.equal(list.body.comments.length, 1); assert.equal(list.body.comments[0].mine, false); assert.ok(!('uid' in list.body.comments[0]));
 });
 test('댓글: 없는 글 주소·빈 내용·1000자 초과·연속 작성 거부', async () => {
   const g = await signIn('google', 'g-3', 'B');
-  assert.equal((await post(g.sid, { slug: '../../etc', text: 'x' })).code, 400); assert.equal((await post(g.sid, { slug: 'no-such-post', text: 'x' })).code, 400);
-  assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: '   ' })).code, 400); assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: 'a'.repeat(1001) })).code, 400);
-  assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: '첫 댓글' })).code, 201); assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: '바로 또' })).code, 429);
+  assert.equal((await post(g.sid, { slug: '../../etc', nick: '테스터', text: 'x' })).code, 400); assert.equal((await post(g.sid, { slug: 'no-such-post', nick: '테스터', text: 'x' })).code, 400);
+  assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: '   ' })).code, 400); assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: 'a'.repeat(1001) })).code, 400);
+  assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: '첫 댓글' })).code, 201); assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: '바로 또' })).code, 429);
 });
 test('보안: 다른 사이트에서 온 요청·JSON 아닌 요청 거부', async () => {
   const g = await signIn('google', 'g-4', 'C');
@@ -60,14 +60,14 @@ test('보안: 다른 사이트에서 온 요청·JSON 아닌 요청 거부', asy
 });
 test('삭제: 본인만 가능(다른 사람은 403)', async () => {
   const a = await signIn('google', 'g-5', 'A5'), b = await signIn('naver', 'n-5', 'B5');
-  const c = (await post(a.sid, { slug: 'amzn-intc-20261030', text: '내 댓글' })).body.comment;
+  const c = (await post(a.sid, { slug: 'amzn-intc-20261030', nick: '테스터', text: '내 댓글' })).body.comment;
   const del = (sid) => call(comments, { method: 'DELETE', headers: { cookie: sid, origin: SITE }, query: { slug: 'amzn-intc-20261030', id: c.id } });
   assert.equal((await del(b.sid)).code, 403); assert.equal((await del(a.sid)).code, 200);
   assert.equal((await call(comments, { query: { slug: 'amzn-intc-20261030' } })).body.comments.length, 0);
 });
 test('이름·본문에 들어간 태그는 글자 그대로 저장(화면에서 textContent로만 출력)', async () => {
   const g = await signIn('google', 'g-6', '<img src=x onerror=alert(1)>'); const me2 = await call(me, { headers: { cookie: g.sid } }); assert.ok(!/[<>]/.test(me2.body.user.name));
-  const r = await post(g.sid, { slug: 'alphabet-q3-20261028', text: '<script>alert(1)</script>' }); assert.equal(r.body.comment.text, '<script>alert(1)</script>');
+  const r = await post(g.sid, { slug: 'alphabet-q3-20261028', nick: '테스터', text: '<script>alert(1)</script>' }); assert.equal(r.body.comment.text, '<script>alert(1)</script>');
 });
 
 test('조회수: 방문 때마다 1씩 늘고, 봇·다른 출처는 세지 않는다', async () => {
@@ -79,4 +79,11 @@ test('조회수: 방문 때마다 1씩 늘고, 봇·다른 출처는 세지 않�
   assert.equal((await call('POST', { ...ok, 'user-agent': 'Googlebot' })).views, 2);
   assert.equal((await call('POST', { ...ok, origin: 'https://evil.com' })).views, 2);
   assert.equal((await call('GET')).views, 2);
+});
+
+test('닉네임: 없거나 1자면 거부, 댓글에는 계정 이름 대신 닉네임이 보인다', async () => {
+  const g = await signIn('google', 'g-nick', '실명홍길동');
+  assert.equal((await post(g.sid, { slug: 'fomc-20261028', text: 'x' })).code, 400);
+  assert.equal((await post(g.sid, { slug: 'fomc-20261028', nick: 'a', text: 'x' })).code, 400);
+  const ok = await post(g.sid, { slug: 'fomc-20261028', nick: '앵두팬', text: '좋은 글' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.name, '앵두팬');
 });

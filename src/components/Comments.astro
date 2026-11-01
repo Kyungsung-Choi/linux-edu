@@ -7,19 +7,25 @@ const { slug } = Astro.props;
   <div class="cmt__me" id="cmt-me" aria-live="polite">불러오는 중…</div>
   <form class="cmt__form" id="cmt-form" hidden>
     <label class="cmt__sr" for="cmt-text">댓글 쓰기</label>
+    <label class="cmt__sr" for="cmt-nick">닉네임</label>
+    <input id="cmt-nick" class="cmt__nick" maxlength="12" placeholder="닉네임 (2~12자)" autocomplete="nickname" />
     <textarea id="cmt-text" maxlength="1000" rows="3" placeholder="댓글을 남겨 주세요 (최대 1,000자)"></textarea>
     <div class="cmt__row"><span class="cmt__cnt" id="cmt-cnt">0 / 1000</span><button type="submit" class="cmt__btn" id="cmt-send">등록</button></div>
   </form>
   <p class="cmt__msg" id="cmt-msg" role="status"></p>
   <ul class="cmt__list" id="cmt-list"></ul>
-  <p class="cmt__note">로그인하면 표시 이름(구글·네이버 계정의 이름이나 별명)이 댓글과 함께 공개됩니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
+  <p class="cmt__note">댓글에는 직접 정한 닉네임만 공개되고, 구글·네이버 계정의 이름은 공개하지 않습니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
 </section>
 <script is:inline>
 (function () {
   var root = document.getElementById('comments'); if (!root) return;
   var slug = root.dataset.slug, $ = function (id) { return document.getElementById(id); };
-  var me = $('cmt-me'), form = $('cmt-form'), list = $('cmt-list'), msg = $('cmt-msg'), text = $('cmt-text'), send = $('cmt-send');
-  var P = { google: '구글', naver: '네이버' }, ERR = { login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 올리고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
+  var me = $('cmt-me'), form = $('cmt-form'), list = $('cmt-list'), msg = $('cmt-msg'), text = $('cmt-text'), send = $('cmt-send'), nick = $('cmt-nick'); try { nick.value = localStorage.getItem('cmt-nick') || ''; } catch (e) {}
+  var P = { google: '구글', naver: '네이버' }, ERR = { nick: '닉네임을 2자 이상 12자 이내로 입력해 주세요.', login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 올리고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
+  var ICON = {
+    google: '<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>',
+    naver: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#fff" d="M16.3 12.7 7.4 0H0v24h7.7V11.3L16.6 24H24V0h-7.7z" transform="translate(3 3) scale(.75)"/></svg>'
+  };
   function say(t) { msg.textContent = t || ''; }
   function api(url, opt) { return fetch(url, Object.assign({ credentials: 'same-origin' }, opt)).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); }); }
   function when(ms) { var d = new Date(ms); return d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
@@ -41,20 +47,20 @@ const { slug } = Astro.props;
     api('/api/auth/me').then(function (r) {
       me.textContent = '';
       if (r.j.user) {
-        var s = document.createElement('span'); s.textContent = r.j.user.name + ' 님 (' + (P[r.j.user.provider] || '') + ' 로그인)'; var o = document.createElement('button'); o.type = 'button'; o.className = 'cmt__link'; o.textContent = '로그아웃';
+        var s = document.createElement('span'); s.textContent = (P[r.j.user.provider] || '') + ' 계정으로 로그인됨'; var o = document.createElement('button'); o.type = 'button'; o.className = 'cmt__link'; o.textContent = '로그아웃';
         o.onclick = function () { api('/api/auth/logout', { method: 'POST' }).then(function () { location.reload(); }); }; me.append(s, o); form.hidden = false;
       } else {
         var s2 = document.createElement('span'); s2.textContent = '댓글을 쓰려면 로그인하세요.'; me.appendChild(s2);
         if (!r.j.providers.length) { s2.textContent = '댓글 쓰기는 준비 중입니다.'; }
-        r.j.providers.forEach(function (p) { var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'cmt__login cmt__login--' + p.key; bt.textContent = p.label + '로 로그인'; bt.onclick = function () { login(p.key); }; me.appendChild(bt); });
+        r.j.providers.forEach(function (p) { var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'cmt__login cmt__login--' + p.key; bt.innerHTML = ICON[p.key] || ''; bt.title = bt.ariaLabel = p.label + '로 로그인'; bt.onclick = function () { login(p.key); }; me.appendChild(bt); });
         form.hidden = true;
       }
     }).catch(function () { me.textContent = '로그인 상태를 불러오지 못했습니다.'; });
   }
   text.addEventListener('input', function () { $('cmt-cnt').textContent = text.value.length + ' / 1000'; });
   form.addEventListener('submit', function (ev) {
-    ev.preventDefault(); say(''); var v = text.value.trim(); if (!v) return say(ERR.empty); send.disabled = true;
-    api('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: slug, text: v }) }).then(function (r) {
+    ev.preventDefault(); say(''); var v = text.value.trim(), nk = nick.value.trim(); if (nk.length < 2) return say(ERR.nick); if (!v) return say(ERR.empty); try { localStorage.setItem('cmt-nick', nk); } catch (e) {} send.disabled = true;
+    api('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: slug, text: v, nick: nk }) }).then(function (r) {
       send.disabled = false; if (!r.ok) return say(ERR[r.j.error] || ERR.server); text.value = ''; $('cmt-cnt').textContent = '0 / 1000'; load();
     }).catch(function () { send.disabled = false; say(ERR.server); });
   });
@@ -69,7 +75,9 @@ const { slug } = Astro.props;
   .cmt__n{font-size:.95rem; color:var(--ink3); font-weight:600; margin-left:4px}
   .cmt__me{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:.92rem; color:var(--ink2); margin-bottom:14px}
   .cmt__login,.cmt__btn{font:inherit; font-size:.9rem; font-weight:700; padding:8px 16px; border-radius:10px; border:1px solid var(--rule2); background:var(--ground); color:var(--ink); cursor:pointer}
-  .cmt__login--google{border-color:#d2d6dc} .cmt__login--naver{background:#03c75a; border-color:#03c75a; color:#fff}
+  .cmt__login{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center}
+  .cmt__login--google{border-color:#d2d6dc; background:#fff} .cmt__login--naver{background:#03c75a; border-color:#03c75a}
+  .cmt__nick{width:100%; box-sizing:border-box; font:inherit; font-size:.95rem; padding:10px 14px; margin-bottom:8px; border:1px solid var(--rule2); border-radius:12px; background:var(--ground); color:var(--ink)}
   .cmt__btn{background:var(--ink); border-color:var(--ink); color:var(--ground)} .cmt__btn:disabled{opacity:.5; cursor:default}
   .cmt__link,.cmt__del{font:inherit; font-size:.82rem; color:var(--ink3); background:none; border:0; padding:0; cursor:pointer; text-decoration:underline}
   .cmt__form textarea{width:100%; box-sizing:border-box; font:inherit; font-size:.95rem; line-height:1.6; padding:12px 14px; border:1px solid var(--rule2); border-radius:12px; background:var(--ground); color:var(--ink); resize:vertical}
