@@ -1,0 +1,16 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+---
+<SiteLayout title="내 방문 통계 제외" description="이 브라우저의 방문을 통계에서 뺍니다" path="/stats-off/" active="blog">
+  <main style="max-width:700px;margin:40px auto;padding:0 20px;line-height:1.9">
+    <h1>내 방문 통계 제외</h1>
+    <p id="msg">설정 중...</p>
+    <p><button id="on" type="button">다시 통계에 포함하기</button></p>
+  </main>
+  <script is:inline>
+    var m = document.getElementById('msg');
+    localStorage.setItem('va-disable', 'true');
+    m.textContent = '이 브라우저(기기)의 방문은 이제 접속 통계와 조회수에 잡히지 않습니다. 다른 기기·브라우저에서는 각각 한 번씩 이 주소를 열어 주세요.';
+    document.getElementById('on').onclick = function () { localStorage.removeItem('va-disable'); m.textContent = '다시 통계에 포함됩니다.'; };
+  </script>
+</SiteLayout>
