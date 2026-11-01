@@ -20,6 +20,7 @@ const { slug } = Astro.props;
   <ul class="cmt__list" id="cmt-list" aria-live="polite"></ul>
   <p class="cmt__note">댓글에는 직접 정한 닉네임만 공개되고, 구글·네이버 계정의 이름은 공개하지 않습니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
 </section>
+<button type="button" class="cmt__toast" id="cmt-toast" hidden></button>
 <script is:inline>
 (function () {
   var root = document.getElementById('comments'); if (!root) return;
@@ -50,7 +51,21 @@ const { slug } = Astro.props;
       var p = document.createElement('p'); p.className = 'cmt__text'; p.textContent = c.text; li.append(h, p); list.appendChild(li);
     });
   }
-  function load() { return api('/api/comments?slug=' + slug).then(function (r) { render(r.ok ? r.j.comments : []); if (!r.ok) say('댓글을 불러오지 못했습니다.'); }).catch(function () { say('댓글을 불러오지 못했습니다.'); }); }
+  // 새 댓글 알림 팝업: 이 글에서 마지막으로 본 댓글 시각(localStorage)보다 새로운 남의 댓글이 있으면 알려 준다
+  var toast = $('cmt-toast'), SEEN = 'cmt-seen:' + slug, tt = 0, shown = false, init = true;
+  function seenAt() { try { return Number(localStorage.getItem(SEEN)) || 0; } catch (e) { return 0; } }
+  function markSeen(cs) { var m = cs.reduce(function (a, c) { return Math.max(a, c.at); }, 0); try { if (m > seenAt()) localStorage.setItem(SEEN, String(m)); } catch (e) {} }
+  function inView() { var r = root.getBoundingClientRect(); return r.top < innerHeight * 0.8 && r.bottom > innerHeight * 0.2; }
+  function notify(cs) {
+    var prev = seenAt(), fresh = cs.filter(function (c) { return !c.mine && c.at > prev; });
+    if (!prev && init) { markSeen(cs); init = false; return; } init = false;
+    if (!fresh.length) return markSeen(cs);
+    if (inView()) return markSeen(cs);
+    toast.textContent = '💬 새 댓글 ' + fresh.length + '개 · 눌러서 보기'; toast.hidden = false; clearTimeout(tt); tt = setTimeout(function () { toast.hidden = true; }, 10000);
+  }
+  toast.onclick = function () { toast.hidden = true; root.scrollIntoView({ behavior: 'smooth' }); };
+  addEventListener('scroll', function () { if (!toast.hidden && inView()) { toast.hidden = true; } if (inView() && last) { try { markSeen(JSON.parse(last)); } catch (e) {} } }, { passive: true });
+  function load() { return api('/api/comments?slug=' + slug).then(function (r) { render(r.ok ? r.j.comments : []); if (r.ok) notify(r.j.comments); if (!r.ok) say('댓글을 불러오지 못했습니다.'); }).catch(function () { say('댓글을 불러오지 못했습니다.'); }); }
   function login(provider) { location.href = '/api/auth/login?provider=' + provider + '&next=' + encodeURIComponent(location.pathname); }
   function who() {
     api('/api/auth/me').then(function (r) {
@@ -111,4 +126,6 @@ const { slug } = Astro.props;
   .cmt__empty{color:var(--ink3); font-size:.92rem; padding:10px 2px}
   .cmt__note{font-size:.78rem; color:var(--ink3); line-height:1.6; margin:16px 0 0}
   .cmt__sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+  .cmt__toast{position:fixed; right:18px; bottom:18px; z-index:50; font:inherit; font-size:.92rem; font-weight:700; padding:12px 18px; border-radius:999px; border:0; background:var(--ink); color:var(--ground); box-shadow:0 6px 24px rgba(0,0,0,.25); cursor:pointer}
+  .cmt__toast[hidden]{display:none}
 </style>
