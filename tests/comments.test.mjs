@@ -86,10 +86,10 @@ test('조회수: 방문 때마다 1씩 늘고, 봇·다른 출처는 세지 않�
   assert.equal((await call('GET')).views, 2);
 });
 
-test('닉네임: 계정당 1개 고정, 중복 불가(대소문자 무시), 형식 검사, 댓글엔 닉네임만', async () => {
+test('닉네임: 계정당 1개 고정, 중복 불가(대소문자 무시), 길이·제어문자만 검사, 댓글엔 닉네임만', async () => {
   const g = await signIn('google', 'g-nick', '실명홍길동'), h = await signIn('naver', 'n-nick', '다른사람');
   assert.equal((await postRaw(g.sid, { slug: 'fomc-20261028', text: 'x' })).code, 400);
-  for (const bad of ['a', 'a'.repeat(13), '안 녕', '<b>x</b>', '관리자', 'Admin']) assert.equal((await claim(g.sid, bad)).code, 400, bad);
+  for (const bad of ['', 'a'.repeat(21), 'a\nb']) assert.equal((await claim(g.sid, bad)).code, 400, bad);
   assert.equal((await claim(g.sid, '앵두팬')).code, 201);
   assert.equal((await claim(g.sid, '다른닉')).code, 409);
   assert.equal((await claim(h.sid, '앵두팬')).code, 409); assert.equal((await claim(h.sid, 'Cherry_1')).code, 201); assert.equal((await claim(g.sid, 'cherry_1')).code, 409);

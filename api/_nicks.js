@@ -1,9 +1,8 @@
 import { get, put } from '@vercel/blob';
 // 닉네임 대장: 파일 하나({byUid:{uid:닉}, byNick:{소문자닉:uid}}). ETag로 동시 등록 충돌을 막는다.
 const mem = globalThis.__nickMem || (globalThis.__nickMem = { d: { byUid: {}, byNick: {} }, v: 0 });
-export const NICK_RE = /^[가-힣a-zA-Z0-9_]{2,12}$/;
-const RESERVED = ['관리자', '운영자', '앵두아빠', 'admin', 'administrator', 'system'];
-export const nickOk = (n) => NICK_RE.test(n) && !RESERVED.includes(n.toLowerCase());
+// 글자 종류 제한은 없다. 비어 있지 않고 20자 이내이며 제어문자가 없으면 된다(화면에는 textContent로 넣어 코드가 실행되지 않는다).
+export const nickOk = (n) => n.length >= 1 && n.length <= 20 && !/[\u0000-\u001f\u007f]/.test(n);
 export async function loadNicks() {
   if (process.env.COMMENTS_STORE === 'memory') return { d: structuredClone(mem.d), etag: String(mem.v) };
   const r = await get('nicks.json', { access: 'private', useCache: false }).catch((e) => { if (e?.name === 'BlobNotFoundError') return null; throw e; });
