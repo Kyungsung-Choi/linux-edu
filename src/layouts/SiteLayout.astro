@@ -2,7 +2,7 @@
 // 공용 사이트 레이아웃 — 홈, 포트폴리오, 자료실, 블로그가 함께 쓴다.
 // 스타일은 src/styles/site.css 에 있다.
 import '../styles/site.css';
-
+import Analytics from '@vercel/analytics/astro';
 interface Props {
   title: string;
   description: string;
@@ -47,6 +47,7 @@ const NAME = '앵두아빠의 AI공부방';
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={OG} />
+  <Analytics />
 </head>
 <body>
   <header class="site-head">
