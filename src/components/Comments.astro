@@ -1,0 +1,89 @@
+---
+// 글 아래 댓글: 구글·네이버 로그인한 사람만 쓸 수 있다. 서버는 /api(Vercel 함수), 저장은 Vercel Blob.
+const { slug } = Astro.props;
+---
+<section class="cmt" id="comments" aria-labelledby="cmt-h" data-slug={slug}>
+  <h2 id="cmt-h" class="cmt__h">댓글 <span class="cmt__n" id="cmt-n"></span></h2>
+  <div class="cmt__me" id="cmt-me" aria-live="polite">불러오는 중…</div>
+  <form class="cmt__form" id="cmt-form" hidden>
+    <label class="cmt__sr" for="cmt-text">댓글 쓰기</label>
+    <textarea id="cmt-text" maxlength="1000" rows="3" placeholder="댓글을 남겨 주세요 (최대 1,000자)"></textarea>
+    <div class="cmt__row"><span class="cmt__cnt" id="cmt-cnt">0 / 1000</span><button type="submit" class="cmt__btn" id="cmt-send">등록</button></div>
+  </form>
+  <p class="cmt__msg" id="cmt-msg" role="status"></p>
+  <ul class="cmt__list" id="cmt-list"></ul>
+  <p class="cmt__note">로그인하면 표시 이름(구글·네이버 계정의 이름이나 별명)이 댓글과 함께 공개됩니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
+</section>
+<script is:inline>
+(function () {
+  var root = document.getElementById('comments'); if (!root) return;
+  var slug = root.dataset.slug, $ = function (id) { return document.getElementById(id); };
+  var me = $('cmt-me'), form = $('cmt-form'), list = $('cmt-list'), msg = $('cmt-msg'), text = $('cmt-text'), send = $('cmt-send');
+  var P = { google: '구글', naver: '네이버' }, ERR = { login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 올리고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
+  function say(t) { msg.textContent = t || ''; }
+  function api(url, opt) { return fetch(url, Object.assign({ credentials: 'same-origin' }, opt)).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); }); }
+  function when(ms) { var d = new Date(ms); return d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+  function render(cs) {
+    list.textContent = ''; $('cmt-n').textContent = cs.length ? cs.length : '';
+    if (!cs.length) { var e = document.createElement('li'); e.className = 'cmt__empty'; e.textContent = '아직 댓글이 없습니다. 첫 댓글을 남겨 보세요.'; list.appendChild(e); return; }
+    cs.forEach(function (c) {
+      var li = document.createElement('li'); li.className = 'cmt__item';
+      var h = document.createElement('div'); h.className = 'cmt__meta';
+      var n = document.createElement('b'); n.textContent = c.name; var b = document.createElement('span'); b.className = 'cmt__badge'; b.textContent = P[c.provider] || ''; var t = document.createElement('time'); t.textContent = when(c.at);
+      h.append(n, b, t);
+      if (c.mine) { var d = document.createElement('button'); d.type = 'button'; d.className = 'cmt__del'; d.textContent = '삭제'; d.onclick = function () { if (!confirm('이 댓글을 삭제할까요?')) return; api('/api/comments?slug=' + slug + '&id=' + encodeURIComponent(c.id), { method: 'DELETE' }).then(function (r) { r.ok ? load() : say(ERR[r.j.error] || ERR.server); }); }; h.appendChild(d); }
+      var p = document.createElement('p'); p.className = 'cmt__text'; p.textContent = c.text; li.append(h, p); list.appendChild(li);
+    });
+  }
+  function load() { api('/api/comments?slug=' + slug).then(function (r) { render(r.ok ? r.j.comments : []); if (!r.ok) say('댓글을 불러오지 못했습니다.'); }).catch(function () { say('댓글을 불러오지 못했습니다.'); }); }
+  function login(provider) { location.href = '/api/auth/login?provider=' + provider + '&next=' + encodeURIComponent(location.pathname); }
+  function who() {
+    api('/api/auth/me').then(function (r) {
+      me.textContent = '';
+      if (r.j.user) {
+        var s = document.createElement('span'); s.textContent = r.j.user.name + ' 님 (' + (P[r.j.user.provider] || '') + ' 로그인)'; var o = document.createElement('button'); o.type = 'button'; o.className = 'cmt__link'; o.textContent = '로그아웃';
+        o.onclick = function () { api('/api/auth/logout', { method: 'POST' }).then(function () { location.reload(); }); }; me.append(s, o); form.hidden = false;
+      } else {
+        var s2 = document.createElement('span'); s2.textContent = '댓글을 쓰려면 로그인하세요.'; me.appendChild(s2);
+        if (!r.j.providers.length) { s2.textContent = '댓글 쓰기는 준비 중입니다.'; }
+        r.j.providers.forEach(function (p) { var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'cmt__login cmt__login--' + p.key; bt.textContent = p.label + '로 로그인'; bt.onclick = function () { login(p.key); }; me.appendChild(bt); });
+        form.hidden = true;
+      }
+    }).catch(function () { me.textContent = '로그인 상태를 불러오지 못했습니다.'; });
+  }
+  text.addEventListener('input', function () { $('cmt-cnt').textContent = text.value.length + ' / 1000'; });
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault(); say(''); var v = text.value.trim(); if (!v) return say(ERR.empty); send.disabled = true;
+    api('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: slug, text: v }) }).then(function (r) {
+      send.disabled = false; if (!r.ok) return say(ERR[r.j.error] || ERR.server); text.value = ''; $('cmt-cnt').textContent = '0 / 1000'; load();
+    }).catch(function () { send.disabled = false; say(ERR.server); });
+  });
+  var q = new URLSearchParams(location.search).get('login');
+  if (q) { say(q === 'ok' ? '로그인되었습니다.' : q === 'unavailable' ? '이 로그인 방식은 아직 준비 중입니다.' : '로그인하지 못했습니다. 다시 시도해 주세요.'); history.replaceState(null, '', location.pathname + '#comments'); }
+  who(); load();
+})();
+</script>
+<style is:global>
+  .cmt{max-width:700px; border-top:1px solid var(--rule2); margin-top:40px; padding-top:28px}
+  .cmt__h{font-size:1.15rem; margin:0 0 14px; letter-spacing:-.01em}
+  .cmt__n{font-size:.95rem; color:var(--ink3); font-weight:600; margin-left:4px}
+  .cmt__me{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:.92rem; color:var(--ink2); margin-bottom:14px}
+  .cmt__login,.cmt__btn{font:inherit; font-size:.9rem; font-weight:700; padding:8px 16px; border-radius:10px; border:1px solid var(--rule2); background:var(--ground); color:var(--ink); cursor:pointer}
+  .cmt__login--google{border-color:#d2d6dc} .cmt__login--naver{background:#03c75a; border-color:#03c75a; color:#fff}
+  .cmt__btn{background:var(--ink); border-color:var(--ink); color:var(--ground)} .cmt__btn:disabled{opacity:.5; cursor:default}
+  .cmt__link,.cmt__del{font:inherit; font-size:.82rem; color:var(--ink3); background:none; border:0; padding:0; cursor:pointer; text-decoration:underline}
+  .cmt__form textarea{width:100%; box-sizing:border-box; font:inherit; font-size:.95rem; line-height:1.6; padding:12px 14px; border:1px solid var(--rule2); border-radius:12px; background:var(--ground); color:var(--ink); resize:vertical}
+  .cmt__row{display:flex; justify-content:space-between; align-items:center; margin-top:8px}
+  .cmt__cnt{font-size:.8rem; color:var(--ink3); font-variant-numeric:tabular-nums}
+  .cmt__msg{min-height:1.4em; font-size:.88rem; color:var(--ink2); margin:8px 0}
+  .cmt__list{list-style:none; padding:0; margin:8px 0 0}
+  .cmt__item{padding:14px 2px; border-bottom:1px solid var(--rule)}
+  .cmt__meta{display:flex; align-items:baseline; gap:8px; font-size:.86rem; color:var(--ink3)}
+  .cmt__meta b{color:var(--ink); font-size:.92rem}
+  .cmt__badge{font-size:.72rem; border:1px solid var(--rule2); border-radius:999px; padding:0 7px}
+  .cmt__del{margin-left:auto}
+  .cmt__text{margin:6px 0 0; font-size:.96rem; line-height:1.7; white-space:pre-wrap; word-break:break-word; color:var(--ink)}
+  .cmt__empty{color:var(--ink3); font-size:.92rem; padding:10px 2px}
+  .cmt__note{font-size:.78rem; color:var(--ink3); line-height:1.6; margin:16px 0 0}
+  .cmt__sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+</style>

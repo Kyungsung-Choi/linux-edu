@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import SiteLayout from '../../layouts/SiteLayout.astro';
+import Comments from '../../components/Comments.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', (p) => !p.data.draft);
@@ -31,6 +32,7 @@ const hasCharts = (post.body ?? '').includes('data-chart');
       <div class="prose"><Content /></div>
       {hasCharts && <><link rel="stylesheet" href="/charts/infochart.css" /><script is:inline src="/charts/infochart.js" defer></script></>}
     </article>
+    <Comments slug={post.id} />
     <section class="blist" aria-labelledby="blist-h">
       <h2 id="blist-h" class="blist__h">글 목록</h2>
       <ul class="blist__ul">
