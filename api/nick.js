@@ -1,5 +1,5 @@
 import { getUser, sameOrigin } from './_lib.js';
-import { loadNicks, saveNicks, nickOk, myNick } from './_nicks.js';
+import { loadNicks, saveNicks, nickOk, myNick, isReserved } from './_nicks.js';
 // 계정당 닉네임 1개를 정하면 바꿀 수 없다. 이미 쓰는 닉네임(대소문자 무시)은 거절한다.
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store'); const me = getUser(req);
@@ -9,6 +9,8 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
     if (!sameOrigin(req)) return res.status(403).json({ error: 'origin' });
     const nick = String(req.body?.nick ?? '').trim(); if (!nickOk(nick)) return res.status(400).json({ error: 'nickfmt' });
+    const admins = (process.env.ADMIN_UIDS || '').split(',').map((x) => x.trim()).filter(Boolean);
+    if (isReserved(nick) && !admins.includes(me.uid)) return res.status(400).json({ error: 'nickreserved' });
     for (let i = 0; i < 3; i++) {
       const { d, etag } = await loadNicks();
       if (d.byUid[me.uid]) return res.status(409).json({ error: 'nickset', nick: d.byUid[me.uid] });

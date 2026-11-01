@@ -90,6 +90,7 @@ test('닉네임: 계정당 1개 고정, 중복 불가(대소문자 무시), 길�
   const g = await signIn('google', 'g-nick', '실명홍길동'), h = await signIn('naver', 'n-nick', '다른사람');
   assert.equal((await postRaw(g.sid, { slug: 'fomc-20261028', text: 'x' })).code, 400);
   for (const bad of ['', 'a'.repeat(21), 'a\nb']) assert.equal((await claim(g.sid, bad)).code, 400, bad);
+  for (const r of ['관리자', '앵두아빠', '앵두 아빠', ' 관리 자']) assert.equal((await claim(g.sid, r)).code, 400, r);
   assert.equal((await claim(g.sid, '앵두팬')).code, 201);
   assert.equal((await claim(g.sid, '다른닉')).code, 409);
   assert.equal((await claim(h.sid, '앵두팬')).code, 409); assert.equal((await claim(h.sid, 'Cherry_1')).code, 201); assert.equal((await claim(g.sid, 'cherry_1')).code, 409);
@@ -101,4 +102,9 @@ test('닉네임: 계정당 1개 고정, 중복 불가(대소문자 무시), 길�
 test('카카오 로그인: 로그인 주소와 세션(이름 저장 없음)', async () => {
   const l = await call(login, { query: { provider: 'kakao', next: '/blog/alphabet-3y/' } }); assert.equal(new URL(l.loc).host, 'kauth.kakao.com');
   const k = await signIn('kakao', 12345, 'x'); assert.ok(k.sid); const m = await call(me, { headers: { cookie: k.sid } }); assert.equal(m.body.user.provider, 'kakao');
+});
+
+test('운영자(ADMIN_UIDS)는 예약 닉네임 앵두아빠를 쓸 수 있다', async () => {
+  const a = await signIn('google', 'g-admin', 'x'); const uid = JSON.parse(Buffer.from(a.sid.split('=')[1].split('.')[0], 'base64url').toString()).uid;
+  process.env.ADMIN_UIDS = uid; try { assert.equal((await claim(a.sid, '앵두아빠')).code, 201); } finally { delete process.env.ADMIN_UIDS; }
 });
