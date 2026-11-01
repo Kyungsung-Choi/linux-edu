@@ -12,6 +12,10 @@ tags: [알파벳, 구글, 실적분석, 구글클라우드, 제미나이, TPU, �
 
 **지난 3년 동안 알파벳은 검색 회사에서 "AI 칩·모델·클라우드를 함께 파는 회사"로 바뀌었고, 그 대가로 번 돈보다 많은 돈을 투자에 쓰기 시작했습니다.**
 
+<div style="position:relative;padding-bottom:56.25%;height:0;margin:1.5em 0"><iframe src="https://www.youtube-nocookie.com/embed/uP0tTpv4F6Y" title="알파벳 기업 상황 정밀분석: 12분기 공시로 본 AI 배수진 (11분 40초 영상)" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+
+<p style="font-size:14px">11분 40초 영상으로 먼저 보셔도 됩니다. 영상의 음성은 AI 음성이며, 투자 권유가 아닙니다. <a href="https://youtu.be/uP0tTpv4F6Y" target="_blank" rel="noopener">유튜브에서 보기</a></p>
+
 알파벳(구글의 모회사)이 미국 증권거래위원회(SEC)에 낸 2023년 4분기\~2026년 3분기 12개 분기 공시와, 같은 기간 컨퍼런스콜(실적 설명회) 녹취록 12개를 처음부터 끝까지 읽고 정리했습니다.
 
 **한눈에 보기**
