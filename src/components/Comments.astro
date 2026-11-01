@@ -18,16 +18,17 @@ const { slug } = Astro.props;
   </form>
   <p class="cmt__msg" id="cmt-msg" role="status"></p>
   <ul class="cmt__list" id="cmt-list"></ul>
-  <p class="cmt__note">댓글에는 직접 정한 닉네임만 공개되고, 구글·네이버 계정의 이름은 공개하지 않습니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
+  <p class="cmt__note">댓글에는 직접 정한 닉네임만 공개되고, 구글·네이버·카카오 계정의 이름은 공개하지 않습니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
 </section>
 <script is:inline>
 (function () {
   var root = document.getElementById('comments'); if (!root) return;
   var slug = root.dataset.slug, $ = function (id) { return document.getElementById(id); };
   var me = $('cmt-me'), form = $('cmt-form'), list = $('cmt-list'), msg = $('cmt-msg'), text = $('cmt-text'), send = $('cmt-send'), nick = $('cmt-nick'), nickForm = $('nick-form'), nickSend = $('nick-send');
-  var P = { google: '구글', naver: '네이버' }, ERR = { nick: '먼저 닉네임을 정해 주세요.', nickfmt: '닉네임은 한글·영문·숫자·_ 2~12자로 정해 주세요(관리자 등 예약어 제외).', nicktaken: '이미 쓰는 닉네임입니다. 다른 닉네임을 정해 주세요.', nickset: '이미 닉네임을 정했습니다.', busy: '잠시 뒤에 다시 시도해 주세요.', login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 올리고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
+  var P = { google: '구글', naver: '네이버', kakao: '카카오' }, ERR = { nick: '먼저 닉네임을 정해 주세요.', nickfmt: '닉네임은 한글·영문·숫자·_ 2~12자로 정해 주세요(관리자 등 예약어 제외).', nicktaken: '이미 쓰는 닉네임입니다. 다른 닉네임을 정해 주세요.', nickset: '이미 닉네임을 정했습니다.', busy: '잠시 뒤에 다시 시도해 주세요.', login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 올리고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
   var ICON = {
     google: '<svg viewBox="0 0 48 48" width="22" height="22" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>',
+    kakao: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#191919" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.8 5.3 4.6 6.7l-1 3.6c-.1.3.2.5.5.4l4.2-2.8c.6.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.500 3 12 3z"/></svg>',
     naver: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#fff" d="M16.3 12.7 7.4 0H0v24h7.7V11.3L16.6 24H24V0h-7.7z" transform="translate(3 3) scale(.75)"/></svg>'
   };
   function say(t) { msg.textContent = t || ''; }
@@ -86,7 +87,7 @@ const { slug } = Astro.props;
   .cmt__me{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:.92rem; color:var(--ink2); margin-bottom:14px}
   .cmt__login,.cmt__btn{font:inherit; font-size:.9rem; font-weight:700; padding:8px 16px; border-radius:10px; border:1px solid var(--rule2); background:var(--ground); color:var(--ink); cursor:pointer}
   .cmt__login{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center}
-  .cmt__login--google{border-color:#d2d6dc; background:#fff} .cmt__login--naver{background:#03c75a; border-color:#03c75a}
+  .cmt__login--google{border-color:#d2d6dc; background:#fff} .cmt__login--naver{background:#03c75a; border-color:#03c75a} .cmt__login--kakao{background:#fee500; border-color:#fee500}
   .cmt__nickform{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px} .cmt__hint{flex-basis:100%; margin:0; font-size:.8rem; color:var(--ink3)}
   .cmt__nick{flex:1 1 220px; min-width:0; box-sizing:border-box; font:inherit; font-size:.95rem; padding:10px 14px; border:1px solid var(--rule2); border-radius:12px; background:var(--ground); color:var(--ink)}
   .cmt__btn{background:var(--ink); border-color:var(--ink); color:var(--ground)} .cmt__btn:disabled{opacity:.5; cursor:default}

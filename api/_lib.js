@@ -49,6 +49,17 @@ export const PROVIDERS = {
       return { id: p.id, name: cleanName(p.nickname || p.name, '네이버 회원') };
     },
   },
+  kakao: {
+    label: '카카오', auth: 'https://kauth.kakao.com/oauth/authorize', scope: '',
+    id: () => process.env.KAKAO_CLIENT_ID, secret: () => process.env.KAKAO_CLIENT_SECRET,
+    async profile(code, redirect) {
+      const t = await (await fetch('https://kauth.kakao.com/oauth/token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded;charset=utf-8' }, body: new URLSearchParams({ grant_type: 'authorization_code', client_id: this.id(), client_secret: this.secret(), redirect_uri: redirect, code }), signal: AbortSignal.timeout(8000) })).json();
+      if (!t.access_token) throw new Error('kakao token');
+      const p = await (await fetch('https://kapi.kakao.com/v2/user/me', { headers: { authorization: 'Bearer ' + t.access_token }, signal: AbortSignal.timeout(8000) })).json();
+      if (!p.id) throw new Error('kakao profile');
+      return { id: p.id, name: '카카오 회원' }; // 이름·이메일은 받지 않는다(닉네임은 사이트에서 따로 정한다)
+    },
+  },
 };
 export const redirectUri = (provider) => `${SITE}/api/auth/callback/${provider}`;
 export const safeNext = (n) => (typeof n === 'string' && /^\/blog\/[a-z0-9-]+\/?$/.test(n) ? n : '/');

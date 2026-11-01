@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 process.env.COMMENTS_STORE = 'memory'; process.env.SESSION_SECRET = 'x'.repeat(40);
-process.env.GOOGLE_CLIENT_ID = 'gid'; process.env.GOOGLE_CLIENT_SECRET = 'gsec'; process.env.NAVER_CLIENT_ID = 'nid'; process.env.NAVER_CLIENT_SECRET = 'nsec';
+process.env.GOOGLE_CLIENT_ID = 'gid'; process.env.GOOGLE_CLIENT_SECRET = 'gsec'; process.env.NAVER_CLIENT_ID = 'nid'; process.env.NAVER_CLIENT_SECRET = 'nsec'; process.env.KAKAO_CLIENT_ID = 'kid'; process.env.KAKAO_CLIENT_SECRET = 'ksec';
 const lib = await import('../api/_lib.js');
 const login = (await import('../api/auth/login.js')).default, cb = (await import('../api/auth/callback/[provider].js')).default, me = (await import('../api/auth/me.js')).default, logout = (await import('../api/auth/logout.js')).default, comments = (await import('../api/comments.js')).default;
 const SITE = 'https://angdo.vercel.app';
@@ -11,7 +11,7 @@ const cookieOf = (res, name) => (res.headers['Set-Cookie'] || []).map((c) => c.s
 const call = async (h, req) => { const res = mkRes(); await h({ method: 'GET', query: {}, headers: {}, ...req }, res); return res; };
 async function signIn(provider, rawId, name) {
   const l = await call(login, { query: { provider, next: '/blog/alphabet-3y/' } }); const state = new URL(l.loc).searchParams.get('state'); const oas = cookieOf(l, 'oas');
-  globalThis.fetch = async (url) => ({ json: async () => (String(url).includes('token') ? { access_token: 't' } : provider === 'google' ? { sub: rawId, name } : { response: { id: rawId, nickname: name } }) });
+  globalThis.fetch = async (url) => ({ json: async () => (String(url).includes('token') ? { access_token: 't' } : provider === 'google' ? { sub: rawId, name } : provider === 'kakao' ? { id: rawId } : { response: { id: rawId, nickname: name } }) });
   const c = await call(cb, { query: { provider, code: 'c', state }, headers: { cookie: oas } }); return { res: c, sid: cookieOf(c, 'sid') };
 }
 import nickH from '../api/nick.js';
@@ -37,7 +37,7 @@ test('콜백: state 불일치·쿠키 없음이면 로그인 실패', async () =
 test('구글·네이버 로그인 성공 → 세션 쿠키(HttpOnly·Secure), 이메일 저장 없음', async () => {
   const g = await signIn('google', 'g-123', '홍길동'); assert.match(g.res.loc, /login=ok#comments/); const raw = g.res.headers['Set-Cookie'].find((c) => c.startsWith('sid='));
   assert.match(raw, /HttpOnly/); assert.match(raw, /Secure/); assert.match(raw, /SameSite=Lax/); assert.ok(!raw.includes('g-123'));
-  const m = await call(me, { headers: { cookie: g.sid } }); assert.equal(m.body.user.provider, 'google'); assert.deepEqual(m.body.providers.map((p) => p.key), ['google', 'naver']);
+  const m = await call(me, { headers: { cookie: g.sid } }); assert.equal(m.body.user.provider, 'google'); assert.deepEqual(m.body.providers.map((p) => p.key), ['google', 'naver', 'kakao']);
   const n = await signIn('naver', 'n-9', '별명'); assert.equal((await call(me, { headers: { cookie: n.sid } })).body.user.provider, 'naver');
 });
 test('변조·만료된 세션은 거부', async () => {
@@ -96,4 +96,9 @@ test('닉네임: 계정당 1개 고정, 중복 불가(대소문자 무시), 형�
   assert.equal((await call(me, { headers: { cookie: g.sid } })).body.user.nick, '앵두팬'); assert.ok(!('name' in (await call(me, { headers: { cookie: g.sid } })).body.user));
   const ok = await postRaw(g.sid, { slug: 'fomc-20261028', text: '좋은 글' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.name, '앵두팬');
   assert.equal((await call(nickH, { method: 'POST', headers: { cookie: '', origin: SITE, 'content-type': 'application/json' }, body: { nick: 'zzzz' } })).code, 401);
+});
+
+test('카카오 로그인: 로그인 주소와 세션(이름 저장 없음)', async () => {
+  const l = await call(login, { query: { provider: 'kakao', next: '/blog/alphabet-3y/' } }); assert.equal(new URL(l.loc).host, 'kauth.kakao.com');
+  const k = await signIn('kakao', 12345, 'x'); assert.ok(k.sid); const m = await call(me, { headers: { cookie: k.sid } }); assert.equal(m.body.user.provider, 'kakao');
 });
