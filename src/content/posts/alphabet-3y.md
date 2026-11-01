@@ -351,31 +351,19 @@ AI 투자가 매출로 바뀌는 속도는 보이지만, 그 투자가 얼마의
 
 <div class="ic" data-chart="a3_fs_sum_is"></div>
 
-<details class="fs-more"><summary>손익계산서 12분기 숫자 모두 보기 (분기별 증감률 포함)</summary>
-
 <div class="ic" data-chart="a3_fs_is"></div>
-
-</details>
 
 손익계산서는 1개 분기 동안 얼마를 벌고 얼마를 써서 얼마가 남았는지 보여 줍니다. 2026년 2분기 순이익(1,122억 달러)이 영업이익(408억 달러)보다 큰 것은 기타손익의 지분 평가이익 때문입니다.
 
 <div class="ic" data-chart="a3_fs_sum_bs"></div>
 
-<details class="fs-more"><summary>재무상태표 12분기 숫자 모두 보기 (분기별 증감률 포함)</summary>
-
 <div class="ic" data-chart="a3_fs_bs"></div>
-
-</details>
 
 재무상태표는 분기 말에 회사가 가진 것(자산)과 갚아야 할 것(부채), 주주 몫(자기자본)을 보여 줍니다. 3년 사이 총부채는 1,190억 달러에서 3,258억 달러로 약 2.7배가 됐습니다.
 
 <div class="ic" data-chart="a3_fs_sum_cf"></div>
 
-<details class="fs-more"><summary>현금흐름표 12분기 숫자 모두 보기 (분기별 증감률 포함)</summary>
-
 <div class="ic" data-chart="a3_fs_cf"></div>
-
-</details>
 
 현금흐름표는 실제 현금이 어디서 들어오고 어디로 나갔는지 보여 줍니다. 2025년 3분기까지는 재무활동이 늘 마이너스(자사주 매입·배당으로 돌려줌)였고, 2025년 4분기부터는 플러스(회사채·주식으로 돈을 모음)로 바뀌었습니다.
 
