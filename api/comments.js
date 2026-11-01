@@ -1,4 +1,5 @@
-import { cleanName, getUser, validSlug, load, save, cleanText, sameOrigin } from './_lib.js';
+import { myNick } from './_nicks.js';
+import { getUser, validSlug, load, save, cleanText, sameOrigin } from './_lib.js';
 const MAX = 1000, PER_SLUG = 300, GAP_MS = 15000;
 const ADMIN = () => (process.env.ADMIN_UIDS || '').split(',').map((s) => s.trim()).filter(Boolean);
 const pub = (c, me) => ({ id: c.id, name: c.name, provider: c.provider, text: c.text, at: c.at, mine: !!me && (c.uid === me.uid || ADMIN().includes(me.uid)) });
@@ -15,8 +16,8 @@ export default async function handler(req, res) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         if (req.method === 'POST') {
-          const { slug, text, nick } = req.body || {}; if (!validSlug(slug)) return res.status(400).json({ error: 'slug' });
-          const nm = cleanName(nick, '').slice(0, 12); if (nm.length < 2) return res.status(400).json({ error: 'nick' });
+          const { slug, text } = req.body || {}; if (!validSlug(slug)) return res.status(400).json({ error: 'slug' });
+          const nm = await myNick(me.uid); if (!nm) return res.status(400).json({ error: 'nick' });
           const t = cleanText(text); if (!t) return res.status(400).json({ error: 'empty' }); if (t.length > MAX) return res.status(400).json({ error: 'long' });
           const { list, etag } = await load(slug);
           if (list.length >= PER_SLUG) return res.status(429).json({ error: 'full' });

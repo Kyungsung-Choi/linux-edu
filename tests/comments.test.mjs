@@ -14,7 +14,12 @@ async function signIn(provider, rawId, name) {
   globalThis.fetch = async (url) => ({ json: async () => (String(url).includes('token') ? { access_token: 't' } : provider === 'google' ? { sub: rawId, name } : { response: { id: rawId, nickname: name } }) });
   const c = await call(cb, { query: { provider, code: 'c', state }, headers: { cookie: oas } }); return { res: c, sid: cookieOf(c, 'sid') };
 }
-const post = (sid, body, extra = {}) => call(comments, { method: 'POST', headers: { cookie: sid || '', origin: SITE, 'content-type': 'application/json' }, body, ...extra });
+import nickH from '../api/nick.js';
+let nn = 0;
+const claim = (sid, nick) => call(nickH, { method: 'POST', headers: { cookie: sid || '', origin: SITE, 'content-type': 'application/json' }, body: { nick } });
+// 일반 시험용: 닉네임이 없으면 자동으로 하나 정한 뒤 댓글을 쓴다(닉네임 시험은 postRaw를 쓴다)
+const post = async (sid, body, extra = {}) => { if (sid && (await call(me, { headers: { cookie: sid } })).body.user?.nick === null) await claim(sid, 'tester' + ++nn); return postRaw(sid, body, extra); };
+const postRaw = (sid, body, extra = {}) => call(comments, { method: 'POST', headers: { cookie: sid || '', origin: SITE, 'content-type': 'application/json' }, body, ...extra });
 
 test('로그인 주소: 공급자별 주소·state 쿠키·안전한 next', async () => {
   const g = await call(login, { query: { provider: 'google', next: '/blog/alphabet-3y/' } }); const u = new URL(g.loc);
@@ -32,24 +37,24 @@ test('콜백: state 불일치·쿠키 없음이면 로그인 실패', async () =
 test('구글·네이버 로그인 성공 → 세션 쿠키(HttpOnly·Secure), 이메일 저장 없음', async () => {
   const g = await signIn('google', 'g-123', '홍길동'); assert.match(g.res.loc, /login=ok#comments/); const raw = g.res.headers['Set-Cookie'].find((c) => c.startsWith('sid='));
   assert.match(raw, /HttpOnly/); assert.match(raw, /Secure/); assert.match(raw, /SameSite=Lax/); assert.ok(!raw.includes('g-123'));
-  const m = await call(me, { headers: { cookie: g.sid } }); assert.equal(m.body.user.name, '홍길동'); assert.equal(m.body.user.provider, 'google'); assert.deepEqual(m.body.providers.map((p) => p.key), ['google', 'naver']);
+  const m = await call(me, { headers: { cookie: g.sid } }); assert.equal(m.body.user.provider, 'google'); assert.deepEqual(m.body.providers.map((p) => p.key), ['google', 'naver']);
   const n = await signIn('naver', 'n-9', '별명'); assert.equal((await call(me, { headers: { cookie: n.sid } })).body.user.provider, 'naver');
 });
 test('변조·만료된 세션은 거부', async () => {
   const g = await signIn('google', 'g-1', 'A'); const bad = g.sid.slice(0, -2) + (g.sid.endsWith('A') ? 'BB' : 'AA');
   assert.equal((await call(me, { headers: { cookie: bad } })).body.user, null);
-  assert.equal((await post(bad, { slug: 'alphabet-3y', nick: '테스터', text: 'hi' })).code, 401);
+  assert.equal((await post(bad, { slug: 'alphabet-3y', text: 'hi' })).code, 401);
 });
 test('댓글: 로그인 없이 쓰기 불가, 로그인하면 가능, 목록 조회는 누구나', async () => {
-  assert.equal((await post(null, { slug: 'alphabet-3y', nick: '테스터', text: 'hi' })).code, 401);
-  const g = await signIn('google', 'g-2', '댓글러'); const ok = await post(g.sid, { slug: 'alphabet-3y', nick: '테스터', text: '  안녕하세요  ' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.text, '안녕하세요'); assert.equal(ok.body.comment.mine, true);
+  assert.equal((await post(null, { slug: 'alphabet-3y', text: 'hi' })).code, 401);
+  const g = await signIn('google', 'g-2', '댓글러'); const ok = await post(g.sid, { slug: 'alphabet-3y', text: '  안녕하세요  ' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.text, '안녕하세요'); assert.equal(ok.body.comment.mine, true);
   const list = await call(comments, { query: { slug: 'alphabet-3y' } }); assert.equal(list.body.comments.length, 1); assert.equal(list.body.comments[0].mine, false); assert.ok(!('uid' in list.body.comments[0]));
 });
 test('댓글: 없는 글 주소·빈 내용·1000자 초과·연속 작성 거부', async () => {
   const g = await signIn('google', 'g-3', 'B');
-  assert.equal((await post(g.sid, { slug: '../../etc', nick: '테스터', text: 'x' })).code, 400); assert.equal((await post(g.sid, { slug: 'no-such-post', nick: '테스터', text: 'x' })).code, 400);
-  assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: '   ' })).code, 400); assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: 'a'.repeat(1001) })).code, 400);
-  assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: '첫 댓글' })).code, 201); assert.equal((await post(g.sid, { slug: 'anthropic-s1', nick: '테스터', text: '바로 또' })).code, 429);
+  assert.equal((await post(g.sid, { slug: '../../etc', text: 'x' })).code, 400); assert.equal((await post(g.sid, { slug: 'no-such-post', text: 'x' })).code, 400);
+  assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: '   ' })).code, 400); assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: 'a'.repeat(1001) })).code, 400);
+  assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: '첫 댓글' })).code, 201); assert.equal((await post(g.sid, { slug: 'anthropic-s1', text: '바로 또' })).code, 429);
 });
 test('보안: 다른 사이트에서 온 요청·JSON 아닌 요청 거부', async () => {
   const g = await signIn('google', 'g-4', 'C');
@@ -60,14 +65,14 @@ test('보안: 다른 사이트에서 온 요청·JSON 아닌 요청 거부', asy
 });
 test('삭제: 본인만 가능(다른 사람은 403)', async () => {
   const a = await signIn('google', 'g-5', 'A5'), b = await signIn('naver', 'n-5', 'B5');
-  const c = (await post(a.sid, { slug: 'amzn-intc-20261030', nick: '테스터', text: '내 댓글' })).body.comment;
+  const c = (await post(a.sid, { slug: 'amzn-intc-20261030', text: '내 댓글' })).body.comment;
   const del = (sid) => call(comments, { method: 'DELETE', headers: { cookie: sid, origin: SITE }, query: { slug: 'amzn-intc-20261030', id: c.id } });
   assert.equal((await del(b.sid)).code, 403); assert.equal((await del(a.sid)).code, 200);
   assert.equal((await call(comments, { query: { slug: 'amzn-intc-20261030' } })).body.comments.length, 0);
 });
 test('이름·본문에 들어간 태그는 글자 그대로 저장(화면에서 textContent로만 출력)', async () => {
   const g = await signIn('google', 'g-6', '<img src=x onerror=alert(1)>'); const me2 = await call(me, { headers: { cookie: g.sid } }); assert.ok(!/[<>]/.test(me2.body.user.name));
-  const r = await post(g.sid, { slug: 'alphabet-q3-20261028', nick: '테스터', text: '<script>alert(1)</script>' }); assert.equal(r.body.comment.text, '<script>alert(1)</script>');
+  const r = await post(g.sid, { slug: 'alphabet-q3-20261028', text: '<script>alert(1)</script>' }); assert.equal(r.body.comment.text, '<script>alert(1)</script>');
 });
 
 test('조회수: 방문 때마다 1씩 늘고, 봇·다른 출처는 세지 않는다', async () => {
@@ -81,9 +86,14 @@ test('조회수: 방문 때마다 1씩 늘고, 봇·다른 출처는 세지 않�
   assert.equal((await call('GET')).views, 2);
 });
 
-test('닉네임: 없거나 1자면 거부, 댓글에는 계정 이름 대신 닉네임이 보인다', async () => {
-  const g = await signIn('google', 'g-nick', '실명홍길동');
-  assert.equal((await post(g.sid, { slug: 'fomc-20261028', text: 'x' })).code, 400);
-  assert.equal((await post(g.sid, { slug: 'fomc-20261028', nick: 'a', text: 'x' })).code, 400);
-  const ok = await post(g.sid, { slug: 'fomc-20261028', nick: '앵두팬', text: '좋은 글' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.name, '앵두팬');
+test('닉네임: 계정당 1개 고정, 중복 불가(대소문자 무시), 형식 검사, 댓글엔 닉네임만', async () => {
+  const g = await signIn('google', 'g-nick', '실명홍길동'), h = await signIn('naver', 'n-nick', '다른사람');
+  assert.equal((await postRaw(g.sid, { slug: 'fomc-20261028', text: 'x' })).code, 400);
+  for (const bad of ['a', 'a'.repeat(13), '안 녕', '<b>x</b>', '관리자', 'Admin']) assert.equal((await claim(g.sid, bad)).code, 400, bad);
+  assert.equal((await claim(g.sid, '앵두팬')).code, 201);
+  assert.equal((await claim(g.sid, '다른닉')).code, 409);
+  assert.equal((await claim(h.sid, '앵두팬')).code, 409); assert.equal((await claim(h.sid, 'Cherry_1')).code, 201); assert.equal((await claim(g.sid, 'cherry_1')).code, 409);
+  assert.equal((await call(me, { headers: { cookie: g.sid } })).body.user.nick, '앵두팬'); assert.ok(!('name' in (await call(me, { headers: { cookie: g.sid } })).body.user));
+  const ok = await postRaw(g.sid, { slug: 'fomc-20261028', text: '좋은 글' }); assert.equal(ok.code, 201); assert.equal(ok.body.comment.name, '앵두팬');
+  assert.equal((await call(nickH, { method: 'POST', headers: { cookie: '', origin: SITE, 'content-type': 'application/json' }, body: { nick: 'zzzz' } })).code, 401);
 });
