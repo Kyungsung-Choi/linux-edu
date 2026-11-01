@@ -1,27 +1,23 @@
 ---
-// 글 아래 댓글(메신저 모양): 구글·네이버 로그인한 사람만 쓸 수 있다. 서버는 /api(Vercel 함수), 저장은 Vercel Blob.
+// 글 아래 댓글: 구글·네이버 로그인한 사람만 쓸 수 있다. 서버는 /api(Vercel 함수), 저장은 Vercel Blob.
 const { slug } = Astro.props;
 ---
 <section class="cmt" id="comments" aria-labelledby="cmt-h" data-slug={slug}>
   <h2 id="cmt-h" class="cmt__h">댓글 <span class="cmt__n" id="cmt-n"></span></h2>
-  <div class="chat">
-    <ul class="chat__list" id="cmt-list" aria-live="polite"></ul>
-    <p class="chat__msg" id="cmt-msg" role="status"></p>
-    <div class="chat__me" id="cmt-me">불러오는 중…</div>
-    <form class="chat__nick" id="nick-form" hidden>
-      <label class="cmt__sr" for="cmt-nick">닉네임</label>
-      <input id="cmt-nick" class="chat__in" maxlength="20" placeholder="닉네임 정하기 (20자 이내)" autocomplete="off" />
-      <button type="submit" class="chat__send" id="nick-send" aria-label="닉네임 정하기">정하기</button>
-      <p class="chat__hint">닉네임은 계정당 1개이고 한 번 정하면 바꿀 수 없습니다. 다른 사람이 쓰는 닉네임은 쓸 수 없습니다.</p>
-    </form>
-    <form class="chat__bar" id="cmt-form" hidden>
-      <label class="cmt__sr" for="cmt-text">댓글 쓰기</label>
-      <textarea id="cmt-text" class="chat__in chat__ta" maxlength="1000" rows="1" placeholder="메시지 입력 (Enter 전송, Shift+Enter 줄바꿈)"></textarea>
-      <button type="submit" class="chat__send chat__send--go" id="cmt-send" aria-label="보내기">
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>
-      </button>
-    </form>
-  </div>
+  <div class="cmt__me" id="cmt-me" aria-live="polite">불러오는 중…</div>
+  <p class="cmt__msg" id="cmt-msg" role="status"></p>
+  <form class="cmt__nickform" id="nick-form" hidden>
+    <label class="cmt__sr" for="cmt-nick">닉네임</label>
+    <input id="cmt-nick" class="cmt__nick" maxlength="20" placeholder="닉네임 정하기 (20자 이내)" autocomplete="off" />
+    <button type="submit" class="cmt__btn" id="nick-send">정하기</button>
+    <p class="cmt__hint">닉네임은 계정당 1개이고 한 번 정하면 바꿀 수 없습니다. 다른 사람이 쓰는 닉네임은 쓸 수 없습니다.</p>
+  </form>
+  <form class="cmt__form" id="cmt-form" hidden>
+    <label class="cmt__sr" for="cmt-text">댓글 쓰기</label>
+    <textarea id="cmt-text" maxlength="1000" rows="3" placeholder="댓글을 남겨 주세요 (최대 1,000자)"></textarea>
+    <div class="cmt__row"><span class="cmt__cnt" id="cmt-cnt">0 / 1000</span><button type="submit" class="cmt__btn" id="cmt-send">등록</button></div>
+  </form>
+  <ul class="cmt__list" id="cmt-list" aria-live="polite"></ul>
   <p class="cmt__note">댓글에는 직접 정한 닉네임만 공개되고, 구글·네이버 계정의 이름은 공개하지 않습니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
 </section>
 <script is:inline>
@@ -36,43 +32,25 @@ const { slug } = Astro.props;
     naver: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#fff" d="M16.3 12.7 7.4 0H0v24h7.7V11.3L16.6 24H24V0h-7.7z" transform="translate(3 3) scale(.75)"/></svg>'
   };
   var ERR = { nick: '먼저 닉네임을 정해 주세요.', nickfmt: '닉네임은 1~20자로 정해 주세요.', nickreserved: '운영자 전용 닉네임입니다. 다른 닉네임을 정해 주세요.', nicktaken: '이미 쓰는 닉네임입니다. 다른 닉네임을 정해 주세요.', nickset: '이미 닉네임을 정했습니다.', busy: '잠시 뒤에 다시 시도해 주세요.', login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
-  var ADMIN = '앵두아빠', last = '', first = true;
+  var ADMIN = '앵두아빠', last = '';
   function say(t) { msg.textContent = t || ''; }
   function api(url, opt) { return fetch(url, Object.assign({ credentials: 'same-origin' }, opt)).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); }); }
-  function hm(ms) { var d = new Date(ms), h = d.getHours(); return (h < 12 ? '오전 ' : '오후 ') + (h % 12 || 12) + ':' + String(d.getMinutes()).padStart(2, '0'); }
-  function day(ms) { var d = new Date(ms); return d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일'; }
-  function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
+  function when(ms) { var d = new Date(ms); return d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
   function render(cs) {
     var key = JSON.stringify(cs); if (key === last) return; last = key;
-    var stick = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
     list.textContent = ''; $('cmt-n').textContent = cs.length ? cs.length : '';
-    if (!cs.length) { var e = document.createElement('li'); e.className = 'chat__empty'; e.textContent = '아직 댓글이 없습니다. 첫 메시지를 남겨 보세요.'; list.appendChild(e); return; }
-    var prevDay = '', prevName = '', prevAt = 0;
+    if (!cs.length) { var e = document.createElement('li'); e.className = 'cmt__empty'; e.textContent = '아직 댓글이 없습니다. 첫 댓글을 남겨 보세요.'; list.appendChild(e); return; }
     cs.forEach(function (c) {
-      var dk = day(c.at);
-      if (dk !== prevDay) { var sep = document.createElement('li'); sep.className = 'chat__day'; var sp = document.createElement('span'); sp.textContent = dk; sep.appendChild(sp); list.appendChild(sep); prevDay = dk; prevName = ''; }
-      var cont = c.name === prevName && c.at - prevAt < 5 * 60e3; prevName = c.name; prevAt = c.at;
-      var li = document.createElement('li'); li.className = 'chat__row' + (c.mine ? ' chat__row--me' : '') + (c.name === ADMIN ? ' chat__row--admin' : '') + (cont ? ' chat__row--cont' : '');
-      if (!c.mine) {
-        var av = document.createElement('span'); av.className = 'chat__av';
-        if (!cont) { av.textContent = Array.from(c.name)[0] || '?'; av.style.background = c.name === ADMIN ? '#2d3a8c' : 'hsl(' + hue(c.name) + ' 55% 55%)'; }
-        li.appendChild(av);
-      }
-      var col = document.createElement('div'); col.className = 'chat__col';
-      if (!c.mine && !cont) { var nm = document.createElement('span'); nm.className = 'chat__name'; nm.textContent = c.name; if (c.name === ADMIN) { var bd = document.createElement('i'); bd.className = 'chat__badge'; bd.textContent = '운영자'; nm.appendChild(bd); } col.appendChild(nm); }
-      var line = document.createElement('div'); line.className = 'chat__line';
-      var b = document.createElement('p'); b.className = 'chat__bubble'; b.textContent = c.text;
-      var t = document.createElement('time'); t.className = 'chat__time'; t.textContent = hm(c.at);
-      if (c.mine) {
-        var del = document.createElement('button'); del.type = 'button'; del.className = 'chat__del'; del.textContent = '삭제';
-        del.onclick = function () { if (!confirm('이 댓글을 삭제할까요?')) return; api('/api/comments?slug=' + slug + '&id=' + encodeURIComponent(c.id), { method: 'DELETE' }).then(function (r) { r.ok ? load() : say(ERR[r.j.error] || ERR.server); }); };
-        var meta = document.createElement('span'); meta.className = 'chat__meta'; meta.append(del, t); line.append(meta, b);
-      } else { line.append(b, t); }
-      col.appendChild(line); li.appendChild(col); list.appendChild(li);
+      var li = document.createElement('li'); li.className = 'cmt__item';
+      var h = document.createElement('div'); h.className = 'cmt__meta';
+      var n = document.createElement('b'); n.textContent = c.name; h.appendChild(n);
+      if (c.name === ADMIN) { var bd = document.createElement('span'); bd.className = 'cmt__badge'; bd.textContent = '운영자'; h.appendChild(bd); }
+      var t = document.createElement('time'); t.textContent = when(c.at); h.appendChild(t);
+      if (c.mine) { var d = document.createElement('button'); d.type = 'button'; d.className = 'cmt__del'; d.textContent = '삭제'; d.onclick = function () { if (!confirm('이 댓글을 삭제할까요?')) return; api('/api/comments?slug=' + slug + '&id=' + encodeURIComponent(c.id), { method: 'DELETE' }).then(function (r) { r.ok ? load() : say(ERR[r.j.error] || ERR.server); }); }; h.appendChild(d); }
+      var p = document.createElement('p'); p.className = 'cmt__text'; p.textContent = c.text; li.append(h, p); list.appendChild(li);
     });
-    if (stick || first) list.scrollTop = list.scrollHeight;
   }
-  function load() { return api('/api/comments?slug=' + slug).then(function (r) { render(r.ok ? r.j.comments : []); first = false; if (!r.ok) say('댓글을 불러오지 못했습니다.'); }).catch(function () { say('댓글을 불러오지 못했습니다.'); }); }
+  function load() { return api('/api/comments?slug=' + slug).then(function (r) { render(r.ok ? r.j.comments : []); if (!r.ok) say('댓글을 불러오지 못했습니다.'); }).catch(function () { say('댓글을 불러오지 못했습니다.'); }); }
   function login(provider) { location.href = '/api/auth/login?provider=' + provider + '&next=' + encodeURIComponent(location.pathname); }
   function who() {
     api('/api/auth/me').then(function (r) {
@@ -81,20 +59,18 @@ const { slug } = Astro.props;
         var s = document.createElement('span'); s.textContent = (r.j.user.nick ? r.j.user.nick + ' 님 · ' : '') + (P[r.j.user.provider] || '') + ' 계정으로 로그인됨'; var o = document.createElement('button'); o.type = 'button'; o.className = 'cmt__link'; o.textContent = '로그아웃';
         o.onclick = function () { api('/api/auth/logout', { method: 'POST' }).then(function () { location.reload(); }); }; me.append(s, o); form.hidden = !r.j.user.nick; nickForm.hidden = !!r.j.user.nick;
       } else {
-        var s2 = document.createElement('span'); s2.textContent = '메시지를 남기려면 로그인하세요.'; me.appendChild(s2);
+        var s2 = document.createElement('span'); s2.textContent = '댓글을 쓰려면 로그인하세요.'; me.appendChild(s2);
         if (!r.j.providers.length) { s2.textContent = '댓글 쓰기는 준비 중입니다.'; }
         r.j.providers.forEach(function (p) { var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'cmt__login cmt__login--' + p.key; bt.innerHTML = ICON[p.key] || ''; bt.title = bt.ariaLabel = p.label + '로 로그인'; bt.onclick = function () { login(p.key); }; me.appendChild(bt); });
         form.hidden = true; nickForm.hidden = true;
       }
     }).catch(function () { me.textContent = '로그인 상태를 불러오지 못했습니다.'; });
   }
-  function fit() { text.style.height = 'auto'; text.style.height = Math.min(text.scrollHeight, 120) + 'px'; }
-  text.addEventListener('input', fit);
-  text.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); form.requestSubmit(); } });
+  text.addEventListener('input', function () { $('cmt-cnt').textContent = text.value.length + ' / 1000'; });
   form.addEventListener('submit', function (ev) {
-    ev.preventDefault(); say(''); var v = text.value.trim(); if (!v) return; send.disabled = true;
+    ev.preventDefault(); say(''); var v = text.value.trim(); if (!v) return say(ERR.empty); send.disabled = true;
     api('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: slug, text: v }) }).then(function (r) {
-      send.disabled = false; if (!r.ok) return say(ERR[r.j.error] || ERR.server); text.value = ''; fit(); first = true; load();
+      send.disabled = false; if (!r.ok) return say(ERR[r.j.error] || ERR.server); text.value = ''; $('cmt-cnt').textContent = '0 / 1000'; load();
     }).catch(function () { send.disabled = false; say(ERR.server); });
   });
   nickForm.addEventListener('submit', function (ev) {
@@ -113,42 +89,26 @@ const { slug } = Astro.props;
   .cmt{max-width:700px; border-top:1px solid var(--rule2); margin-top:40px; padding-top:28px}
   .cmt__h{font-size:1.15rem; margin:0 0 14px; letter-spacing:-.01em}
   .cmt__n{font-size:.95rem; color:var(--ink3); font-weight:600; margin-left:4px}
-  .cmt__sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
-  .cmt__note{font-size:.78rem; color:var(--ink3); line-height:1.6; margin:12px 0 0}
-  .cmt__link{font:inherit; font-size:.82rem; color:#2a3a4a; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline}
+  .cmt__me{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:.92rem; color:var(--ink2); margin-bottom:14px}
   .cmt__login{width:44px; height:44px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--rule2); background:var(--ground); cursor:pointer}
   .cmt__login--google{border-color:#d2d6dc; background:#fff} .cmt__login--naver{background:#03c75a; border-color:#03c75a} .cmt__login--kakao{background:#fee500; border-color:#fee500}
-
-  /* 메신저 틀 */
-  .chat{border:1px solid var(--rule2); border-radius:18px; background:#b2c7da; overflow:hidden; display:flex; flex-direction:column}
-  .chat__list{list-style:none; margin:0; padding:14px 12px 6px; min-height:84px; max-height:min(56vh,460px); overflow-y:auto; display:flex; flex-direction:column; gap:3px}
-  .chat__empty{margin:8px auto; color:#4a5a6a; font-size:.9rem; text-align:center}
-  .chat__day{align-self:center; margin:10px 0 6px} .chat__day span{font-size:.74rem; color:#fff; background:rgba(0,0,0,.28); border-radius:999px; padding:3px 12px}
-  .chat__row{display:flex; gap:8px; align-items:flex-start; max-width:100%}
-  .chat__row--cont{margin-top:-1px}
-  .chat__row--me{justify-content:flex-end}
-  .chat__av{flex:none; width:38px; height:38px; border-radius:14px; color:#fff; font-weight:700; font-size:.95rem; display:inline-flex; align-items:center; justify-content:center}
-  .chat__col{display:flex; flex-direction:column; gap:3px; min-width:0; max-width:78%}
-  .chat__row--me .chat__col{align-items:flex-end}
-  .chat__name{font-size:.78rem; color:#34455a; margin-left:2px}
-  .chat__badge{font-style:normal; font-size:.66rem; font-weight:700; color:#fff; background:#2d3a8c; border-radius:999px; padding:1px 7px; margin-left:6px}
-  .chat__line{display:flex; align-items:flex-end; gap:5px; min-width:0}
-  .chat__bubble{margin:0; padding:8px 12px; border-radius:4px 16px 16px 16px; background:#fff; color:#1b1b1b; font-size:.95rem; line-height:1.55; white-space:pre-wrap; word-break:break-word; min-width:0}
-  .chat__row--cont .chat__bubble{border-radius:16px}
-  .chat__row--me .chat__bubble{background:#fee500; border-radius:16px 4px 16px 16px}
-  .chat__row--me.chat__row--cont .chat__bubble{border-radius:16px}
-  .chat__row--admin .chat__bubble{background:#e8ecff; border:1px solid #c5ccf5}
-  .chat__time{flex:none; font-size:.68rem; color:#4a5a6a; white-space:nowrap}
-  .chat__meta{flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:1px}
-  .chat__del{font:inherit; font-size:.68rem; color:#4a5a6a; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline}
-  .chat__msg{margin:0; padding:0 14px; font-size:.82rem; color:#2a3a4a} .chat__msg:not(:empty){padding:6px 14px}
-  .chat__me{display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:.86rem; color:#2a3a4a; padding:8px 14px; background:rgba(255,255,255,.55)}
-  .chat__nick,.chat__bar{display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px; padding:10px 12px; background:#fff; border-top:1px solid #dfe5eb}
-  .chat__nick[hidden],.chat__bar[hidden]{display:none}
-  .chat__in{flex:1 1 200px; min-width:0; box-sizing:border-box; font:inherit; font-size:.95rem; line-height:1.5; padding:9px 14px; border:1px solid var(--rule2); border-radius:20px; background:#f6f7f9; color:#1b1b1b; resize:none}
-  .chat__ta{max-height:120px; overflow-y:auto}
-  .chat__send{flex:none; font:inherit; font-size:.9rem; font-weight:700; padding:9px 16px; border-radius:20px; border:0; background:#fee500; color:#191919; cursor:pointer}
-  .chat__send--go{width:42px; height:42px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center}
-  .chat__send:disabled{opacity:.5; cursor:default}
-  .chat__hint{flex-basis:100%; margin:0; font-size:.78rem; color:#4a5a6a}
+  .cmt__btn{font:inherit; font-size:.9rem; font-weight:700; padding:8px 16px; border-radius:10px; border:1px solid var(--ink); background:var(--ink); color:var(--ground); cursor:pointer} .cmt__btn:disabled{opacity:.5; cursor:default}
+  .cmt__link,.cmt__del{font:inherit; font-size:.82rem; color:var(--ink3); background:none; border:0; padding:0; cursor:pointer; text-decoration:underline}
+  .cmt__form textarea,.cmt__nick{width:100%; box-sizing:border-box; font:inherit; font-size:.95rem; line-height:1.6; padding:12px 14px; border:1px solid var(--rule2); border-radius:12px; background:var(--ground); color:var(--ink); resize:vertical}
+  .cmt__nickform{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px} .cmt__nickform[hidden],.cmt__form[hidden]{display:none}
+  .cmt__nick{flex:1 1 220px; min-width:0; width:auto; padding:10px 14px}
+  .cmt__hint{flex-basis:100%; margin:0; font-size:.8rem; color:var(--ink3)}
+  .cmt__row{display:flex; justify-content:space-between; align-items:center; margin-top:8px}
+  .cmt__cnt{font-size:.8rem; color:var(--ink3); font-variant-numeric:tabular-nums}
+  .cmt__msg{min-height:1.4em; font-size:.88rem; color:var(--ink2); margin:8px 0}
+  .cmt__list{list-style:none; padding:0; margin:8px 0 0}
+  .cmt__item{padding:14px 2px; border-bottom:1px solid var(--rule)}
+  .cmt__meta{display:flex; align-items:baseline; gap:8px; font-size:.86rem; color:var(--ink3)}
+  .cmt__meta b{color:var(--ink); font-size:.92rem}
+  .cmt__badge{font-size:.72rem; border:1px solid var(--rule2); border-radius:999px; padding:0 7px}
+  .cmt__del{margin-left:auto}
+  .cmt__text{margin:6px 0 0; font-size:.96rem; line-height:1.7; white-space:pre-wrap; word-break:break-word; color:var(--ink)}
+  .cmt__empty{color:var(--ink3); font-size:.92rem; padding:10px 2px}
+  .cmt__note{font-size:.78rem; color:var(--ink3); line-height:1.6; margin:16px 0 0}
+  .cmt__sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
 </style>
