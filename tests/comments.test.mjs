@@ -69,3 +69,14 @@ test('이름·본문에 들어간 태그는 글자 그대로 저장(화면에서
   const g = await signIn('google', 'g-6', '<img src=x onerror=alert(1)>'); const me2 = await call(me, { headers: { cookie: g.sid } }); assert.ok(!/[<>]/.test(me2.body.user.name));
   const r = await post(g.sid, { slug: 'alphabet-q3-20261028', text: '<script>alert(1)</script>' }); assert.equal(r.body.comment.text, '<script>alert(1)</script>');
 });
+
+test('조회수: 방문 때마다 1씩 늘고, 봇·다른 출처는 세지 않는다', async () => {
+  const { default: h } = await import('../api/views.js');
+  const call = async (method, headers = {}) => { let out; const res = { setHeader() {}, status() { return this; }, json(b) { out = b; return this; } }; await h({ method, query: { slug: 'anthropic-s1' }, headers }, res); return out; };
+  const ok = { origin: 'https://angdo.vercel.app', 'user-agent': 'Mozilla/5.0' };
+  assert.equal((await call('POST', ok)).views, 1);
+  assert.equal((await call('POST', ok)).views, 2);
+  assert.equal((await call('POST', { ...ok, 'user-agent': 'Googlebot' })).views, 2);
+  assert.equal((await call('POST', { ...ok, origin: 'https://evil.com' })).views, 2);
+  assert.equal((await call('GET')).views, 2);
+});

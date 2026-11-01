@@ -27,7 +27,14 @@ const hasCharts = (post.body ?? '').includes('data-chart');
       ))}
     </nav>
     <article class="post">
-      <p class="post__meta">{post.data.category} · {fmt(post.data.date)}</p>
+      <p class="post__meta">{post.data.category} · {fmt(post.data.date)}<span id="views" data-slug={post.id}></span></p>
+      <script is:inline>
+        (function () {
+          var el = document.getElementById('views'); if (!el) return; var s = el.dataset.slug, k = 'v:' + s, first = !sessionStorage.getItem(k);
+          fetch('/api/views?slug=' + encodeURIComponent(s), { method: first ? 'POST' : 'GET', headers: { 'Content-Type': 'application/json' } })
+            .then(function (r) { return r.json(); }).then(function (d) { if (typeof d.views === 'number') { el.textContent = ' · 조회 ' + d.views.toLocaleString('ko-KR') + '회'; sessionStorage.setItem(k, '1'); } }).catch(function () {});
+        })();
+      </script>
       <h1 class="post__t">{post.data.title}</h1>
       <div class="prose"><Content /></div>
       {hasCharts && <><link rel="stylesheet" href="/charts/infochart.css" /><script is:inline src="/charts/infochart.js" defer></script></>}
