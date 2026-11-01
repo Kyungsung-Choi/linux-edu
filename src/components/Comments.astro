@@ -4,8 +4,9 @@ const { slug } = Astro.props;
 ---
 <section class="cmt" id="comments" aria-labelledby="cmt-h" data-slug={slug}>
   <h2 id="cmt-h" class="cmt__h">댓글 <span class="cmt__n" id="cmt-n"></span></h2>
-  <div class="cmt__me" id="cmt-me" aria-live="polite">불러오는 중…</div>
+  <ul class="cmt__list" id="cmt-list" aria-live="polite"></ul>
   <p class="cmt__msg" id="cmt-msg" role="status"></p>
+  <div class="cmt__me" id="cmt-me" aria-live="polite">불러오는 중…</div>
   <form class="cmt__nickform" id="nick-form" hidden>
     <label class="cmt__sr" for="cmt-nick">닉네임</label>
     <input id="cmt-nick" class="cmt__nick" maxlength="20" placeholder="닉네임 정하기 (20자 이내)" autocomplete="off" />
@@ -17,7 +18,6 @@ const { slug } = Astro.props;
     <textarea id="cmt-text" maxlength="1000" rows="3" placeholder="댓글을 남겨 주세요 (최대 1,000자)"></textarea>
     <div class="cmt__row"><span class="cmt__cnt" id="cmt-cnt">0 / 1000</span><button type="submit" class="cmt__btn" id="cmt-send">등록</button></div>
   </form>
-  <ul class="cmt__list" id="cmt-list" aria-live="polite"></ul>
   <p class="cmt__note">댓글에는 직접 정한 닉네임만 공개되고, 구글·네이버 계정의 이름은 공개하지 않습니다. 이메일·전화번호는 저장하지 않습니다. 쓴 댓글은 본인이 삭제할 수 있습니다.</p>
 </section>
 <button type="button" class="cmt__toast" id="cmt-toast" hidden></button>
@@ -32,24 +32,53 @@ const { slug } = Astro.props;
     kakao: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="#191919" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.8 5.3 4.6 6.7l-1 3.6c-.1.3.2.5.5.4l4.2-2.8c.6.1 1.1.1 1.7.1 5.5 0 10-3.6 10-8S17.500 3 12 3z"/></svg>',
     naver: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#fff" d="M16.3 12.7 7.4 0H0v24h7.7V11.3L16.6 24H24V0h-7.7z" transform="translate(3 3) scale(.75)"/></svg>'
   };
-  var ERR = { nick: '먼저 닉네임을 정해 주세요.', nickfmt: '닉네임은 1~20자로 정해 주세요.', nickreserved: '운영자 전용 닉네임입니다. 다른 닉네임을 정해 주세요.', nicktaken: '이미 쓰는 닉네임입니다. 다른 닉네임을 정해 주세요.', nickset: '이미 닉네임을 정했습니다.', busy: '잠시 뒤에 다시 시도해 주세요.', login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
+  var ERR = { parent: '답글을 달 댓글을 찾을 수 없습니다.', nick: '먼저 닉네임을 정해 주세요.', nickfmt: '닉네임은 1~20자로 정해 주세요.', nickreserved: '운영자 전용 닉네임입니다. 다른 닉네임을 정해 주세요.', nicktaken: '이미 쓰는 닉네임입니다. 다른 닉네임을 정해 주세요.', nickset: '이미 닉네임을 정했습니다.', busy: '잠시 뒤에 다시 시도해 주세요.', login: '로그인이 필요합니다.', empty: '내용을 입력해 주세요.', long: '1,000자 이내로 써 주세요.', fast: '너무 빨리 보내고 있어요. 잠시 뒤에 다시 시도해 주세요.', full: '이 글의 댓글이 가득 찼습니다.', origin: '요청이 거부됐습니다. 새로고침 후 다시 시도해 주세요.', server: '서버 오류입니다. 잠시 뒤에 다시 시도해 주세요.' };
   var ADMIN = '앵두아빠', last = '';
   function say(t) { msg.textContent = t || ''; }
   function api(url, opt) { return fetch(url, Object.assign({ credentials: 'same-origin' }, opt)).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); }); }
   function when(ms) { var d = new Date(ms); return d.getFullYear() + '.' + (d.getMonth() + 1) + '.' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
-  function render(cs) {
-    var key = JSON.stringify(cs); if (key === last) return; last = key;
-    list.textContent = ''; $('cmt-n').textContent = cs.length ? cs.length : '';
-    if (!cs.length) { var e = document.createElement('li'); e.className = 'cmt__empty'; e.textContent = '아직 댓글이 없습니다. 첫 댓글을 남겨 보세요.'; list.appendChild(e); return; }
-    cs.forEach(function (c) {
-      var li = document.createElement('li'); li.className = 'cmt__item';
+  var canReply = false, user = null;
+  function replyForm(c, depthBox) {
+    if (depthBox.querySelector('.cmt__reply')) { depthBox.querySelector('.cmt__reply').remove(); return; }
+    var f = document.createElement('form'); f.className = 'cmt__reply';
+    var ta = document.createElement('textarea'); ta.maxLength = 1000; ta.rows = 2; ta.placeholder = c.name + ' 님에게 답글 (최대 1,000자)';
+    var row = document.createElement('div'); row.className = 'cmt__row';
+    var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'cmt__link'; cancel.textContent = '취소'; cancel.onclick = function () { f.remove(); };
+    var ok = document.createElement('button'); ok.type = 'submit'; ok.className = 'cmt__btn'; ok.textContent = '답글 등록';
+    var right = document.createElement('span'); right.className = 'cmt__acts'; right.append(cancel, ok); row.append(document.createElement('span'), right); f.append(ta, row);
+    f.onsubmit = function (ev) { ev.preventDefault(); var v = ta.value.trim(); if (!v) return say(ERR.empty); ok.disabled = true; say('');
+      api('/api/comments', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slug: slug, text: v, parent: c.id }) }).then(function (r) { ok.disabled = false; if (!r.ok) return say(ERR[r.j.error] || ERR.server); f.remove(); load(); }).catch(function () { ok.disabled = false; say(ERR.server); }); };
+    depthBox.appendChild(f); ta.focus();
+  }
+  function node(c, kids, depth) {
+    var li = document.createElement('li'); li.className = 'cmt__item' + (depth ? ' cmt__item--re' : '');
+    var box = document.createElement('div'); box.className = 'cmt__box';
+    if (c.deleted) { var gone = document.createElement('p'); gone.className = 'cmt__text cmt__gone'; gone.textContent = '삭제된 댓글입니다.'; box.appendChild(gone); }
+    else {
       var h = document.createElement('div'); h.className = 'cmt__meta';
       var n = document.createElement('b'); n.textContent = c.name; h.appendChild(n);
       if (c.name === ADMIN) { var bd = document.createElement('span'); bd.className = 'cmt__badge'; bd.textContent = '운영자'; h.appendChild(bd); }
-      var t = document.createElement('time'); t.textContent = when(c.at); h.appendChild(t);
-      if (c.mine) { var d = document.createElement('button'); d.type = 'button'; d.className = 'cmt__del'; d.textContent = '삭제'; d.onclick = function () { if (!confirm('이 댓글을 삭제할까요?')) return; api('/api/comments?slug=' + slug + '&id=' + encodeURIComponent(c.id), { method: 'DELETE' }).then(function (r) { r.ok ? load() : say(ERR[r.j.error] || ERR.server); }); }; h.appendChild(d); }
-      var p = document.createElement('p'); p.className = 'cmt__text'; p.textContent = c.text; li.append(h, p); list.appendChild(li);
-    });
+      var t = document.createElement('time'); t.textContent = when(c.at); h.appendChild(t); box.appendChild(h);
+      var p = document.createElement('p'); p.className = 'cmt__text'; p.textContent = c.text; box.appendChild(p);
+      var acts = document.createElement('div'); acts.className = 'cmt__acts';
+      var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'cmt__link'; rb.textContent = '답글'; rb.onclick = function () { if (!canReply) return say(user ? ERR.nick : '답글을 쓰려면 아래에서 로그인하세요.'); replyForm(c, box); }; acts.appendChild(rb);
+      if (c.mine) { var d = document.createElement('button'); d.type = 'button'; d.className = 'cmt__link'; d.textContent = '삭제'; d.onclick = function () { if (!confirm('이 댓글을 삭제할까요?')) return; api('/api/comments?slug=' + slug + '&id=' + encodeURIComponent(c.id), { method: 'DELETE' }).then(function (r) { r.ok ? load() : say(ERR[r.j.error] || ERR.server); }); }; acts.appendChild(d); }
+      box.appendChild(acts);
+    }
+    li.appendChild(box);
+    if (kids[c.id] && kids[c.id].length) { var ul = document.createElement('ul'); ul.className = 'cmt__sub' + (depth >= 3 ? ' cmt__sub--flat' : ''); kids[c.id].forEach(function (k) { ul.appendChild(node(k, kids, depth + 1)); }); li.appendChild(ul); }
+    return li;
+  }
+  function render(cs) {
+    var key = JSON.stringify(cs) + canReply; if (key === last) return;
+    var open = []; list.querySelectorAll('.cmt__reply textarea').forEach(function (x) { if (x.value) open.push(x.value); });
+    if (open.length) return; // 답글을 쓰는 중이면 목록을 다시 그리지 않는다(쓰던 글 보호)
+    last = key;
+    list.textContent = ''; $('cmt-n').textContent = cs.filter(function (c) { return !c.deleted; }).length || '';
+    if (!cs.length) { var e = document.createElement('li'); e.className = 'cmt__empty'; e.textContent = '아직 댓글이 없습니다. 첫 댓글을 남겨 보세요.'; list.appendChild(e); return; }
+    var ids = {}, kids = {}, roots = []; cs.forEach(function (c) { ids[c.id] = 1; });
+    cs.forEach(function (c) { if (c.parent && ids[c.parent]) (kids[c.parent] = kids[c.parent] || []).push(c); else roots.push(c); });
+    roots.forEach(function (c) { list.appendChild(node(c, kids, 0)); });
   }
   // 새 댓글 알림 팝업: 이 글에서 마지막으로 본 댓글 시각(localStorage)보다 새로운 남의 댓글이 있으면 알려 준다
   var toast = $('cmt-toast'), SEEN = 'cmt-seen:' + slug, tt = 0, shown = false, init = true;
@@ -57,7 +86,7 @@ const { slug } = Astro.props;
   function markSeen(cs) { var m = cs.reduce(function (a, c) { return Math.max(a, c.at); }, 0); try { if (m > seenAt()) localStorage.setItem(SEEN, String(m)); } catch (e) {} }
   function inView() { var r = root.getBoundingClientRect(); return r.top < innerHeight * 0.8 && r.bottom > innerHeight * 0.2; }
   function notify(cs) {
-    var prev = seenAt(), fresh = cs.filter(function (c) { return !c.mine && c.at > prev; });
+    var prev = seenAt(), fresh = cs.filter(function (c) { return !c.mine && !c.deleted && c.at > prev; });
     if (!prev && init) { markSeen(cs); init = false; return; } init = false;
     if (!fresh.length) return markSeen(cs);
     if (inView()) return markSeen(cs);
@@ -72,12 +101,12 @@ const { slug } = Astro.props;
       me.textContent = '';
       if (r.j.user) {
         var s = document.createElement('span'); s.textContent = (r.j.user.nick ? r.j.user.nick + ' 님 · ' : '') + (P[r.j.user.provider] || '') + ' 계정으로 로그인됨'; var o = document.createElement('button'); o.type = 'button'; o.className = 'cmt__link'; o.textContent = '로그아웃';
-        o.onclick = function () { api('/api/auth/logout', { method: 'POST' }).then(function () { location.reload(); }); }; me.append(s, o); form.hidden = !r.j.user.nick; nickForm.hidden = !!r.j.user.nick;
+        o.onclick = function () { api('/api/auth/logout', { method: 'POST' }).then(function () { location.reload(); }); }; me.append(s, o); form.hidden = !r.j.user.nick; nickForm.hidden = !!r.j.user.nick; user = r.j.user; canReply = !!r.j.user.nick; last = '';
       } else {
         var s2 = document.createElement('span'); s2.textContent = '댓글을 쓰려면 로그인하세요.'; me.appendChild(s2);
         if (!r.j.providers.length) { s2.textContent = '댓글 쓰기는 준비 중입니다.'; }
         r.j.providers.forEach(function (p) { var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'cmt__login cmt__login--' + p.key; bt.innerHTML = ICON[p.key] || ''; bt.title = bt.ariaLabel = p.label + '로 로그인'; bt.onclick = function () { login(p.key); }; me.appendChild(bt); });
-        form.hidden = true; nickForm.hidden = true;
+        form.hidden = true; nickForm.hidden = true; user = null; canReply = false;
       }
     }).catch(function () { me.textContent = '로그인 상태를 불러오지 못했습니다.'; });
   }
@@ -116,12 +145,16 @@ const { slug } = Astro.props;
   .cmt__row{display:flex; justify-content:space-between; align-items:center; margin-top:8px}
   .cmt__cnt{font-size:.8rem; color:var(--ink3); font-variant-numeric:tabular-nums}
   .cmt__msg{min-height:1.4em; font-size:.88rem; color:var(--ink2); margin:8px 0}
-  .cmt__list{list-style:none; padding:0; margin:8px 0 0}
-  .cmt__item{padding:14px 2px; border-bottom:1px solid var(--rule)}
+  .cmt__list{list-style:none; padding:0; margin:8px 0 14px}
+  .cmt__sub{list-style:none; margin:0; padding:0 0 0 18px; border-left:2px solid var(--rule)} .cmt__sub--flat{padding-left:0; border-left:0}
+  .cmt__item{padding:12px 2px 0} .cmt__item--re{padding-top:10px}
+  .cmt__box{padding-bottom:12px; border-bottom:1px solid var(--rule)}
+  .cmt__gone{color:var(--ink3); font-style:normal}
+  .cmt__acts{display:flex; align-items:center; gap:12px; margin-top:6px}
+  .cmt__reply{margin-top:10px} .cmt__reply textarea{width:100%; box-sizing:border-box; font:inherit; font-size:.92rem; line-height:1.6; padding:10px 12px; border:1px solid var(--rule2); border-radius:10px; background:var(--ground); color:var(--ink); resize:vertical}
   .cmt__meta{display:flex; align-items:baseline; gap:8px; font-size:.86rem; color:var(--ink3)}
   .cmt__meta b{color:var(--ink); font-size:.92rem}
   .cmt__badge{font-size:.72rem; border:1px solid var(--rule2); border-radius:999px; padding:0 7px}
-  .cmt__del{margin-left:auto}
   .cmt__text{margin:6px 0 0; font-size:.96rem; line-height:1.7; white-space:pre-wrap; word-break:break-word; color:var(--ink)}
   .cmt__empty{color:var(--ink3); font-size:.92rem; padding:10px 2px}
   .cmt__note{font-size:.78rem; color:var(--ink3); line-height:1.6; margin:16px 0 0}

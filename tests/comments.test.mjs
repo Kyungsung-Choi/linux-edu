@@ -108,3 +108,18 @@ test('운영자(ADMIN_UIDS)는 예약 닉네임 앵두아빠를 쓸 수 있다',
   const a = await signIn('google', 'g-admin', 'x'); const uid = JSON.parse(Buffer.from(a.sid.split('=')[1].split('.')[0], 'base64url').toString()).uid;
   process.env.ADMIN_UIDS = uid; try { assert.equal((await call(me, { headers: { cookie: a.sid } })).body.user.nick, '앵두아빠'); const c = await postRaw(a.sid, { slug: 'fomc-20261028', text: '운영자 글' }); assert.equal(c.code, 201); assert.equal(c.body.comment.name, '앵두아빠'); } finally { delete process.env.ADMIN_UIDS; }
 });
+
+test('답글: 부모가 있어야 하고, 여러 단계로 달리며, 답글 있는 댓글을 지우면 자리만 남는다', async () => {
+  const a = await signIn('google', 'g-re1', 'a'), b = await signIn('naver', 'n-re1', 'b'); const S = 'amzn-intc-20261030';
+  const root = (await post(a.sid, { slug: S, text: '원댓글' })).body.comment;
+  assert.equal((await post(b.sid, { slug: S, text: '답', parent: 'nope' })).code, 400);
+  const r1 = (await post(b.sid, { slug: S, text: '1단 답글', parent: root.id })).body.comment; assert.equal(r1.parent, root.id);
+  await new Promise((r) => setTimeout(r, 15100));
+  const r2 = (await post(a.sid, { slug: S, text: '2단 답글', parent: r1.id })).body.comment; assert.equal(r2.parent, r1.id);
+  assert.equal((await call(comments, { method: 'DELETE', query: { slug: S, id: root.id }, headers: { cookie: a.sid, origin: SITE } })).code, 200);
+  const list = (await call(comments, { query: { slug: S } })).body.comments; const g = list.find((c) => c.id === root.id);
+  assert.equal(g.deleted, true); assert.equal(g.text, ''); assert.equal(g.name, ''); assert.equal(list.length, 3);
+  assert.equal((await post(b.sid, { slug: S, text: '삭제된 글에 답글', parent: root.id })).code, 400);
+  assert.equal((await call(comments, { method: 'DELETE', query: { slug: S, id: r2.id }, headers: { cookie: a.sid, origin: SITE } })).code, 200);
+  assert.equal((await call(comments, { query: { slug: S } })).body.comments.length, 2);
+});
