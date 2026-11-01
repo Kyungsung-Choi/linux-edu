@@ -106,5 +106,5 @@ test('카카오 로그인: 로그인 주소와 세션(이름 저장 없음)', as
 
 test('운영자(ADMIN_UIDS)는 예약 닉네임 앵두아빠를 쓸 수 있다', async () => {
   const a = await signIn('google', 'g-admin', 'x'); const uid = JSON.parse(Buffer.from(a.sid.split('=')[1].split('.')[0], 'base64url').toString()).uid;
-  process.env.ADMIN_UIDS = uid; try { assert.equal((await claim(a.sid, '앵두아빠')).code, 201); } finally { delete process.env.ADMIN_UIDS; }
+  process.env.ADMIN_UIDS = uid; try { assert.equal((await call(me, { headers: { cookie: a.sid } })).body.user.nick, '앵두아빠'); const c = await postRaw(a.sid, { slug: 'fomc-20261028', text: '운영자 글' }); assert.equal(c.code, 201); assert.equal(c.body.comment.name, '앵두아빠'); } finally { delete process.env.ADMIN_UIDS; }
 });

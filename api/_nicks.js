@@ -14,7 +14,9 @@ export async function saveNicks(d, etag) {
   try { await put('nicks.json', JSON.stringify(d), { access: 'private', allowOverwrite: true, contentType: 'application/json', ...(etag ? { ifMatch: etag } : {}) }); }
   catch (e) { if (e?.name === 'BlobPreconditionFailedError') e.conflict = true; throw e; }
 }
-export const myNick = async (uid) => (await loadNicks()).d.byUid[uid] || null;
+export const isAdmin = (uid) => (process.env.ADMIN_UIDS || '').split(',').map((x) => x.trim()).filter(Boolean).includes(uid);
+// 운영자 계정은 따로 정하지 않아도 항상 '앵두아빠'로 쓴다.
+export const myNick = async (uid) => (isAdmin(uid) ? '앵두아빠' : (await loadNicks()).d.byUid[uid] || null);
 // 운영자 전용 닉네임: 공백을 빼고 소문자로 비교해 '앵두 아빠', 'Admin' 같은 변형도 막는다. 운영자(ADMIN_UIDS)만 쓸 수 있다.
 const RESERVED = ['관리자', '앵두아빠'];
 export const isReserved = (n) => RESERVED.includes(n.replace(/\s+/g, '').toLowerCase());
