@@ -255,3 +255,22 @@
   .ic__card--plain.ic__fsq td[data-l]::before{content:none}
   .ic__fsq .ic__ch{display:block; margin:0}
 }
+
+/* ---- alpha 풋볼 필드 ---- */
+.ic__ff{margin-top:18px}
+.ic__ffr{display:grid; grid-template-columns:30% 1fr; align-items:center; gap:10px; padding:9px 0}
+.ic__ffn b{display:block; font-size:.92rem; font-weight:800; color:var(--ink); letter-spacing:-.02em}
+.ic__ffn small{display:block; font-size:.74rem; color:var(--ink3); font-weight:600; line-height:1.35; margin-top:2px}
+.ic__ffp{position:relative; height:34px; background:linear-gradient(90deg,var(--soft),var(--soft)); border-radius:10px}
+.ic__ffb{position:absolute; top:5px; height:24px; width:0; border-radius:8px; background:var(--hot); transition:width 1.1s cubic-bezier(.2,.9,.25,1.05); transition-delay:var(--d,0s); display:flex; justify-content:space-between; align-items:center; padding:0 8px; color:#fff; font-size:.72rem; font-weight:800; white-space:nowrap}
+.ic__ffb u,.ic__ffb s{text-decoration:none; opacity:0; transition:opacity .5s ease .9s}
+.is-in .ic__ffb{width:var(--w)}
+.is-in .ic__ffb u,.is-in .ic__ffb s{opacity:1}
+.ic__ffm{position:absolute; top:-2px; width:0; height:38px; border-left:3px solid var(--ink); font-style:normal}
+.ic__ffm span{position:absolute; left:50%; top:-17px; transform:translateX(-50%); font-size:.7rem; font-weight:800; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:6px; padding:0 5px; white-space:nowrap}
+.ic__ffx{position:absolute; top:-9px; bottom:-9px; border-left:2px dashed var(--coral); z-index:2}
+.ic__ffa .ic__ffp{background:none; height:24px}
+.ic__ffa span{position:absolute; transform:translateX(-50%); font-size:.72rem; color:var(--ink3); font-weight:700; top:6px}
+.ic__ffa span.px{color:var(--coral); font-weight:800; top:-6px; background:#fff; padding:0 4px; z-index:3}
+@media (max-width:640px){.ic__ffr{grid-template-columns:1fr; gap:4px}.ic__ffp{margin-top:2px}}
+/* ---- alpha 끝 ---- */
