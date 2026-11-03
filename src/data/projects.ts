@@ -67,4 +67,16 @@ export const projects: Project[] = [
     status: '진행 중',
     year: 2026,
   },
+  {
+    slug: 'github-guide',
+    section: 'library',
+    title: 'GitHub에서 좋은 소스 찾아 쓰기',
+    kind: '단계별 매뉴얼',
+    summary:
+      'GitHub에서 쓸 만한 소스를 찾고, 고르고, 내 컴퓨터에서 실행해 보고, 내 사이트에 가져오는 과정을 8단계로 정리했습니다. 단계마다 성공 기준이 있습니다.',
+    tags: ['GitHub', '단계별 따라 하기', '라이선스'],
+    href: '/portfolio/github-guide/',
+    status: '진행 중',
+    year: 2026,
+  },
 ];

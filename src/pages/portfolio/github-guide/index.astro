@@ -1,0 +1,169 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+
+const TITLE = 'GitHub에서 좋은 소스 찾아 내 사이트에 쓰기 · 앵두아빠의 AI공부방';
+const DESC = 'GitHub에서 쓸 만한 소스를 찾고, 내 컴퓨터에서 실행해 보고, 내 사이트에 가져오는 과정을 처음부터 단계별로 정리했습니다.';
+
+// 장면 하나 = 단계 하나. 나중에 영상으로 만들 때 단계마다 한 장면으로 쓴다.
+const steps = [
+  {
+    id: 's1', t: 'GitHub이 무엇인가요',
+    body: ['GitHub은 사람들이 만든 코드를 모아 두고 공개하는 사이트입니다.', '코드를 모아 둔 한 묶음을 <b>저장소(repository)</b>라고 부릅니다.', '공개된 저장소는 누구나 보고 내려받을 수 있습니다. 단, 쓰기 전에 <b>라이선스</b>를 꼭 확인합니다.'],
+    ok: '주소가 github.com/사용자이름/저장소이름 모양이면 저장소 페이지입니다.',
+  },
+  {
+    id: 's2', t: '시작 전 준비: 터미널과 설치 확인',
+    body: ['<b>터미널</b>은 글자로 컴퓨터에 명령을 내리는 창입니다. Mac은 Spotlight(Cmd+Space)에서 "터미널"을 검색해 엽니다. Windows는 시작 메뉴에서 "PowerShell"을 엽니다.', '아래 명령을 한 줄씩 붙여 넣고 Enter를 누릅니다.'],
+    cmds: ['git --version', 'node --version'],
+    ok: '각각 숫자가 들어간 버전이 나오면 준비 완료입니다. "command not found"나 "인식되지 않습니다"가 나오면 git은 git-scm.com, Node는 nodejs.org에서 설치합니다. 설치 후 터미널을 닫았다 다시 엽니다.',
+  },
+  {
+    id: 's3', t: '좋은 소스 찾기',
+    body: ['github.com 위쪽 검색창에 찾는 것을 <b>영어</b>로 씁니다. 예: <code>astro portfolio template</code>', '검색 결과 화면에서 Language와 정렬(Most stars, Recently updated)을 바꿔 봅니다.', '더 빨리 찾으려면 <a href="https://github.com/topics/astro" target="_blank" rel="noopener noreferrer">github.com/topics/astro</a>처럼 주제별 인기 목록을 보거나, <a href="https://github.com/sindresorhus/awesome" target="_blank" rel="noopener noreferrer">awesome 목록</a>을 훑어봅니다.'],
+    ok: '저장소 이름, 설명, 별(Star) 수가 줄줄이 나오면 제대로 찾은 것입니다.',
+  },
+  {
+    id: 's4', t: '좋은 소스인지 5가지로 확인',
+    img: ['/guide/github-repo.jpg', '저장소 첫 화면. MIT license, 96 stars, 최근 커밋 날짜가 보입니다.'],
+    table: [
+      ['별(Stars)', '수백 개 이상이면 믿을 만한 편'],
+      ['마지막 업데이트', '최근 6개월 이내'],
+      ['라이선스(LICENSE)', 'MIT, Apache-2.0이면 사용 가능. 없으면 쓰지 않기'],
+      ['Issues', '열린 문제가 너무 쌓이지 않았고 답변이 달리는지'],
+      ['README', '설치와 사용법이 적혀 있는지'],
+    ],
+    body: ['저장소 첫 화면에서 모두 볼 수 있습니다. 하나라도 마음에 걸리면 다른 저장소를 고릅니다.'],
+    ok: '5가지가 모두 괜찮으면 다음 단계로 갑니다.',
+  },
+  {
+    id: 's5', t: '내 컴퓨터로 받기 (clone)',
+    img: ['/guide/github-repo.jpg', '오른쪽의 초록색 Code 버튼을 누르면 복사할 주소가 나옵니다.'],
+    body: ['저장소 페이지의 초록색 <b>Code</b> 버튼을 누르고 HTTPS 주소를 복사합니다.', '터미널에서 아래 명령을 실행합니다. 주소 부분은 복사한 값으로 바꿉니다. 내 사이트 폴더 안이 아니라 <b>새 폴더</b>에 받는 것이 핵심입니다. 내 사이트가 망가질 일이 없습니다.'],
+    cmds: ['cd ~/myproject', 'git clone 복사한주소 test-template'],
+    ok: '"Cloning into ..." 가 나오고 test-template 폴더가 생기면 성공입니다.',
+  },
+  {
+    id: 's6', t: '설치하고 실행해 보기',
+    img: ['/guide/localhost-result.jpg', 'npm run dev 후 localhost:4321을 열면 이렇게 보입니다. 예제 템플릿 화면입니다.'],
+    body: ['README에 적힌 설치 방법이 가장 정확합니다. Astro 같은 npm 프로젝트는 보통 아래 두 줄입니다.', '설치 명령은 인터넷에서 부품을 내려받아 실행하므로, 반드시 README를 읽고 믿을 만한 저장소에서만 합니다.'],
+    cmds: ['cd ~/myproject/test-template', 'npm install', 'npm run dev'],
+    ok: '터미널에 http://localhost:4321 같은 주소가 나옵니다. 브라우저에 그 주소를 붙여 넣어 화면이 보이면 성공입니다. 끄려면 터미널에서 Ctrl+C를 누릅니다.',
+  },
+  {
+    id: 's7', t: '내 사이트에 가져오기',
+    body: ['<b>방법 1. 일부만 복사</b>: 마음에 드는 부품 파일을 내 프로젝트의 같은 위치에 복사하고 내 글에 맞게 고칩니다.', '<b>방법 2. Claude에게 맡기기</b>: 아래처럼 말하면 됩니다.'],
+    quote: '~/myproject/test-template 의 카드 디자인을 내 사이트 자료실 페이지에 적용해줘',
+    ok: '내 사이트에서 npm run dev로 화면을 열었을 때 새 부품이 보이면 성공입니다.',
+  },
+  {
+    id: 's8', t: '출처와 라이선스 남기기',
+    body: ['MIT 라이선스는 "저작권 문구와 라이선스 문구를 남기면 자유롭게 써도 된다"는 약속입니다.', '가져온 저장소의 LICENSE 파일 내용을 내 프로젝트의 NOTICE 같은 파일에 붙여 두고, 가능하면 사이트 하단에 출처를 적습니다.'],
+    ok: '출처를 남겼다면 마지막으로 평소처럼 확인 후 올립니다.',
+  },
+];
+
+const fixes = [
+  ['npm install에서 오류가 납니다', 'Node 버전이 낮은 경우가 많습니다. README나 package.json의 engines에 적힌 버전 이상으로 올립니다.'],
+  ['화면이 안 열립니다', '터미널에 나온 주소를 그대로 복사해 열어 봅니다. 4321이 아닐 수 있습니다.'],
+  ['command not found', '프로그램이 없다는 뜻입니다. 2단계의 설치를 다시 확인하고 터미널을 새로 엽니다.'],
+  ['샘플 글이 그대로 나옵니다', '템플릿에는 연습용 글이 들어 있습니다. 구조만 가져오고 글은 내 것으로 바꿉니다.'],
+  ['어떻게 해야 할지 모르겠어요', '오류 문장을 그대로 복사해서 Claude에게 붙여 넣으면 원인을 찾아 줍니다.'],
+];
+
+const terms = [
+  ['저장소(repository)', '코드를 모아 둔 폴더 한 묶음'],
+  ['clone', '저장소를 내 컴퓨터로 복사해 오는 것'],
+  ['터미널', '글자로 명령을 내리는 창'],
+  ['npm', 'Node 프로그램의 부품을 설치하고 실행하는 도구'],
+  ['localhost', '내 컴퓨터 안에서만 열리는 주소'],
+  ['라이선스', '코드를 어떻게 써도 되는지 정한 약속'],
+  ['Star(별)', '다른 사람들이 좋다고 누른 횟수'],
+];
+---
+<SiteLayout title={TITLE} description={DESC} path="/portfolio/github-guide/" active="library">
+  <article class="gg">
+    <h1 class="gg__t">GitHub에서 좋은 소스 찾아 내 사이트에 쓰기</h1>
+    <p class="gg__lead">
+      찾기, 고르기, 받기, 실행하기, 가져오기까지 8단계입니다. 각 단계는 "하는 일"과 "이렇게 보이면 성공"으로 끝납니다.
+    </p>
+
+    <nav class="gg__toc" aria-label="단계 목차">
+      <ol>
+        {steps.map((s) => <li><a href={`#${s.id}`}>{s.t}</a></li>)}
+      </ol>
+    </nav>
+
+    {steps.map((s, i) => (
+      <section class="gg__s" id={s.id}>
+        <h2 class="gg__h"><span class="gg__n">{i + 1}</span>{s.t}</h2>
+        {s.body.map((p) => <p set:html={p} />)}
+        {s.table && (
+          <table class="gg__tb">
+            <tbody>{s.table.map((r) => <tr><th scope="row">{r[0]}</th><td>{r[1]}</td></tr>)}</tbody>
+          </table>
+        )}
+        {s.img && <figure class="gg__f"><img src={s.img[0]} alt={s.img[1]} loading="lazy" /><figcaption>{s.img[1]}</figcaption></figure>}
+        {s.cmds && s.cmds.map((c) => (
+          <div class="gg__cmd"><code>{c}</code><button type="button" data-copy={c}>복사</button></div>
+        ))}
+        {s.quote && <blockquote class="gg__q">{s.quote}</blockquote>}
+        <p class="gg__ok"><b>이렇게 보이면 성공</b>{s.ok}</p>
+      </section>
+    ))}
+
+    <section class="gg__s">
+      <h2 class="gg__h">막힐 때</h2>
+      <dl class="gg__dl">
+        {fixes.map((f) => <><dt>{f[0]}</dt><dd>{f[1]}</dd></>)}
+      </dl>
+    </section>
+
+    <section class="gg__s">
+      <h2 class="gg__h">용어 사전</h2>
+      <dl class="gg__dl">
+        {terms.map((f) => <><dt>{f[0]}</dt><dd>{f[1]}</dd></>)}
+      </dl>
+    </section>
+
+    <p class="gg__note">설치와 실행 화면은 컴퓨터와 저장소마다 조금씩 다를 수 있습니다. 항상 해당 저장소의 README가 우선입니다.</p>
+  </article>
+</SiteLayout>
+
+<style is:global>
+  .gg{max-width:820px; padding:56px 0 80px}
+  .gg__t{font-weight:700; letter-spacing:-.03em; font-size:clamp(1.8rem,4.5vw,2.6rem); margin:0 0 16px; line-height:1.2}
+  .gg__lead{color:var(--ink2); line-height:1.9; margin:0 0 20px}
+  .gg__toc{background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:14px 20px; margin-bottom:8px}
+  .gg__toc ol{margin:0; padding-left:1.3em; line-height:1.9}
+  .gg__toc a{color:var(--accent); text-decoration:none}
+  .gg__s{margin-top:34px; scroll-margin-top:80px}
+  .gg__s p{line-height:1.85; margin:0 0 10px}
+  .gg__h{font-size:1.25rem; margin:0 0 10px; letter-spacing:-.01em; display:flex; align-items:center; gap:10px}
+  .gg__n{display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:var(--ink); color:var(--ground); font-size:.85rem; flex:none}
+  .gg__cmd{display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--rule); border-radius:8px; padding:8px 8px 8px 14px; margin:0 0 8px}
+  .gg__cmd code{flex:1; overflow-x:auto; white-space:nowrap; font-size:.9rem}
+  .gg__cmd button{font:inherit; font-size:.8rem; height:30px; padding:0 12px; border-radius:7px; border:1px solid var(--rule2); background:var(--ground); color:var(--ink); cursor:pointer}
+  .gg__q{margin:8px 0 10px; padding:12px 16px; border-left:3px solid var(--accent-line); background:var(--surface); border-radius:0 8px 8px 0; line-height:1.7}
+  .gg__ok{margin-top:12px; padding:10px 14px; background:var(--surface); border:1px solid var(--rule); border-radius:10px; font-size:.92rem}
+  .gg__ok b{display:block; font-size:.78rem; color:var(--accent); margin-bottom:2px}
+  .gg__tb{width:100%; border-collapse:collapse; margin:6px 0 12px; font-size:.92rem}
+  .gg__tb th,.gg__tb td{text-align:left; padding:9px 12px; border:1px solid var(--rule); line-height:1.6}
+  .gg__tb th{background:var(--surface); width:34%; white-space:nowrap}
+  .gg__f{margin:10px 0 14px}.gg__f img{width:100%; max-width:560px; border:1px solid var(--rule2); border-radius:10px; display:block}
+  .gg__f figcaption{font-size:.8rem; color:var(--ink3); margin-top:6px}
+  .gg__dl{margin:0}.gg__dl dt{font-weight:600; margin-top:12px}.gg__dl dd{margin:2px 0 0; color:var(--ink2); line-height:1.7}
+  .gg__note{margin-top:30px; font-size:.8rem; color:var(--ink3)}
+</style>
+
+<script>
+  // 복사 버튼: 클립보드를 못 쓰는 환경에서는 조용히 넘어간다.
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.copy ?? '');
+        b.textContent = '복사됨';
+        setTimeout(() => (b.textContent = '복사'), 1500);
+      } catch {}
+    });
+  });
+</script>
