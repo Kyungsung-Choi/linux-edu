@@ -160,7 +160,7 @@
   function lines(c) {
     var sm = innerWidth < 640, W = sm ? 360 : 640, H = sm ? 250 : 290, L = sm ? 36 : 48, Rr = sm ? 46 : 64, T = 16, B = 36, fs = sm ? 10.5 : 13;
     var all = []; c.series.forEach(function (s) { s.vals.forEach(function (v) { if (v != null) all.push(v); }); });
-    var lo = Math.min(0, c.min != null ? c.min : Math.min.apply(null, all)), hi = c.max != null ? c.max : Math.max.apply(null, all);
+    var lo = (c.zoom && c.min != null) ? c.min : Math.min(0, c.min != null ? c.min : Math.min.apply(null, all)), hi = c.max != null ? c.max : Math.max.apply(null, all);
     var ticks = niceTicks(lo, hi, 4); lo = Math.min(lo, ticks[0]); hi = Math.max(hi, ticks[ticks.length - 1]);
     var n = c.labels.length;
     var X = function (i) { return L + (W - L - Rr) * (n === 1 ? .5 : i / (n - 1)); };
@@ -734,6 +734,93 @@
   CH.ap_fs_bs = {"kicker": "BALANCE SHEET", "title": "재무상태표 8분기", "sub": "단위: 억 달러 (SEC 공시). 숫자 아래 작은 글씨는 전분기 대비 증감률(자체계산)", "cls": "plain ic__fs ic__fsq", "head": ["항목", "'25.1Q", "'25.2Q", "'25.3Q", "'25.4Q", "'26.1Q", "'26.2Q", "'26.3Q", "'26.4Q"], "rows": [["현금·유가증권", "1,414", "1,329<span class=\"ic__ch dn\">▼6.0%</span>", "1,330<span class=\"ic__ch\">0%</span>", "1,324<span class=\"ic__ch dn\">▼0.4%</span>", "1,448<span class=\"ic__ch up\">▲9.3%</span>", "1,466<span class=\"ic__ch up\">▲1.2%</span>", "1,465<span class=\"ic__ch dn\">▼0.1%</span>", "1,369<span class=\"ic__ch dn\">▼6.5%</span>"], ["매출채권", "296", "261<span class=\"ic__ch dn\">▼11.8%</span>", "276<span class=\"ic__ch up\">▲5.4%</span>", "398<span class=\"ic__ch up\">▲44.3%</span>", "399<span class=\"ic__ch up\">▲0.4%</span>", "303<span class=\"ic__ch dn\">▼24.0%</span>", "314<span class=\"ic__ch up\">▲3.5%</span>", "438<span class=\"ic__ch up\">▲39.6%</span>"], ["재고자산", "69", "63<span class=\"ic__ch dn\">▼9.3%</span>", "59<span class=\"ic__ch dn\">▼5.5%</span>", "57<span class=\"ic__ch dn\">▼3.5%</span>", "59<span class=\"ic__ch up\">▲2.7%</span>", "67<span class=\"ic__ch up\">▲14.8%</span>", "111<span class=\"ic__ch up\">▲64.4%</span>", "145<span class=\"ic__ch up\">▲31.1%</span>"], ["매입채무", "619", "541<span class=\"ic__ch dn\">▼12.6%</span>", "504<span class=\"ic__ch dn\">▼6.9%</span>", "699<span class=\"ic__ch up\">▲38.7%</span>", "706<span class=\"ic__ch up\">▲1.0%</span>", "573<span class=\"ic__ch dn\">▼18.8%</span>", "645<span class=\"ic__ch up\">▲12.5%</span>", "823<span class=\"ic__ch up\">▲27.5%</span>"], ["총자산", "3,441", "3,312<span class=\"ic__ch dn\">▼3.7%</span>", "3,315<span class=\"ic__ch up\">▲0.1%</span>", "3,592<span class=\"ic__ch up\">▲8.4%</span>", "3,793<span class=\"ic__ch up\">▲5.6%</span>", "3,711<span class=\"ic__ch dn\">▼2.2%</span>", "3,833<span class=\"ic__ch up\">▲3.3%</span>", "4,045<span class=\"ic__ch up\">▲5.6%</span>"], ["총차입금", "968", "982<span class=\"ic__ch up\">▲1.4%</span>", "1,017<span class=\"ic__ch up\">▲3.6%</span>", "987<span class=\"ic__ch dn\">▼3.0%</span>", "905<span class=\"ic__ch dn\">▼8.3%</span>", "847<span class=\"ic__ch dn\">▼6.4%</span>", "843<span class=\"ic__ch dn\">▼0.4%</span>", "801<span class=\"ic__ch dn\">▼5.0%</span>"], ["총부채", "2,773", "2,644<span class=\"ic__ch dn\">▼4.6%</span>", "2,657<span class=\"ic__ch up\">▲0.5%</span>", "2,855<span class=\"ic__ch up\">▲7.5%</span>", "2,911<span class=\"ic__ch up\">▲2.0%</span>", "2,646<span class=\"ic__ch dn\">▼9.1%</span>", "2,757<span class=\"ic__ch up\">▲4.2%</span>", "2,925<span class=\"ic__ch up\">▲6.1%</span>"], ["자본", "668", "668<span class=\"ic__ch up\">▲0.1%</span>", "658<span class=\"ic__ch dn\">▼1.4%</span>", "737<span class=\"ic__ch up\">▲12.0%</span>", "882<span class=\"ic__ch up\">▲19.6%</span>", "1,065<span class=\"ic__ch up\">▲20.8%</span>", "1,075<span class=\"ic__ch up\">▲1.0%</span>", "1,121<span class=\"ic__ch up\">▲4.3%</span>"]]}; CH.ap_fs_bs.t = table;
   CH.ap_fs_sum_cf = {"cols": 4, "cls": "fsc", "kicker": "CASH FLOW", "title": "현금흐름표 한눈에", "sub": "단위: 억 달러 (EPS만 달러, SEC 공시). 큰 숫자는 2026회계연도 4분기, 선은 8분기 흐름(빨간 점이 최근), 아래는 전분기·1년 전 대비 증감률(자체계산)", "items": [{"lab": "영업 현금 흐름", "big": "281", "text": "<svg class=\"ic__sp\" viewBox=\"0 0 120 30\" width=\"120\" height=\"30\" role=\"img\" aria-label=\"8분기 추이\"><polyline points=\"4,21.6 20,26.0 36,23.1 52,21.8 68,4.0 84,22.5 100,18.4 116,23.0\" fill=\"none\" stroke=\"#6d4aff\" stroke-width=\"2\"/><circle cx=\"116\" cy=\"23.0\" r=\"3\" fill=\"#e0313b\"/></svg><div class=\"ic__ln\">전분기 <span class=\"ic__ch dn\">▼18.2%</span></div><div class=\"ic__ln\">1년 <span class=\"ic__ch dn\">▼5.5%</span></div>"}, {"lab": "설비 투자", "big": "22", "text": "<svg class=\"ic__sp\" viewBox=\"0 0 120 30\" width=\"120\" height=\"30\" role=\"img\" aria-label=\"8분기 추이\"><polyline points=\"4,11.7 20,9.8 36,4.0 52,7.2 68,20.1 84,26.0 100,18.9 116,22.0\" fill=\"none\" stroke=\"#6d4aff\" stroke-width=\"2\"/><circle cx=\"116\" cy=\"22.0\" r=\"3\" fill=\"#e0313b\"/></svg><div class=\"ic__ln\">전분기 <span class=\"ic__ch dn\">▼8.7%</span></div><div class=\"ic__ln\">1년 <span class=\"ic__ch dn\">▼30.8%</span></div>"}, {"lab": "잉여 현금 흐름(자체계산)", "big": "259", "text": "<svg class=\"ic__sp\" viewBox=\"0 0 120 30\" width=\"120\" height=\"30\" role=\"img\" aria-label=\"8분기 추이\"><polyline points=\"4,21.6 20,26.0 36,23.5 52,22.0 68,4.0 84,21.8 100,18.1 116,22.4\" fill=\"none\" stroke=\"#6d4aff\" stroke-width=\"2\"/><circle cx=\"116\" cy=\"22.4\" r=\"3\" fill=\"#e0313b\"/></svg><div class=\"ic__ln\">전분기 <span class=\"ic__ch dn\">▼19.0%</span></div><div class=\"ic__ln\">1년 <span class=\"ic__ch dn\">▼2.4%</span></div>"}, {"lab": "자사주 매입", "big": "243", "text": "<svg class=\"ic__sp\" viewBox=\"0 0 120 30\" width=\"120\" height=\"30\" role=\"img\" aria-label=\"8분기 추이\"><polyline points=\"4,7.7 20,4.0 36,11.8 52,13.3 68,5.9 84,26.0 100,5.3 116,6.6\" fill=\"none\" stroke=\"#6d4aff\" stroke-width=\"2\"/><circle cx=\"116\" cy=\"6.6\" r=\"3\" fill=\"#e0313b\"/></svg><div class=\"ic__ln\">전분기 <span class=\"ic__ch dn\">▼3.2%</span></div><div class=\"ic__ln\">1년 <span class=\"ic__ch up\">▲20.7%</span></div>"}, {"lab": "배당금", "big": "39", "text": "<svg class=\"ic__sp\" viewBox=\"0 0 120 30\" width=\"120\" height=\"30\" role=\"img\" aria-label=\"8분기 추이\"><polyline points=\"4,18.2 20,26.0 36,11.1 52,17.7 68,13.1 84,20.9 100,4.0 116,11.3\" fill=\"none\" stroke=\"#6d4aff\" stroke-width=\"2\"/><circle cx=\"116\" cy=\"11.3\" r=\"3\" fill=\"#e0313b\"/></svg><div class=\"ic__ln\">전분기 <span class=\"ic__ch dn\">▼2.3%</span></div><div class=\"ic__ln\">1년 <span class=\"ic__ch up\">▲2.1%</span></div>"}], "note": "현금흐름표는 누적 값에서 분기 값을 빼서 만들었고, 영업 현금 흐름 4개 분기 합이 연간 값(2025년 1,115억 달러, 2026년 1,451억 달러)과 맞는 것을 확인했습니다. 설비 투자·자사주·배당은 나간 돈의 크기로 비교합니다."}; CH.ap_fs_sum_cf.t = cards;
   CH.ap_fs_cf = {"kicker": "CASH FLOW", "title": "현금흐름표 8분기", "sub": "단위: 억 달러 (SEC 공시). 숫자 아래 작은 글씨는 전분기 대비 증감률(자체계산)", "cls": "plain ic__fs ic__fsq", "head": ["항목", "'25.1Q", "'25.2Q", "'25.3Q", "'25.4Q", "'26.1Q", "'26.2Q", "'26.3Q", "'26.4Q"], "rows": [["영업 현금 흐름", "299", "240<span class=\"ic__ch dn\">▼20.0%</span>", "279<span class=\"ic__ch up\">▲16.3%</span>", "297<span class=\"ic__ch up\">▲6.7%</span>", "539<span class=\"ic__ch up\">▲81.4%</span>", "287<span class=\"ic__ch dn\">▼46.8%</span>", "344<span class=\"ic__ch up\">▲19.7%</span>", "281<span class=\"ic__ch dn\">▼18.2%</span>"], ["설비 투자", "29", "31<span class=\"ic__ch up\">▲4.5%</span>", "35<span class=\"ic__ch up\">▲12.7%</span>", "32<span class=\"ic__ch dn\">▼6.4%</span>", "24<span class=\"ic__ch dn\">▼26.8%</span>", "20<span class=\"ic__ch dn\">▼16.9%</span>", "25<span class=\"ic__ch up\">▲24.6%</span>", "22<span class=\"ic__ch dn\">▼8.7%</span>"], ["잉여 현금 흐름(자체계산)", "270", "209<span class=\"ic__ch dn\">▼22.6%</span>", "244<span class=\"ic__ch up\">▲16.9%</span>", "265<span class=\"ic__ch up\">▲8.5%</span>", "516<span class=\"ic__ch up\">▲94.6%</span>", "267<span class=\"ic__ch dn\">▼48.1%</span>", "319<span class=\"ic__ch up\">▲19.4%</span>", "259<span class=\"ic__ch dn\">▼19.0%</span>"], ["자사주 매입", "236", "259<span class=\"ic__ch up\">▲9.7%</span>", "211<span class=\"ic__ch dn\">▼18.6%</span>", "201<span class=\"ic__ch dn\">▼4.5%</span>", "247<span class=\"ic__ch up\">▲22.7%</span>", "123<span class=\"ic__ch dn\">▼50.3%</span>", "251<span class=\"ic__ch up\">▲104%</span>", "243<span class=\"ic__ch dn\">▼3.2%</span>"], ["배당금", "39", "38<span class=\"ic__ch dn\">▼2.5%</span>", "39<span class=\"ic__ch up\">▲5.0%</span>", "39<span class=\"ic__ch dn\">▼2.1%</span>", "39<span class=\"ic__ch up\">▲1.5%</span>", "38<span class=\"ic__ch dn\">▼2.5%</span>", "40<span class=\"ic__ch up\">▲5.6%</span>", "39<span class=\"ic__ch dn\">▼2.3%</span>"]]}; CH.ap_fs_cf.t = table;
+
+  // ---- nvidia-asic-20261110 (엔비디아 vs 구글 TPU·아마존 트레이니움, 한국 HBM) ----
+  CH.nv_glance = { t: cards, kicker: 'AT A GLANCE', title: '엔비디아는 아직 압도적이다', sub: '엔비디아 2027 회계연도 2분기(2026년 5~7월), 단위는 항목마다 표시', cols: 2,
+    items: [
+      { lab: '분기 매출 (단위: 억 달러)', big: '962', dk: 1, text: '1년 전보다 106% 늘었습니다 (회사 발표)' },
+      { lab: '데이터센터 매출 (단위: 억 달러)', big: '890', text: '1년 전보다 117% 늘었습니다 (회사 발표)' },
+      { lab: '매출총이익률 (단위: %)', big: '75', text: '매출의 4분의 3이 이익으로 남습니다' },
+      { lab: '다음 분기 매출 전망 (단위: 억 달러)', big: '1,080', text: '±2%, 중국 데이터센터 매출은 넣지 않은 전망' }] };
+
+  CH.nv_rev = { t: vbars, kicker: 'REVENUE', title: '1년 새 두 배, 다음 분기엔 더 크다', sub: '단위: 억 달러 (엔비디아 분기 매출)', max: 1080,
+    note: '1년 전 2분기 매출 467억 달러는 회사가 밝힌 증가율(106%)로 거꾸로 계산한 값입니다(자체계산). 3분기 1,080억 달러는 회사 전망입니다.',
+    items: [
+      { label: '1년 전<br>2분기', v: 467, text: '467 (자체계산)' },
+      { label: '이번<br>2분기', v: 962, text: '962', cls: 'hot' },
+      { label: '3분기<br>전망', v: 1080, text: '1,080', cls: 'cool' }] };
+
+  CH.nv_why = { t: cards, kicker: 'WHY', title: '높은 이익률이 고객을 움직였다', sub: '엔비디아 매출총이익률 75% 기준, 숫자는 비율(%)', cols: 2,
+    items: [
+      { lab: '엔비디아 칩 가격 100 중 이익 (단위: %)', big: '75', dk: 1, text: '고객 입장에선 이 몫이 "직접 만들 이유"가 됩니다' },
+      { lab: '젠슨 황이 말한 전용 칩(ASIC) 마진 (단위: %)', big: '65', text: '"엔비디아는 70%. 실제로 뭘 아끼나?" (2026년 4월 팟캐스트)' }] };
+
+  CH.nv_tpu = { t: steps, kicker: 'GOOGLE TPU', title: '구글 TPU, 내부용에서 외부 판매로', sub: '구글과 앤스로픽 발표, 언론 보도 기준',
+    items: [
+      { d: '2015년', h: '첫 TPU', t: '구글 데이터센터 안에서만 사용' },
+      { d: '2025년 10월', h: '앤스로픽, TPU 최대 100만 개', t: '가장 큰 외부 고객' },
+      { d: '2026년 4월', h: '구글, 앤스로픽에 최대 400억 달러 투자', t: '5년간 TPU 5GW(기가와트) 제공' },
+      { d: '2026년 11월 9일', h: '8세대 TPU 시스템 2종 공개', t: 'TPU 8tx·8i Max. 시스템 CPU는 AMD 칩', cls: 'now' },
+      { d: '2027년', h: '새 시스템 이용 시작 예정', t: '구글 발표', cls: 'fut' }] };
+
+  CH.nv_trn = { t: cards, kicker: 'AMAZON TRAINIUM', title: '아마존 칩 사업은 세 자릿수로 크고 있다', sub: '아마존 3분기(7~9월) 실적 발표 통화, 단위는 항목마다 표시', cols: 2,
+    items: [
+      { lab: 'AWS 3분기 매출 (단위: 억 달러)', big: '460', dk: 1, text: '1년 전보다 39.3% 늘었습니다 (CFO 발언)' },
+      { lab: '자체 칩 매출 약정 (단위: 배)', big: '20+', text: '그래비톤·트레이니움 각각, 1년 새 (재시 CEO)' },
+      { lab: '칩 사업 성장률', big: '세 자릿수 %', text: '1년 전 대비 (재시 CEO). 칩 매출 금액은 공개하지 않았습니다' },
+      { lab: 'AWS 밖 판매 시작', big: '2027년 말', text: '"고객들이 계속 요청해 왔다" (재시 CEO)' }] };
+
+  CH.nv_gw = { t: hbars, kicker: 'BIG DEALS', title: '큰손들은 세 회사 칩을 나눠 산다', sub: '단위: GW(기가와트, 데이터센터 전력 규모). 1GW는 대형 원전 1기 정도', max: 5,
+    note: '오픈AI의 엔비디아 4.25GW는 오하이오 데이터센터에 대한 엔비디아의 신용보증 규모입니다(엔비디아 분기 보고서). 메타–엔비디아 계약은 GPU 수백만 개로 발표돼 GW 숫자가 없어 넣지 않았습니다.',
+    items: [
+      { label: '앤스로픽 ← 구글 TPU', v: 5, text: '5 (5년)', cls: 'cool' },
+      { label: '앤스로픽 ← 아마존 트레이니움', v: 5, text: '최대 5 (10년)', cls: 'hot' },
+      { label: '오픈AI ← 엔비디아', v: 4.25, text: '약 4.25' },
+      { label: '오픈AI ← 아마존 트레이니움', v: 2, text: '약 2 (2027년부터)', cls: 'hot' },
+      { label: '앤스로픽 ← 엔비디아 (애저)', v: 1, text: '최대 1' }] };
+
+  CH.nv_deals = { t: table, kicker: 'WHO BUYS WHAT', title: '고객별 계약 한눈에 보기', sub: '회사 발표·공시·언론 보도 기준. "보도"는 회사가 확인하지 않은 내용', cls: 'plain',
+    head: ['고객', '엔비디아 GPU', '구글 TPU', '아마존 트레이니움'],
+    rows: [['앤스로픽', '마이크로소프트 애저 300억 달러 약정, 최대 1GW (2025년 11월)', '최대 100만 개 (2025년 10월) → 5GW, 구글 최대 400억 달러 투자 (2026년 4월)', '10년 약 1,000억 달러, 최대 5GW (2026년 4월)'],
+      ['오픈AI', '10GW 의향서(2025년 9월) → 오하이오 약 4.25GW 보증 (2026년 8월)', '확인된 계약 없음', '약 2GW, 아마존 500억 달러 투자 (2026년 2월)'],
+      ['메타', 'GPU 수백만 개 다년 계약 (2026년 2월, 금액 비공개)', 'TPU 임대 보도 1곳 (디 인포메이션)', '없음'],
+      ['한국', 'GPU 26만 개 공급 발표 (2025년 10월)', '없음', '없음']] };
+
+  CH.nv_vs = { t: table, kicker: 'GPU vs TPU vs TRAINIUM', title: '성능 순위가 아니라 누구에게 유리한가', sub: '성능 비교는 조사마다 결과가 달라 넣지 않았습니다', cls: 'plain',
+    head: ['', '엔비디아 GPU', '구글 TPU', '아마존 트레이니움'],
+    rows: [['쓰임', '어떤 작업에도 쓰는 범용', '구글 서비스에 맞춤', 'AWS 안에서 저렴하게'],
+      ['강점', '쿠다(CUDA) 개발 도구', '브로드컴과 공동 설계', '베드록 대부분을 처리'],
+      ['약점', '비싸다 (이익률 75%)', '외부 고객이 앤스로픽에 몰림', '외부 판매는 2027년 말부터'],
+      ['파는 곳', '거의 모든 큰 고객', '앤스로픽 중심', '앤스로픽·오픈AI']] };
+
+  CH.nv_hynix = { t: cards, kicker: 'SK HYNIX', title: 'SK하이닉스, 처음으로 분기 매출 100조 원', sub: '2026년 3분기(7~9월), 단위는 항목마다 표시', cols: 2,
+    items: [
+      { lab: '3분기 매출 (단위: 조 원)', big: '104.6', dk: 1, text: '처음으로 분기 100조 원을 넘었습니다' },
+      { lab: '영업이익률 (단위: %)', big: '약 80', text: '실적 보도 기준' },
+      { lab: 'HBM4', big: '3분기 출하', text: '4분기엔 이전 세대(HBM3E)를 넘어설 전망 (회사 발표)' },
+      { lab: '엔비디아와의 관계', big: '주요 공급사', text: '회사 공시(미국 상장 서류)에 적힌 내용' }] };
+
+  CH.nv_hbm = { t: vbars, kicker: 'HBM SALES', title: '삼성이 HBM 매출에서 앞섰다는 추정', sub: '단위: 억 달러 (2026년 3분기 HBM 매출, 증권사 번스타인 추정)', max: 87,
+    note: '회사가 발표한 숫자가 아니라 번스타인의 추정치를 보도로 다시 인용한 것입니다. 삼성이 구글 TPU용 HBM을 많이 공급한다는 보도(트렌드포스 등)도 있지만, 회사들이 확인한 내용은 아닙니다.',
+    items: [
+      { label: '삼성전자', v: 87, text: '약 87', cls: 'cool' },
+      { label: 'SK하이닉스', v: 76, text: '약 76', cls: 'hot' }] };
+
+  CH.nv_stock = { t: lines, kicker: 'STOCK', title: '11월 5일 하루 -9.3%, 9일에 또 -4.3%', sub: '단위: 달러 (엔비디아 일별 종가, 2026년 10월 12일~11월 9일, 야후 파이낸스)', min: 170, zoom: 1,
+    labels: ['10/12', '', '', '', '10/16', '', '', '', '10/22', '', '', '', '10/28', '', '', '', '', '', '11/5', '', '11/9'], unit: '',
+    series: [{ name: '엔비디아 종가', vals: [226.32, 228.52, 221.3, 217.23, 214.13, 217.09, 216.47, 221.97, 212.21, 210.96, 216, 217.94, 215.38, 213.66, 204.64, 202.06, 206.69, 200.13, 181.6, 186.64, 178.67], color: '#76b900' }],
+    note: '11월 5일은 중간선거 뒤 AI·반도체 주식이 함께 떨어진 날이고(나스닥 -5.5%), 9일은 이사회가 젠슨 황 CEO 관련 독립 조사를 시작했다는 소식이 나온 날입니다.' };
+
+  CH.nv_scen = { t: cards, kicker: '3 SCENARIOS', title: '엔비디아의 독주는 멈출까: 세 가지 길', sub: '제 해석입니다. 확인할 신호와 HBM에 주는 영향을 함께 적었습니다', cols: 3,
+    items: [
+      { lab: '1. 독주 유지', big: '하이닉스 유리', text: '루빈(차세대 GPU) 수요가 공급을 넘고 자체 칩은 회사 안에서만. 신호: 이익률 75% 유지' },
+      { lab: '2. 독점은 끝, 성장은 계속', big: '둘 다 수요 증가', dk: 1, text: '시장 전체가 크는 가운데 구글·아마존 칩 비중 상승. 가장 가능성 높다고 봄. 신호: 외부 고객 수, 엔비디아 마진' },
+      { lab: '3. 본격 추격', big: '삼성 상대적 유리', text: '큰 고객이 대규모로 옮겨 가 엔비디아가 가격을 내림. 신호: 대형 칩 계약, 가격 정책' }] };
+
+  CH.nv_known = { t: have, kicker: 'KNOWN / UNKNOWN', title: '지금 알 수 있는 것, 아직 모르는 것', sub: '2026년 11월 10일 기준',
+    yes: { title: '✓ 알 수 있는 것', items: ['엔비디아 매출 <b>962억 달러(+106%)</b>, 이익률 <b>75%</b>, 다음 분기 전망 <b>1,080억 달러</b>', '구글·아마존이 <b>외부 판매</b>를 늘리고 있고, 큰 고객들은 <b>공급처를 나눈다</b>', 'SK하이닉스 3분기 매출 <b>104조 6천억 원</b>, HBM4 출하 시작', '11월 5일·9일 엔비디아 주가 급락의 <b>계기</b>'] },
+    no: { title: '✕ 아직 모르는 것', items: ['구글·아마존 칩의 <b>정확한 매출</b> (회사가 따로 밝히지 않음)', '세 칩의 <b>공정한 성능 비교</b> (조사마다 다름)', '아마존 트레이니움의 <b>HBM 공급사</b>', '엔비디아 이사회 조사의 <b>결과</b>'] },
+    note: '주가가 싼지 비싼지는 이 글에서 판단하지 않습니다.' };
 
   function run() { document.querySelectorAll('.ic[data-chart]').forEach(init); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();

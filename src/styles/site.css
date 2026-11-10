@@ -118,6 +118,10 @@
     figcaption{font-size:.85rem; color:#666; margin-top:.4rem; line-height:1.6; word-break:break-all}
     /* 근거·한계, 투자 유의 등 맨 아래 안내 상자: <div class="note"><b>제목</b><br>내용</div> */
     .note{margin:2rem 0 1rem; padding:16px 20px; border:1px solid #f0c9cf; border-left:5px solid #ff5a6e; background:#fff6f7; border-radius:6px; font-size:.92rem; line-height:1.75; color:#5a2630; word-break:keep-all}
+    /* 유튜브 영상: <div class="yt"><iframe ...></iframe></div> + <p class="yt-note">설명</p> */
+    .yt{position:relative; padding-bottom:56.25%; height:0; margin:1.5em 0}
+    .yt iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+    .yt-note{font-size:14px}
     /* 이탤릭체는 쓰지 않는다 */
     em{font-style:normal}
   }
