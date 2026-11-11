@@ -316,6 +316,8 @@ $ systemctl status nginx            # 상태 확인 — 가장 자주 쓴다
 $ sudo systemctl enable nginx       # 부팅 시 자동 시작
 $ sudo systemctl disable nginx      # 자동 시작 해제
 $ sudo systemctl enable --now nginx # 활성화 + 즉시 시작
+$ systemctl is-active nginx         # 지금 돌고 있나 (active / inactive)
+$ systemctl is-enabled nginx        # 부팅 때 켜지나 (enabled / disabled) — 스크립트에서 쓰기 좋다
 
 $ systemctl list-units --type=service --state=running
 $ systemctl --failed                # 실패한 서비스만
