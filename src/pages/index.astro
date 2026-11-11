@@ -3,6 +3,7 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import { projects } from '../data/projects';
 import { getCollection } from 'astro:content';
 import Mascot from '../components/Mascot.astro';
+import PostItem from '../components/PostItem.astro';
 
 const TITLE = '앵두아빠의 AI공부방 · AI와 함께 배우고 만들고 기록합니다';
 const DESC = '클로드와 AI를 공부하며 직접 구현해 본 기능, 쌓아 가는 학습 자료, 꼭 짚어 둘 이슈를 정리하는 공부방입니다.';
@@ -12,7 +13,6 @@ const library = projects.filter((p) => p.section === 'library');
 
 const posts = (await getCollection('posts', (p) => !p.data.draft))
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-const fmt = (d: Date) => d.toISOString().slice(0, 10);
 ---
 <SiteLayout title={TITLE} description={DESC} path="/" active="home" bleed>
     <section class="hero col">
@@ -31,16 +31,15 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
       {posts.length === 0 ? (
         <p class="empty">첫 글을 준비하고 있습니다.</p>
       ) : (
-        <ul class="list">
-          {posts.map((p) => (
-            <li>
-              <a class="item" href={`/blog/${p.id}/`} target="_blank" rel="noopener">
-                <span class="item__top"><span class="item__t">{p.data.title}</span><span class="item__m">{fmt(p.data.date)}</span></span>
-                <span class="item__s">{p.data.summary}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul class="list">{posts.slice(0, 5).map((p) => <PostItem p={p} />)}</ul>
+          {posts.length > 5 && (
+            <details class="more">
+              <summary>이전 글 보기 ({posts.length - 5}개)</summary>
+              <ul class="list">{posts.slice(5).map((p) => <PostItem p={p} />)}</ul>
+            </details>
+          )}
+        </>
       )}
     </div></section>
 

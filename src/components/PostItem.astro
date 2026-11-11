@@ -1,0 +1,10 @@
+---
+const { p } = Astro.props;
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
+---
+<li>
+  <a class="item" href={`/blog/${p.id}/`} target="_blank" rel="noopener">
+    <span class="item__top"><span class="item__t">{p.data.title}</span><span class="item__m">{fmt(p.data.date)}</span></span>
+    <span class="item__s">{p.data.summary}</span>
+  </a>
+</li>
