@@ -30,6 +30,19 @@ export const projects: Project[] = [
     year: 2026,
   },
   {
+    slug: 'linux-advanced',
+    section: 'portfolio',
+    title: '리눅스 응용: 홈서버와 서버 속 클로드',
+    kind: '교육 커리큘럼',
+    summary:
+      '입문을 마친 사람을 위한 19챕터 과정. 공유기 뒤의 집 서버에 Claude Code를 안전하게 설치하고, 사진·비밀번호·광고 차단·스마트홈 같은 가족 서비스를 올린 뒤 백업과 복구까지 훈련합니다.',
+    tags: ['홈서버', 'Claude Code', 'Tailscale', 'Docker'],
+    href: '/portfolio/linux-advanced/',
+    status: '완료',
+    progress: { done: 19, total: 19 },
+    year: 2026,
+  },
+  {
     slug: 'econ',
     section: 'portfolio',
     title: '연준 뉴스를 읽기 위한 경제 기초',
