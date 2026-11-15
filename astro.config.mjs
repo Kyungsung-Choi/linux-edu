@@ -84,6 +84,32 @@ export default defineConfig({
             { label: 'Chapter 12 · 최종 프로젝트', link: '/portfolio/linux/chapter-12/' },
           ],
         },
+        // ── 리눅스 응용: 홈서버 (/portfolio/linux-advanced/) ──
+        { label: '응용 과정 안내', link: '/portfolio/linux-advanced/' },
+        {
+          label: '응용 챕터',
+          items: [
+            { label: 'Chapter 1 · 홈서버 설치', link: '/portfolio/linux-advanced/chapter-01/' },
+            { label: 'Chapter 2 · Tailscale 접속', link: '/portfolio/linux-advanced/chapter-02/' },
+            { label: 'Chapter 3 · 서비스 운영 틀', link: '/portfolio/linux-advanced/chapter-03/' },
+            { label: 'Chapter 4 · Claude Code 설치', link: '/portfolio/linux-advanced/chapter-04/' },
+            { label: 'Chapter 5 · 작업 환경', link: '/portfolio/linux-advanced/chapter-05/' },
+            { label: 'Chapter 6 · 안전하게 맡기기', link: '/portfolio/linux-advanced/chapter-06/' },
+            { label: 'Chapter 7 · 서버 관리 시키기', link: '/portfolio/linux-advanced/chapter-07/' },
+            { label: 'Chapter 8 · 자동화', link: '/portfolio/linux-advanced/chapter-08/' },
+            { label: 'Chapter 9 · MCP와 비용', link: '/portfolio/linux-advanced/chapter-09/' },
+            { label: 'Chapter 10 · 사진 (Immich)', link: '/portfolio/linux-advanced/chapter-10/' },
+            { label: 'Chapter 11 · 영상 (Jellyfin)', link: '/portfolio/linux-advanced/chapter-11/' },
+            { label: 'Chapter 12 · 비밀번호 (Vaultwarden)', link: '/portfolio/linux-advanced/chapter-12/' },
+            { label: 'Chapter 13 · 광고 차단', link: '/portfolio/linux-advanced/chapter-13/' },
+            { label: 'Chapter 14 · 스마트홈', link: '/portfolio/linux-advanced/chapter-14/' },
+            { label: 'Chapter 15 · 감시와 저장소', link: '/portfolio/linux-advanced/chapter-15/' },
+            { label: 'Chapter 16 · 문서와 메모', link: '/portfolio/linux-advanced/chapter-16/' },
+            { label: 'Chapter 17 · 백업과 복구', link: '/portfolio/linux-advanced/chapter-17/' },
+            { label: 'Chapter 18 · 감시와 보안', link: '/portfolio/linux-advanced/chapter-18/' },
+            { label: 'Chapter 19 · 최종 프로젝트', link: '/portfolio/linux-advanced/chapter-19/' },
+          ],
+        },
         // ── 연준 경제 읽기 (/portfolio/econ/) ──
         { label: '교재 안내', link: '/portfolio/econ/' },
         {

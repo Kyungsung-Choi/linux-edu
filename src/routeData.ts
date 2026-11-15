@@ -24,6 +24,7 @@ interface Section {
 
 const SECTIONS: Section[] = [
   { prefix: '/portfolio/linux/' },
+  { prefix: '/portfolio/linux-advanced/', title: '리눅스 응용 · 홈서버', home: '/portfolio/linux-advanced/' },
   {
     prefix: '/portfolio/econ/',
     title: '연준 경제 읽기',

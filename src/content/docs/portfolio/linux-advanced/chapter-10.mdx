@@ -1,0 +1,158 @@
+---
+title: 가족 사진 서버 (Immich)
+description: Immich로 가족 휴대폰 사진을 자동 백업하고 공유 앨범으로 나누기. 설치, 가족 계정, 앱 설정, 용량과 업데이트 주의
+sidebar:
+  label: Chapter 10 · 사진 (Immich)
+  order: 10
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+3부는 가족이 직접 쓰는 서비스입니다. 가장 먼저 올릴 것은 **사진**입니다. 가족 휴대폰의 사진과 영상이 자동으로 서버에 쌓이고, 앨범으로 나눌 수 있게 합니다.
+
+<Note type="danger" title="이 서비스를 올리기 전에">
+사진 서버는 가족의 되돌릴 수 없는 자료를 담습니다. **Chapter 17(백업)을 먼저 읽고, 최소한 외장 디스크에 복사하는 방법을 마련한 뒤** 가족 사진을 옮기세요. 이 챕터의 설치는 지금 해도 되지만, 휴대폰의 원본 사진을 지우는 것은 백업 시험이 끝난 뒤에 하세요.
+</Note>
+
+<Note type="why" title="이 챕터를 마치면">
+- Immich를 공식 방법으로 설치하고 서버 안에서만 열리게 만들 수 있다
+- 가족 계정을 만들고 각자의 사진 공간을 나눌 수 있다
+- 휴대폰 앱에서 자동 백업을 설정할 수 있다
+- 공유 앨범과 파트너 공유를 설명할 수 있다
+- 업데이트 전에 해야 할 일을 안다
+</Note>
+
+## 10.1 Immich는 무엇인가
+
+Immich는 구글 포토와 비슷한 화면과 휴대폰 앱을 가진, 직접 운영하는 사진 서비스입니다. 자동 백업, 얼굴과 장소 정리, 검색, 공유 앨범을 제공합니다.
+
+| 후보 | 특징 | 이 과정의 선택 |
+|---|---|---|
+| **Immich** | 사진·영상에 특화, 휴대폰 앱이 좋다 | **채택** |
+| Nextcloud | 파일 공유·문서·일정까지 폭넓다. 사진 기능은 단순 | 문서 중심이면 대안 |
+
+<Note type="warn" title="요구 사양과 개발 속도">
+Immich 공식 문서는 쾌적한 사용에 **최소 6GB 메모리**를 안내하고, 4GB는 기계 학습 기능(얼굴·검색)을 끄면 돌 수 있다고 합니다. 데이터베이스는 **서버 안의 SSD**에 두어야 하고 네트워크 공유 폴더에 두면 안 됩니다. 또 Immich는 개발이 매우 빨라 **업데이트 때 설정 변경이 필요한 경우**가 잦습니다. 요구 사양과 설치 방법은 설치 시점의 공식 문서(docs.immich.app)를 먼저 확인하세요.
+</Note>
+
+## 10.2 설치
+
+공식 방법은 릴리스에 올라온 `docker-compose.yml`과 `example.env`를 받아 쓰는 것입니다.
+
+<Term title="homeserver (admin)" code={`
+$ mkdir -p /srv/compose/immich /srv/data/immich/postgres /srv/media/immich/library
+$ cd /srv/compose/immich
+$ wget -O compose.yaml https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
+$ wget -O .env https://github.com/immich-app/immich/releases/latest/download/example.env
+$ chmod 600 .env
+`} />
+
+`.env`에서 고칠 값입니다.
+
+```
+UPLOAD_LOCATION=/srv/media/immich/library
+DB_DATA_LOCATION=/srv/data/immich/postgres
+TZ=Asia/Seoul
+DB_PASSWORD=아무도-모를-긴-임의의-문자열
+```
+
+- `DB_PASSWORD`는 영문과 숫자로 된 긴 문자열을 쓰세요(특수문자는 설정 파일을 깨뜨릴 수 있습니다).
+- 사진이 큰 디스크에 갈 수 있게 `UPLOAD_LOCATION`은 `/srv/media` 아래로 둡니다. 나중에 디스크를 추가하면 이 폴더 자리에 붙입니다.
+
+`compose.yaml`에서 서버가 **외부로 열리지 않도록** 포트 줄을 바꿉니다.
+
+```yaml
+    ports:
+      - "127.0.0.1:12283:2283"
+```
+
+기본 파일에는 `2283:2283`처럼 되어 있는데, 이대로 두면 서버 어디서든 접속 가능한 포트가 됩니다.
+
+<Term title="homeserver (admin)" code={`
+$ docker compose up -d
+$ docker compose ps
+$ docker compose logs --tail 30 immich-server
+`} />
+
+모든 컨테이너가 실행(`healthy` 또는 `Up`)이 되면, Caddyfile에 칸을 추가하고 다시 읽습니다(Chapter 3 예시와 같음, 안쪽 포트 12283).
+
+<Term title="homeserver (admin)" code={`
+$ docker exec caddy caddy validate --config /etc/caddy/Caddyfile
+$ docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+`} />
+
+브라우저에서 `https://homeserver.tail1234.ts.net:2283`을 엽니다.
+
+## 10.3 첫 설정과 가족 계정
+
+1. 처음 열면 **관리자 계정 만들기** 화면이 나옵니다. 이메일과 긴 비밀번호로 만듭니다. 이 계정이 서비스 전체의 관리자입니다.
+2. 관리 메뉴(Administration)의 사용자 항목에서 **가족마다 계정**을 만듭니다. 첫 로그인 때 비밀번호를 바꾸게 하는 옵션을 켭니다.
+3. 사용자마다 **저장 용량 제한**(할당량)을 둘지 정합니다. 처음에는 두지 않고, 사진이 쌓이는 속도를 본 뒤에 정하세요.
+4. 관리 설정에서 **기계 학습(얼굴·검색)** 이 서버 사양에 버거우면 끕니다. 서버가 느려지면 가장 먼저 의심할 곳입니다.
+
+<Note type="tip" title="관리자도 가족의 사진을 볼 수 있다는 것을 알려 주세요">
+Immich의 화면에서 관리자가 다른 사용자의 사진을 열어 보지는 못하지만, **서버 관리자는 디스크에 있는 파일 자체에는 접근할 수 있습니다.** 이 사실을 가족에게 솔직하게 말하고, 서버 관리자가 가족 사진을 열어 보지 않는다는 약속도 함께 하세요. 이 서버가 가족의 신뢰를 얻는 방식입니다.
+</Note>
+
+## 10.4 휴대폰 앱과 자동 백업
+
+1. 앱 스토어에서 Immich 앱을 설치합니다.
+2. Tailscale 앱이 켜져 있는지 확인합니다.
+3. 서버 주소에 `https://homeserver.tail1234.ts.net:2283`을 입력하고 가족 계정으로 로그인합니다.
+4. 백업 설정에서 **백업할 앨범**(카메라, 스크린샷 등)을 고르고 자동 백업을 켭니다.
+5. 처음에는 사진이 많아 시간이 오래 걸립니다. 충전 중 와이파이에서 앱을 열어 두고 진행합니다.
+
+<Note type="warn" title="자동 백업이 안 되는 흔한 이유">
+- **Tailscale 앱이 꺼져 있다**: 밖에서는 서버를 찾지 못합니다. 앱의 "항상 켜기(Always-on VPN)" 옵션을 켜 두게 하세요.
+- 휴대폰의 **절전 설정**이 백그라운드 앱을 멈춘다: 앱을 절전 예외로 등록하세요(제조사마다 메뉴가 다릅니다).
+- **서버가 꺼져 있다**: 앱은 다시 연결될 때 이어서 올립니다.
+</Note>
+
+기존에 구글 포토나 아이클라우드에 쌓인 사진을 옮기는 방법은 공식 문서와 도구(`immich-go` 등)가 있습니다. 한꺼번에 옮기기 전에 **사진 몇 백 장으로 먼저 시험**하세요.
+
+## 10.5 나누는 방법 두 가지
+
+| 기능 | 설명 | 쓰임 |
+|---|---|---|
+| 공유 앨범 | 앨범을 만들어 가족을 초대하면 서로 사진을 넣고 본다 | 여행, 행사, 아이 사진 |
+| 파트너 공유 | 한 사람의 **전체 사진**을 다른 사람이 자기 타임라인에서 본다 | 부부, 아이 사진을 서로 볼 때 |
+
+파트너 공유는 개인의 모든 사진이 보이므로 **반드시 본인이 설정**하게 하세요. 관리자가 대신 눌러 주지 마세요.
+
+<Mini title="사진을 지우는 것과 백업">
+가족이 휴대폰에서 사진을 지웠습니다. Immich에도 사라질까요?
+
+<Answer>
+기본 설정에서는 **서버의 사진은 그대로 남습니다.** 휴대폰에서 지우는 것은 휴대폰 안의 사본을 지우는 것이고, 서버에서 지우려면 Immich 화면에서 직접 지워야 합니다. 서버에서 지운 사진은 휴지통에 일정 기간 남습니다. 이것은 **백업이 아닙니다.** Immich는 휴대폰 사진의 사본을 보관하는 서비스이고, 서버 자체의 백업은 Chapter 17에서 따로 합니다.
+</Answer>
+</Mini>
+
+## 10.6 운영 주의
+
+- **업데이트**: 업데이트 전에 릴리스 노트의 "주의 사항(breaking changes)"을 읽고, 백업을 마친 뒤 `docker compose pull && docker compose up -d`를 합니다(Chapter 3). 클로드에게 릴리스 노트를 읽혀 요약하게 해도 좋지만 **원문도 직접 훑으세요.**
+- **데이터베이스 백업**: Immich에는 데이터베이스를 정기적으로 덤프하는 기능이 관리 설정에 있습니다(공식 문서에서 위치와 보관 기간을 확인하세요). 사진 파일과 이 덤프를 함께 백업해야 복원됩니다.
+- **디스크 용량**: 사진은 계속 늘어납니다. `df -h /srv`를 Chapter 8의 주간 보고서가 알려 주도록 되어 있습니다.
+
+<Lab id="10-1" title="사진 서버 시작하기" time="2시간">
+
+- [ ] 모든 Immich 컨테이너가 실행 중이다
+- [ ] 포트가 `127.0.0.1`에만 열려 있다(집 안 다른 컴퓨터에서 `서버IP:2283`이 안 열린다)
+- [ ] 휴대폰(LTE, Tailscale 켠 상태)으로 HTTPS 주소에 접속된다
+- [ ] 관리자와 가족 계정을 만들었다
+- [ ] 내 휴대폰 사진 몇 백 장을 자동 백업으로 올렸다
+- [ ] 공유 앨범을 만들어 가족 1명과 사진을 주고받았다
+- [ ] Caddy와 가족 접근 규칙(Chapter 2)에 2283을 넣었다. 가족 계정으로도 접속된다
+- [ ] 가족 안내 페이지에 Immich 링크를 추가했다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 11 영상과 음악 (Jellyfin)** — 집에 있는 영상과 음악을 가족 모두의 기기에서 보는 방법을 다룹니다. 거실 TV에서 보는 방법이 핵심입니다.
+
+<small>확인 기준일 2026-11-15. 요구 사양(최소 6GB 메모리, 데이터베이스는 서버 안 SSD)은 Immich 공식 문서의 요구 사양 페이지를 검색해 확인했습니다. 설치 파일 주소와 `.env` 항목 이름은 릴리스마다 바뀔 수 있어, 내려받은 파일의 설명을 따르세요. 앱 메뉴 이름은 버전에 따라 다릅니다. 이 서버에서 직접 설치해 보지는 않았습니다.</small>

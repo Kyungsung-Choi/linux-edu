@@ -1,0 +1,156 @@
+---
+title: 스마트홈 (Home Assistant)
+description: Home Assistant 컨테이너 설치, 호스트 네트워크와 포트 충돌 해결, 가족 계정과 앱, 자동화 규칙, 서버가 멈춰도 집이 안전하게 동작하는 설계
+sidebar:
+  label: Chapter 14 · 스마트홈
+  order: 14
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+집 안의 조명, 센서, 플러그, 에어컨이 제조사마다 다른 앱을 쓰면 가족은 앱을 5개씩 열어야 합니다. Home Assistant는 이 기기들을 **한 화면과 한 규칙 체계**로 묶는 프로그램입니다. 클라우드에 의존하지 않고 집 안에서 동작하는 연동이 많다는 점이 직접 운영하는 이유입니다.
+
+<Note type="why" title="이 챕터를 마치면">
+- Home Assistant를 컨테이너로 올리고, 포트 충돌을 풀 수 있다
+- 기기를 연결하고 가족 계정과 휴대폰 앱을 설정할 수 있다
+- 간단한 자동화를 만들 수 있다
+- **서버가 멈춰도 집이 불편해지지 않도록** 설계할 수 있다
+</Note>
+
+## 14.1 설치 방식 고르기
+
+| 방식 | 설명 | 이 과정 |
+|---|---|---|
+| Home Assistant OS | 전용 기기에 통째로 설치. 부가 기능(Add-on) 상점 포함 | 서버를 전용으로 쓰지 않으므로 해당 없음 |
+| **컨테이너** | 이 서버의 Docker에 올린다. Add-on 상점은 없다 | **채택** |
+
+컨테이너 방식은 Add-on 상점이 없지만, 필요한 부가 프로그램은 이 서버에서 컨테이너로 따로 올리면 되므로 이 과정의 방식(Chapter 3)과 잘 맞습니다.
+
+## 14.2 설치와 포트 충돌
+
+Home Assistant는 집 안의 기기를 **자동으로 찾기** 위해 `network_mode: host`(서버의 네트워크를 그대로 쓰는 방식)를 권장합니다. 그런데 이러면 Chapter 3의 규칙(서비스는 `127.0.0.1`에만 열기)을 compose 설정만으로는 지킬 수 없어서, **Home Assistant 자체 설정으로 주소와 포트를 바꿉니다.**
+
+`/srv/compose/homeassistant/compose.yaml`
+
+```yaml
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /srv/data/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+```
+
+<Term title="homeserver (admin)" code={`
+$ mkdir -p /srv/compose/homeassistant /srv/data/homeassistant
+$ cd /srv/compose/homeassistant && docker compose up -d
+$ sleep 60 && docker compose stop
+`} />
+
+처음 한 번 실행하면 `/srv/data/homeassistant/configuration.yaml`이 만들어집니다. 멈춘 뒤 이 파일 끝에 아래를 추가합니다.
+
+```yaml
+http:
+  server_host: 127.0.0.1
+  server_port: 18123
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+```
+
+- `server_host: 127.0.0.1`: 서버 안에서만 문을 엽니다.
+- `server_port: 18123`: Chapter 3 표의 서버 안 포트입니다. 기본 8123을 쓰면 Caddy의 8123 문과 부딪힙니다.
+- `trusted_proxies`: Caddy가 전달하는 접속자 주소를 믿도록 알립니다. 이 설정이 없으면 Caddy 뒤에서 **400 오류**가 납니다.
+
+<Term title="homeserver (admin)" code={`
+$ docker compose up -d
+$ docker compose logs --tail 20
+`} />
+
+Caddyfile에 8123 칸(안쪽 `127.0.0.1:18123`)을 추가하고 `https://homeserver.tail1234.ts.net:8123`을 엽니다. 처음 화면에서 **관리자 계정**을 만들고, 집 위치와 단위(한국, 섭씨)를 정합니다.
+
+<Note type="tip" title="호스트 네트워크 모드의 의미">
+이 모드의 컨테이너는 서버의 모든 네트워크 인터페이스를 직접 봅니다. 컨테이너가 서버의 포트를 점유하는 일이 생기고, Docker의 격리가 약해집니다. 편의와 기기 자동 검색을 얻는 대신 격리를 일부 내준다는 점을 알고 쓰세요. 위의 `server_host` 설정이 바깥쪽 문을 닫아 주는 역할을 합니다.
+</Note>
+
+## 14.3 기기 연결
+
+설정의 기기·서비스 화면에서 자동으로 발견된 기기를 추가합니다. 연동 방식은 크게 세 가지입니다.
+
+| 방식 | 특징 | 판단 |
+|---|---|---|
+| 집 안 직접 연결 | 기기와 서버가 집 안에서 직접 통신. 인터넷이 끊겨도 된다 | **가장 좋다** |
+| 제조사 클라우드 연동 | 제조사 서버를 거친다. 인터넷과 제조사 서비스에 의존한다 | 어쩔 수 없을 때만 |
+| 무선 규격(Zigbee, Matter 등) | 별도 연결 장치(동글, 허브)가 필요할 수 있다 | 새로 살 때 고려 |
+
+기기마다 연동 방법이 달라서 이 책이 일일이 다루지는 않습니다. **내가 가진 기기 이름과 Home Assistant**로 검색해 공식 연동 문서를 확인하세요. 기기를 살 때도 "집 안 직접 연결(local)을 지원하는가"를 먼저 보는 것이 좋습니다.
+
+## 14.4 가족 계정과 앱
+
+1. 설정의 사용자에서 가족마다 계정을 만듭니다. **관리자 권한은 주지 않습니다.** 일반 사용자는 화면을 보고 기기를 조작하지만 설정은 바꿀 수 없습니다.
+2. 휴대폰에 **Home Assistant 앱**을 설치하고, 서버 주소를 `https://homeserver.tail1234.ts.net:8123`으로 입력합니다. Tailscale이 켜져 있어야 합니다.
+3. 앱은 집에 있는지(위치), 배터리 잔량 같은 정보를 서버에 보낼 수 있습니다. 어떤 정보를 서버에 보낼지는 **앱의 센서 설정에서 사용자가 직접 켜게** 하세요.
+
+<Note type="warn" title="위치 정보는 가족 사생활입니다">
+가족의 위치를 서버가 기록하면 "누가 언제 집에 있었는지"가 데이터로 남습니다. 편리한 자동화(마지막 사람이 나가면 불 끄기)의 재료지만, **본인의 동의 없이 켜지 마세요.** 위치 센서를 켜는 사람에게만 해당 자동화를 적용합니다.
+</Note>
+
+## 14.5 자동화 만들기
+
+자동화는 **언제(트리거) → 조건이 맞으면 → 무엇을(동작)** 입니다. 설정의 자동화 화면에서 만들고, 처음에는 위험이 적은 것으로 시작하세요.
+
+| 예 | 트리거 | 동작 |
+|---|---|---|
+| 현관 문 열림 알림 | 문 센서가 열림 | 휴대폰에 알림 |
+| 습도 경보 | 욕실 습도 80% 초과 | 환풍기 플러그 켜기 |
+| 야간 점등 | 해가 진 뒤 거실 움직임 감지 | 조명 20%로 켜기 |
+
+<Mini title="자동화로 하면 안 되는 것">
+도어락을 위치 센서로 "집에 가까워지면 자동으로 열기"로 만들고 싶습니다. 어떤 위험이 있을까요?
+
+<Answer>
+위치 정보가 틀리거나 서버가 잘못 판단하면 **누가 오지 않았는데 문이 열릴 수 있습니다.** 보안과 안전에 직결되는 기기(도어락, 가스밸브, 난방)는 자동화의 대상으로 두지 마세요. 알림은 받되, 동작은 사람이 직접 하게 하는 것이 원칙입니다. 서버를 해킹당하거나 설정이 실수로 바뀌어도 문이 열리지 않아야 합니다.
+</Answer>
+</Mini>
+
+## 14.6 서버가 멈춰도 집이 불편하지 않게
+
+서버가 업데이트로 재부팅되거나 고장 나면 스마트홈이 멈춥니다. 이때 가족이 불편하지 않아야 합니다.
+
+| 설계 원칙 | 예 |
+|---|---|
+| **기기의 기본 동작은 서버 없이도 동작** | 스위치는 눌러서 켜지고, 조명은 벽 스위치로 켜진다. 서버는 편의를 더할 뿐이다 |
+| 규칙은 **기기 안에 저장**할 수 있으면 거기에 | 일부 기기는 타이머를 기기에 저장해 서버가 꺼져도 돈다 |
+| 서버 점검 시간은 알려 주기 | 가족에게 "새벽 2시에는 서버를 점검한다"고 알린다 |
+| 중요 기기는 서버 의존 줄이기 | 보안 카메라 녹화는 서버가 아니라 카메라 자체 저장으로 둔다 |
+
+## 14.7 백업
+
+Home Assistant의 설정 화면에는 **백업** 기능이 있어 파일(`backups` 폴더)로 저장됩니다. 설정 폴더(`/srv/data/homeassistant`) 전체가 Chapter 17의 백업 대상이 되도록 하세요. 기기를 새로 연결하거나 큰 설정 변경 전에는 화면에서 백업을 한 번 더 만듭니다.
+
+<Lab id="14-1" title="스마트홈 한 걸음" time="2시간">
+
+- [ ] Home Assistant가 실행 중이고 `server_host`가 `127.0.0.1`로 되어 있다
+- [ ] HTTPS 주소로 접속되고 오류 400이 나지 않는다
+- [ ] 집의 기기 1개를 연결했다(없다면 앱의 센서 같은 기본 항목)
+- [ ] 가족 계정을 일반 사용자로 만들었다
+- [ ] 휴대폰 앱을 연결했다
+- [ ] 자동화 1개를 만들어 동작을 확인했다
+- [ ] 서버를 재부팅했을 때 집의 불편이 어떤지 한 번 시험했다
+- [ ] 설정 폴더가 백업 대상에 들어 있음을 확인했다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 15 서비스 감시와 코드 저장소 (Uptime Kuma, Gitea)** — 서비스가 죽으면 가족이 말하기 전에 내가 먼저 알도록 만들고, 서버 설정에 변경 기록을 남깁니다.
+
+<small>확인 기준일 2026-11-15. Home Assistant의 호스트 네트워크 권장, `http` 설정(server_host, server_port, trusted_proxies) 항목은 제 지식 기준이며 공식 문서에서 현재 이름을 확인하세요. 기기별 연동은 이 책에서 다루지 않았고 이 서버에서 직접 시험하지 않았습니다.</small>

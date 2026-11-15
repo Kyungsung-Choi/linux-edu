@@ -1,0 +1,151 @@
+---
+title: 서버 전용 작업 환경
+description: tmux로 클로드 세션 유지, 휴대폰과 노트북에서 접속, 클로드 전용 작업 계정 분리와 최소 권한 부여
+sidebar:
+  label: Chapter 5 · 작업 환경
+  order: 5
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+SSH로 접속해 클로드와 일하다가 노트북 덮개를 닫으면 **세션이 끊기고 작업도 중단됩니다.** 이번 챕터에서는 연결이 끊겨도 작업이 이어지게 만들고, 클로드를 쓰는 **전용 계정**을 만듭니다.
+
+<Note type="why" title="이 챕터를 마치면">
+- tmux로 세션을 만들고, 끊고, 다시 붙을 수 있다
+- 휴대폰에서도 같은 세션에 접속할 수 있다
+- 클로드 전용 계정을 만들고, 이 계정이 할 수 있는 일과 못 하는 일을 설명할 수 있다
+- 점검용 읽기 전용 명령만 제한적으로 허용할 수 있다
+</Note>
+
+## 5.1 tmux — 끊겨도 이어지는 터미널
+
+입문 Chapter 7에서 SSH를 배웠지만, SSH 연결이 끊기면 그 안에서 돌던 프로그램도 같이 종료됩니다. **tmux**는 서버 안에서 별도 터미널 세션을 유지해 주는 도구입니다.
+
+<Hist year="2007" title="tmux가 풀려던 문제">
+1990년대 후반의 `screen`이라는 도구가 같은 일을 했습니다. tmux는 더 나은 분할 화면과 설정을 가진 후속 도구로 2007년에 나왔습니다. 두 도구 모두 "화면이 없는 서버에서 터미널 세션을 서버 쪽이 쥐고 있게 한다"는 같은 아이디어입니다.
+</Hist>
+
+<Term title="homeserver" code={`
+$ sudo apt install -y tmux
+$ tmux new -s claude
+`} />
+
+| 동작 | 키 / 명령 |
+|---|---|
+| 세션에서 빠져나오기(세션은 유지) | Ctrl+b 누른 뒤 d |
+| 세션 목록 | `tmux ls` |
+| 다시 붙기 | `tmux attach -t claude` |
+| 세션 완전히 종료 | 세션 안에서 `exit` |
+
+흐름은 이렇습니다. 노트북에서 SSH 접속 → `tmux new -s claude` → `claude` 실행 → 작업 도중 노트북을 닫아도 서버의 세션은 계속 돕니다 → 나중에 `tmux attach -t claude`로 이어 갑니다.
+
+## 5.2 휴대폰에서도 접속
+
+1. 휴대폰에 SSH 앱을 설치합니다(예: Termius, Blink Shell 등). 어떤 앱이든 상관없습니다.
+2. Tailscale 앱을 켜고 `homeserver` 이름으로 접속합니다.
+3. 접속 후 `tmux attach -t claude`로 노트북에서 하던 세션을 그대로 이어서 봅니다.
+
+<Note type="warn" title="휴대폰에는 키 파일이 들어갑니다">
+Chapter 2에서 비밀번호 로그인을 껐으므로, 휴대폰에서 접속하려면 **휴대폰용 SSH 키**를 따로 만들어 서버에 등록해야 합니다. 앱에서 키를 만들고 공개키를 서버의 `~/.ssh/authorized_keys`에 한 줄 더하세요. 휴대폰을 잃어버리면 이 키를 서버에서 지웁니다(Chapter 18).
+</Note>
+
+## 5.3 클로드 전용 계정 만들기
+
+### 왜 나누나
+
+지금까지 쓴 관리자 계정은 `sudo`로 서버 전체를 바꿀 수 있습니다. 같은 계정으로 클로드를 쓰면, 클로드가 승인 절차를 놓치는 단 한 번의 순간에 서버 전체가 위험해집니다. 그래서 **권한이 적은 계정을 따로 만들어 그 계정에서만 클로드를 씁니다.**
+
+| 계정 | 권한 | 용도 |
+|---|---|---|
+| `admin` (지금 쓰는 계정) | sudo, docker 그룹 | 사람이 직접 관리 |
+| `claudeops` (새로 만들 계정) | 일반 권한 + 읽기 전용 점검 몇 가지 | 클로드를 쓰는 계정 |
+
+### 만들기
+
+<Term title="homeserver" code={`
+$ sudo adduser --disabled-password --gecos "" claudeops
+$ sudo usermod -aG adm,systemd-journal claudeops
+$ sudo mkdir -p /home/claudeops/.ssh
+$ sudo cp ~/.ssh/authorized_keys /home/claudeops/.ssh/authorized_keys
+$ sudo chown -R claudeops:claudeops /home/claudeops/.ssh
+$ sudo chmod 700 /home/claudeops/.ssh
+$ sudo chmod 600 /home/claudeops/.ssh/authorized_keys
+`} />
+
+- `--disabled-password`: 비밀번호 없이 키로만 접속합니다.
+- `adm` 그룹: `/var/log`의 대부분 로그를 **읽을 수** 있습니다.
+- `systemd-journal` 그룹: `journalctl`로 서비스 로그를 **읽을 수** 있습니다.
+- docker 그룹과 sudo 그룹에는 **넣지 않았습니다.**
+
+이제 `claudeops`로 접속해 이 계정에 클로드를 설치하고 로그인합니다.
+
+<Term title="내 노트북" code={`
+$ ssh claudeops@homeserver
+`} />
+
+접속 후 Chapter 4의 설치와 로그인 절차를 다시 합니다. 시험 삼아 이 계정으로 할 수 없는 일을 확인해 보세요.
+
+<Term title="homeserver (claudeops)" code={`
+$ sudo ls /root
+$ docker ps
+$ journalctl -u ssh --since today | tail -3
+$ tail -3 /var/log/syslog
+`} />
+
+앞의 두 명령은 **거부**되고 뒤의 두 명령은 **읽힙니다.** 이 상태가 목표입니다.
+
+<Mini title="클로드가 docker 상태를 볼 수 있게 하고 싶을 때">
+`docker ps`는 거부됩니다. 읽기 전용으로 컨테이너 상태만 보게 하려면, docker 그룹에 넣지 않고 어떻게 할 수 있을까요?
+
+<Answer>
+특정 명령 몇 개만 sudo로 허용합니다. `visudo`로 파일을 만들어 한 줄씩 더합니다.
+
+`/etc/sudoers.d/claudeops`
+
+```
+claudeops ALL=(root) NOPASSWD: /usr/bin/docker ps, /usr/bin/docker ps -a
+```
+
+이렇게 **명령 자체를 정확히 나열**하면 `sudo docker ps`만 됩니다. `docker logs *`처럼 별표를 쓰면 의도하지 않은 인자가 들어갈 수 있으니 조심하세요. 파일은 반드시 `sudo visudo -f /etc/sudoers.d/claudeops`로 편집해 문법 오류를 막습니다. 문법이 틀리면 sudo가 통째로 망가질 수 있습니다.
+</Answer>
+</Mini>
+
+<Note type="tip" title="이 계정은 안전망이지 만능 방어가 아닙니다">
+`claudeops`가 읽을 수 있는 로그에는 IP 주소와 사용자 이름이 담겨 있고, 권한이 다른 파일(`/srv/compose`)은 소유자에 따라 읽거나 수정할 수 있습니다. 어떤 파일을 클로드에게 열어 줄지는 Chapter 6에서 정합니다.
+</Note>
+
+## 5.4 작업 폴더 만들기
+
+클로드는 시작한 폴더를 기준으로 일합니다. 서버 관리용 작업 폴더를 정해 둡니다.
+
+<Term title="homeserver (claudeops)" code={`
+$ mkdir -p ~/ops
+$ cd ~/ops
+$ tmux new -s claude
+$ claude
+`} />
+
+Chapter 6에서 이 `~/ops` 폴더에 클로드가 읽는 설명서(`CLAUDE.md`)와 안전 규칙을 둡니다.
+
+<Lab id="5-1" title="끊겨도 이어지는 작업 환경" time="40분">
+
+- [ ] `tmux new -s claude` 안에서 `claude`를 실행했다
+- [ ] 노트북 터미널을 닫았다가 다시 접속해 `tmux attach -t claude`로 이어 갔다
+- [ ] 휴대폰에서도 같은 세션에 접속했다
+- [ ] `claudeops` 계정을 만들었고 `sudo`와 `docker`가 거부되는 것을 확인했다
+- [ ] `claudeops`로 로그를 읽을 수 있다
+- [ ] `claudeops`에서 Claude Code 로그인을 마쳤다
+- [ ] 서버 노트에 두 계정의 역할을 적었다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 6 안전하게 맡기기** — 클로드가 허락 없이 해도 되는 일, 반드시 허락을 구해야 하는 일, 절대 못 하는 일을 설정 파일로 정합니다.
+
+<small>확인 기준일 2026-11-15. tmux와 계정 명령은 Ubuntu 기본 도구이며 이 서버에서 직접 실행해 확인하지는 않았습니다. 그룹 이름(adm, systemd-journal)은 Ubuntu 24.04 기준입니다.</small>

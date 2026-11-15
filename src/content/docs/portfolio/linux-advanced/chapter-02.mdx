@@ -1,0 +1,199 @@
+---
+title: 집 밖에서 접속하기 (Tailscale)
+description: 공유기 포트를 열지 않고 Tailscale로 휴대폰·노트북에서 집 서버에 접속하는 방법, 가족 초대와 접근 제한(ACL), SSH 키 로그인
+sidebar:
+  label: Chapter 2 · Tailscale 접속
+  order: 2
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+Chapter 1에서 서버를 세웠습니다. 이 서버는 집 안에서는 접속이 되지만, 공유기 뒤에 있고 공인 주소도 고정이 아니어서 **밖에서는 보이지 않습니다.** 이번 챕터는 공유기에 구멍을 내지 않고 이 문제를 해결합니다.
+
+<Note type="why" title="이 챕터를 마치면">
+- 포트포워딩 없이 집 밖에서 서버에 접속하는 원리를 설명할 수 있다
+- 서버, 내 휴대폰, 내 노트북을 하나의 사설 네트워크(tailnet)로 묶을 수 있다
+- 가족을 초대하되, **서비스 화면에만 들어오고 서버 관리 접속은 못 하게** 제한할 수 있다
+- 비밀번호 대신 SSH 키로 서버에 접속할 수 있다
+</Note>
+
+## 2.1 왜 Tailscale인가
+
+### 밖에서 집 서버로 들어가는 세 가지 길
+
+| 방법 | 원리 | 이 과정에서의 판단 |
+|---|---|---|
+| 포트포워딩 | 공유기에서 외부 포트를 서버로 연결 | 공인 주소가 바뀌고, CGNAT면 불가능하다. 열린 문이 공격 대상이 된다. **쓰지 않음** |
+| 공개 터널 (Cloudflare Tunnel 등) | 서버가 밖으로 먼저 연결해 외부에 웹으로 공개 | 가족만 쓰는 서비스를 인터넷에 공개할 이유가 없다. **쓰지 않음** |
+| **사설 VPN (Tailscale)** | 서버와 내 기기들이 서로 암호화된 직통로를 만들어, 같은 네트워크처럼 쓴다 | **채택** |
+
+<Hist year="2019" title="WireGuard 위에 만든 쉬운 VPN">
+오래된 VPN은 서버 설정, 인증서 발급, 포트 개방이 필요해서 집에서 쓰기 어려웠습니다. 가볍고 빠른 VPN 방식인 WireGuard가 나오자, Tailscale은 그 위에 **로그인 하나로 기기를 연결해 주는 관리 층**을 얹었습니다. 기기들은 서로 직접 연결을 시도하고, 직접 연결이 안 될 때만 중계 서버를 거칩니다. 둘 다 밖에서 먼저 연결하는 방식이라 공유기 설정이 필요 없습니다.
+</Hist>
+
+### 이름을 알아 두기
+
+| 용어 | 뜻 |
+|---|---|
+| tailnet | 내 기기들만 들어 있는 사설 네트워크 한 개 |
+| 노드 | tailnet에 들어온 기기 한 대 (서버, 휴대폰, 노트북) |
+| 100.x.y.z 주소 | 노드마다 받는 tailnet 전용 주소. Chapter 1의 CGNAT 대역(100.64부터 100.127)과 같은 범위를 쓴다 |
+| MagicDNS | 기기 이름(`homeserver`)으로 접속하게 해 주는 이름 풀이 |
+
+<Note type="tip" title="CGNAT 안에서도 됩니다">
+Tailscale의 100.x 주소는 tailnet 안에서만 의미가 있습니다. 통신사 CGNAT와 같은 대역을 쓰지만 서로 부딪히지 않습니다. 집이 CGNAT 안이든 아니든 똑같이 동작하는 것이 이 방법을 고른 이유입니다.
+</Note>
+
+<Note type="warn" title="요금과 약관은 바뀝니다">
+이 글을 쓴 2026년 11월 현재, Tailscale 무료(Personal) 요금제는 2026년 4월 개편으로 최대 6명까지 쓸 수 있다고 공지되었습니다. 비상업 용도로만 쓸 수 있습니다. 가족 수가 6명을 넘거나 요금제가 바뀌었는지는 **가입 전에 Tailscale 요금 페이지에서 확인**하세요. 이 서버는 가족용이라 약관 안에 있습니다.
+</Note>
+
+## 2.2 서버에 Tailscale 설치
+
+<Term title="homeserver" code={`
+$ curl -fsSL https://tailscale.com/install.sh | sh
+$ sudo tailscale up
+To authenticate, visit:
+        https://login.tailscale.com/a/xxxxxxxxxxxx
+`} />
+
+1. 출력된 주소를 **다른 컴퓨터의 브라우저**에서 열고 로그인합니다. 계정은 구글, 마이크로소프트, 애플 등으로 만들 수 있습니다. 이 계정이 tailnet의 주인입니다. **2단계 인증을 켠 계정**을 쓰세요.
+2. 승인하면 서버 터미널에 `Success.`가 나옵니다.
+3. 상태를 확인합니다.
+
+<Term title="homeserver" code={`
+$ tailscale status
+100.101.102.103  homeserver    me@example.com  linux  -
+$ tailscale ip -4
+100.101.102.103
+`} />
+
+<Note type="warn" title="설치 스크립트를 파이프로 실행하는 것">
+`curl ... | sh`는 내려받은 스크립트를 바로 실행합니다. 공식 사이트의 공식 방식이지만, 처음 보는 사이트에서는 이렇게 하지 마세요. 이 방식이 꺼려지면 Tailscale 문서에 있는 Ubuntu용 저장소 등록 방법(apt)을 쓸 수 있습니다.
+</Note>
+
+## 2.3 내 기기 연결하기
+
+1. 노트북과 휴대폰에 Tailscale 앱을 설치하고, **서버와 같은 계정**으로 로그인합니다.
+2. 앱에서 서버가 보이는지 확인합니다. 휴대폰은 와이파이를 끄고 LTE로 바꿔서 한 번 더 확인하세요. 이것이 진짜 시험입니다.
+3. 노트북 터미널에서 접속해 봅니다.
+
+<Term title="내 노트북" code={`
+$ ssh 사용자이름@homeserver
+`} />
+
+집 안에서도, 카페에서도 같은 명령이 됩니다.
+
+<Mini title="집 밖에서도 되는지 시험">
+휴대폰을 LTE로 두고 휴대폰 SSH 앱이나 노트북의 핫스팟으로 `ssh 사용자이름@homeserver`가 되는지 확인합니다. 접속이 안 된다면 어디부터 확인할까요?
+
+<Answer>
+1. 서버에서 `tailscale status`로 서버가 `connected`인지 확인합니다.
+2. 접속하는 기기에서 Tailscale 앱이 켜져 있는지 확인합니다. 앱이 꺼져 있으면 tailnet이 아닙니다.
+3. 두 기기가 **같은 계정**(같은 tailnet)인지 확인합니다.
+4. 이름이 안 풀리면 `100.x` 주소로 직접 접속해 봅니다. 되면 MagicDNS 문제입니다.
+</Answer>
+</Mini>
+
+## 2.4 SSH 키로 로그인하기
+
+비밀번호 로그인은 추측과 유출에 약합니다. 키 로그인으로 바꿉니다. 입문 Chapter 7의 내용을 서버에 적용하는 단계입니다.
+
+<Term title="내 노트북" code={`
+$ ssh-keygen -t ed25519 -C "my-laptop"
+$ ssh-copy-id 사용자이름@homeserver
+$ ssh 사용자이름@homeserver
+`} />
+
+키로 접속되는 것을 **새 터미널에서 확인한 뒤에만** 서버에서 비밀번호 로그인을 끕니다.
+
+<Term title="homeserver" code={`
+$ sudo tee /etc/ssh/sshd_config.d/10-no-password.conf <<'EOF'
+PasswordAuthentication no
+EOF
+$ sudo sshd -t && sudo systemctl reload ssh
+`} />
+
+`sshd -t`는 설정에 오류가 없는지 검사합니다. 검사가 통과해야 다시 읽습니다. **기존 접속 창은 닫지 말고** 새 창에서 접속이 되는지 확인하세요. 키를 잃어버리면 모니터를 연결해서 복구해야 합니다.
+
+<Note type="danger" title="키 파일은 두 곳에">
+노트북이 고장 나면 키도 함께 사라집니다. 서버에 다른 기기의 공개키를 하나 더 등록해 두거나(휴대폰 SSH 앱의 키 등), 최소한 서버 관리용 비밀번호가 필요한 상황을 대비해 모니터와 키보드로 직접 접속하는 길을 열어 두세요. 서버에 모니터를 연결하면 비밀번호 로그인이 꺼져 있어도 **콘솔 로그인은 가능합니다.**
+</Note>
+
+## 2.5 가족 초대와 접근 제한
+
+### 두 가지 방법
+
+| 방법 | 설명 | 선택 |
+|---|---|---|
+| 같은 tailnet에 초대 | 가족이 내 tailnet의 사용자가 된다 | **권장.** 설정이 한 곳에 모인다 |
+| 노드 공유 | 가족은 자기 tailnet을 쓰고, 서버 한 대만 공유받는다 | 가족이 이미 다른 용도로 Tailscale을 쓸 때 |
+
+### 가족은 서비스 화면만 보게 만들기
+
+같은 tailnet에 초대하면 기본 설정에서는 서로 모든 기기에 접근할 수 있습니다. 가족에게는 **서비스 화면(웹 포트)만** 열고, SSH는 열지 않도록 접근 규칙(ACL)을 씁니다.
+
+먼저 서버에 이름표(태그)를 붙일 수 있도록 정책을 고칩니다. Tailscale 관리 콘솔(login.tailscale.com)의 Access controls 화면에서 편집합니다.
+
+```json
+{
+  "groups": {
+    "group:owner":  ["내이메일@example.com"],
+    "group:family": ["가족1@example.com", "가족2@example.com"]
+  },
+  "tagOwners": {
+    "tag:homeserver": ["group:owner"]
+  },
+  "acls": [
+    { "action": "accept", "src": ["group:owner"], "dst": ["*:*"] },
+    { "action": "accept", "src": ["group:family"],
+      "dst": ["tag:homeserver:443,2283,8096,8222,3000,8123,3001,3002,8000"] }
+  ]
+}
+```
+
+- `group:owner`는 모든 곳에 접속할 수 있습니다.
+- `group:family`는 서버의 서비스 포트에만 접속합니다. **22번(SSH)은 목록에 없으므로 막힙니다.**
+- 포트 번호는 이 과정의 서비스 배치표(Chapter 3)에서 쓰는 값입니다. 서비스를 추가할 때 이 줄에 번호를 더합니다.
+
+서버에 태그를 붙입니다.
+
+<Term title="homeserver" code={`
+$ sudo tailscale up --advertise-tags=tag:homeserver
+`} />
+
+경고가 나오면 안내된 명령(보통 `--reset` 옵션 포함)을 그대로 실행하세요. 태그가 붙은 서버는 로그인 키의 만료가 꺼져서 몇 달 뒤 갑자기 끊기는 일이 없습니다.
+
+가족 초대는 관리 콘솔의 Users 화면에서 이메일로 보냅니다. 가족은 앱을 설치하고 초대 메일의 링크로 로그인하면 됩니다.
+
+<Note type="warn" title="규칙을 바꾼 뒤에는 반드시 시험">
+정책 파일을 잘못 쓰면 **본인도 서버에 못 들어갈 수 있습니다.** 저장하기 전에 관리 콘솔의 미리보기(Preview rules)로 확인하고, 저장한 뒤 본인 노트북에서 SSH가 되는지, 가족 계정에서 SSH가 막히는지를 모두 시험합니다. 포트는 Chapter 3 이후 서비스가 올라와야 열려 있으니, 지금은 SSH가 막히는 쪽만 확인해도 됩니다.
+</Note>
+
+## 2.6 파일 보내기와 이어지는 기능
+
+- **Taildrop**: 앱에서 기기끼리 파일을 바로 보냅니다. 서버로 설정 파일을 옮길 때 편합니다.
+- **집 안 다른 기기 접속**: 집 안의 프린터나 공유기 화면을 밖에서 열고 싶다면 서버를 서브넷 라우터로 쓰는 방법이 있습니다. 이 과정에서는 다루지 않습니다.
+- **광고 차단을 밖에서도**: Chapter 13에서 AdGuard Home을 tailnet의 DNS로 지정해, 밖에서도 광고 차단을 씁니다.
+
+<Lab id="2-1" title="어디서든 서버에 들어가기" time="40분">
+
+- [ ] 서버, 내 노트북, 내 휴대폰이 `tailscale status`에 모두 보인다
+- [ ] 휴대폰을 LTE로 바꿔도 서버에 접속할 수 있다
+- [ ] SSH 키 로그인이 되고, 서버에서 비밀번호 로그인을 껐다
+- [ ] 가족 계정 1명을 초대했고, 그 계정으로 서버에 SSH가 **안 되는 것**을 확인했다
+- [ ] 서버에 태그가 붙어 있다(관리 콘솔의 Machines 화면에서 확인)
+- [ ] 서버 노트에 tailnet 이름과 서버의 100.x 주소를 적었다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 3 서비스 운영 틀** — Docker와 Caddy로 모든 서비스를 같은 방식으로 올리는 틀을 만듭니다. Tailscale 인증서를 받아 HTTPS를 붙이고, 가족이 처음 열 안내 페이지를 만듭니다.
+
+<small>확인 기준일 2026-11-15. Tailscale 요금제 인원 제한은 2026년 4월 8일 Tailscale 요금 개편 공지의 내용을 확인한 것입니다. 정책 파일 문법과 관리 콘솔 메뉴 이름은 바뀔 수 있으니 공식 문서와 함께 보세요. 본인 계정에 2단계 인증을 켜는 것은 이 챕터에서 확인하지 못했습니다. 계정 설정에서 직접 확인하세요.</small>

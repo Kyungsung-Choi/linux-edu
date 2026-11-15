@@ -1,0 +1,189 @@
+---
+title: 감시와 보안 유지
+description: 자동 보안 업데이트, 방화벽(ufw)과 Docker의 함정, 디스크 상태 감시, 가족 기기 분실 대응, 2단계 인증, 분기별 점검
+sidebar:
+  label: Chapter 18 · 감시와 보안
+  order: 18
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+서버는 **한 번 세우고 끝이 아니라, 계속 돌보는 것**입니다. 이 서버는 밖에서 들어오는 문이 없어 공격 면이 작지만, **가족의 휴대폰 한 대를 잃어버리는 것**과 **업데이트를 방치하는 것**이 가장 현실적인 위험입니다. 입문 Chapter 10(하드닝)과 11(탐지·사고 대응)의 내용을 이 서버에 맞게 적용합니다.
+
+<Note type="why" title="이 챕터를 마치면">
+- 자동 보안 업데이트가 동작하는지 확인하고 설정할 수 있다
+- 방화벽을 켜되, Docker가 방화벽을 우회하는 함정을 설명할 수 있다
+- 디스크 고장 징조를 점검할 수 있다
+- 가족의 휴대폰이나 노트북을 잃어버렸을 때 순서대로 대응할 수 있다
+- 분기마다 하는 점검 목록을 갖는다
+</Note>
+
+## 18.1 자동 보안 업데이트
+
+Ubuntu Server는 기본으로 `unattended-upgrades`가 켜져 **보안 업데이트를 자동 설치**합니다. 동작하는지 확인합니다.
+
+<Term title="homeserver (admin)" code={`
+$ systemctl status unattended-upgrades --no-pager | head -5
+$ sudo unattended-upgrade --dry-run --debug 2>&1 | tail -15
+$ cat /var/log/unattended-upgrades/unattended-upgrades.log | tail -10
+`} />
+
+| 항목 | 이 서버의 방침 |
+|---|---|
+| 보안 업데이트 | 자동 (기본) |
+| 재시작이 필요한 업데이트 | 자동 재부팅은 **끄고**, Chapter 8의 주간 보고서가 "재시작 필요"를 알려 주면 새벽에 사람이 재부팅 |
+| Docker 이미지 업데이트 | 자동 아님. Chapter 3의 방식대로 사람이 백업 후 |
+| 서비스(Immich 등) 업데이트 | 한 달에 한 번 사람이 릴리스 노트를 읽고 |
+
+<Note type="tip" title="재부팅 시간을 정해 두세요">
+재부팅하면 모든 서비스가 잠시 멈춥니다. 광고 차단(DNS)과 스마트홈이 함께 멈추므로, 가족이 인터넷을 쓰지 않는 **새벽 시간에** 하고 가족에게 미리 말해 두세요. 재부팅 뒤에는 Uptime Kuma의 감시가 모두 초록색으로 돌아오는지 확인합니다.
+</Note>
+
+## 18.2 방화벽과 Docker의 함정
+
+### ufw 설정
+
+입문 Chapter 10의 ufw를 적용합니다. **SSH를 허용하기 전에 켜면 서버에서 쫓겨납니다.** 순서를 지키세요.
+
+<Term title="homeserver (admin)" code={`
+$ sudo ufw default deny incoming
+$ sudo ufw default allow outgoing
+$ sudo ufw allow in on tailscale0
+$ sudo ufw allow from 192.168.0.0/24 to any port 22 proto tcp
+$ sudo ufw allow from 192.168.0.0/24 to any port 53
+$ sudo ufw allow from 192.168.0.0/24 to any port 8096 proto tcp
+$ sudo ufw status numbered
+`} />
+
+위 규칙은 **tailnet은 모두, 집 안(`192.168.0.0/24`, 본인 대역으로 수정)에서는 SSH와 DNS와 Jellyfin만** 허용합니다. 규칙 목록을 확인한 뒤에 켭니다. **켜기 전에 SSH 창을 하나 더 열어 두세요.**
+
+<Term title="homeserver (admin)" code={`
+$ sudo ufw enable
+$ sudo ufw status verbose
+`} />
+
+### Docker는 ufw를 우회합니다
+
+<Note type="danger" title="ufw가 막았다고 안심하면 안 됩니다">
+Docker는 컨테이너 포트를 열 때 자기가 직접 방화벽 규칙(iptables)을 추가해서, **ufw가 막은 포트도 컨테이너에서 공개한 포트는 열려 버립니다.** 이것은 유명한 함정입니다. 이 서버가 안전한 이유는 ufw가 아니라 **우리가 Chapter 3에서 컨테이너 포트를 `127.0.0.1`에 묶었기 때문**입니다. 새 서비스를 올릴 때 `ports`에 `"8080:80"`처럼 주소 없이 쓰는 순간 그 포트는 집 안 모든 기기에 열립니다.
+</Note>
+
+그래서 점검 습관이 필요합니다. 서버에서 **어느 주소에 어느 포트가 열려 있는지** 직접 봅니다.
+
+<Term title="homeserver (admin)" code={`
+$ sudo ss -tulpn | awk 'NR==1 || /LISTEN|UNCONN/' | column -t | head -40
+`} />
+
+`0.0.0.0` 또는 `*`에 열린 포트는 **의도한 것만** 있어야 합니다. 이 서버에서는 22(SSH), 53(DNS), 8096(Jellyfin, 집 안 주소), 22000(Syncthing) 정도입니다. 처음 보는 포트가 있으면 이유를 찾으세요.
+
+<Mini title="새 서비스를 올리고 포트가 열렸는지 확인하기">
+compose에 `ports: - "9000:9000"`이라고 쓴 서비스를 올렸습니다. 문제가 무엇이고 어떻게 고칠까요?
+
+<Answer>
+주소를 쓰지 않아서 **서버의 모든 네트워크 주소(집 안 LAN, tailnet)에서 9000번이 열립니다.** ufw 규칙과 관계없이 Docker가 열기 때문에 가족 외의 손님 기기도 접속을 시도할 수 있습니다. 고치려면 `"127.0.0.1:19000:9000"`처럼 주소를 붙이고, Caddy 뒤에서 열게 합니다(Chapter 3). 올린 직후 `ss -tulpn`으로 한 번 확인하는 습관을 들이세요.
+</Answer>
+</Mini>
+
+## 18.3 SSH 점검
+
+Chapter 2에서 비밀번호 로그인을 껐습니다. 한 번 더 조입니다.
+
+<Term title="homeserver (admin)" code={`
+$ sudo tee /etc/ssh/sshd_config.d/20-hardening.conf <<'EOF'
+PermitRootLogin no
+AllowUsers admin claudeops
+MaxAuthTries 3
+EOF
+$ sudo sshd -t && sudo systemctl reload ssh
+`} />
+
+`admin`은 본인의 관리자 계정 이름으로 바꾸세요. **다른 SSH 창을 열어 둔 상태에서** 새 창으로 접속이 되는지 확인한 뒤 기존 창을 닫습니다. 서버에 접근할 수 있는 사람의 목록(`AllowUsers`)을 명시하는 것이 핵심입니다.
+
+## 18.4 디스크와 상태 감시
+
+디스크는 고장 나기 전에 징조를 보이는 경우가 많습니다.
+
+<Term title="homeserver (admin)" code={`
+$ sudo apt install -y smartmontools
+$ sudo smartctl -H /dev/nvme0n1
+$ sudo smartctl -H /dev/sda
+`} />
+
+`PASSED`가 나와야 정상입니다. 어느 이름이 맞는지는 `lsblk`로 확인하세요(NVMe SSD는 `nvme0n1`, SATA 디스크는 `sda`). 이 점검을 Chapter 8의 주간 보고서에 넣으려면 `claudeops`가 `sudo smartctl -H`만 실행할 수 있게 sudoers에 **정확한 명령 한 줄**을 허용하고(Chapter 5의 방식), `collect.sh`에 줄을 추가합니다. 이 결과가 `FAILED`거나 재할당 섹터가 늘고 있으면 백업이 정상인지 먼저 확인한 뒤 디스크를 교체할 준비를 하세요.
+
+| 징조 | 의미 |
+|---|---|
+| SMART 상태 FAILED, 재할당 섹터 증가 | 디스크 수명이 다해 간다 |
+| 디스크 사용률 85% 이상 | 곧 찬다. 서비스가 이상 동작하기 시작한다 |
+| 재시작 후에도 반복되는 컨테이너 재시작 | 설정 오류나 자원 부족 |
+| 메모리가 계속 부족하고 스왑이 많이 쓰임 | 서비스를 줄이거나 메모리를 늘려야 한다 |
+
+## 18.5 가족 기기를 잃어버렸을 때
+
+이 서버에서 **가장 가능성이 높은 사고**입니다. 휴대폰에는 Tailscale, 사진 앱, 비밀번호 앱, 스마트홈 앱이 모두 들어 있기 때문입니다. 순서대로 대응합니다.
+
+| 순서 | 할 일 | 어디서 |
+|---|---|---|
+| 1 | **Tailscale에서 그 기기 제거**(또는 비활성화). 이 순간 서버에 접근할 수 없다 | Tailscale 관리 콘솔의 Machines |
+| 2 | 휴대폰의 **원격 잠금·삭제**(구글 기기 찾기, 아이폰 나의 찾기) | 휴대폰 제조사 서비스 |
+| 3 | Vaultwarden에서 **모든 세션 로그아웃**, 그 사람의 **마스터 비밀번호 변경** | Vaultwarden 웹 금고의 계정 설정 |
+| 4 | Immich에서 그 기기의 **로그인 세션/키 삭제**, 비밀번호 변경 | Immich 사용자 설정 |
+| 5 | Home Assistant에서 **장기 토큰·세션 삭제**, 비밀번호 변경 | Home Assistant 사용자 프로필 |
+| 6 | Tailscale 로그인 계정(구글 등) 비밀번호 변경, 다른 기기 로그아웃 | 계정 제공자 |
+| 7 | 서버 로그에서 그 기기가 사라진 시점 이후 이상 접속이 없는지 확인 | Chapter 8 보고서, 클로드에게 로그 정리 요청 |
+
+<Note type="warn" title="1번을 가장 먼저 합니다">
+휴대폰은 잠금 화면으로 보호되어 있어 곧바로 열리지는 않지만, **tailnet에서 즉시 끊는 것**이 가장 빠르고 확실합니다. 다른 대응은 천천히 해도 1번이 끝나면 서버에 대한 직접 접근은 차단됩니다.
+</Note>
+
+관리자(나)의 기기 분실은 더 큰 사고입니다. 위 순서에 더해 **서버의 SSH 키 삭제**(`~/.ssh/authorized_keys`에서 해당 줄 제거), **restic 클라우드 키 폐기**, **Tailscale 계정 비밀번호와 2단계 인증 재설정**을 합니다. 그 기기에 어떤 열쇠가 있는지 미리 목록으로 정리해 두세요.
+
+## 18.6 2단계 인증
+
+| 대상 | 2단계 인증 |
+|---|---|
+| Tailscale 로그인 계정(구글, 마이크로소프트 등) | **필수.** tailnet의 주인 계정이다 |
+| Vaultwarden | 권장(인증 앱). 복구 코드를 종이로 |
+| Immich, Home Assistant, Gitea | 가능하면 사용 |
+| 가족 휴대폰 잠금 | 화면 잠금 필수 |
+
+가족 모두에게 어렵게 느껴지지 않도록, **본인과 부부 가운데 관리 권한이 있는 사람부터** 켜고 순서대로 넓히세요.
+
+## 18.7 분기별 점검
+
+3개월마다 달력에 표시해 두고 합니다.
+
+| 점검 | 확인 |
+|---|---|
+| 복구 훈련 | Chapter 17 훈련 1과 2를 다시 한다 |
+| 열린 포트 | `ss -tulpn`으로 의도한 것만 열려 있다 |
+| 가족 기기 목록 | Tailscale Machines에서 쓰지 않는 기기를 지운다 |
+| 계정 | 쓰지 않는 사용자 계정을 서비스마다 지운다 |
+| 디스크 | SMART 상태, 사용률, 외장 디스크 연결 |
+| 업데이트 | Docker 이미지와 서비스 릴리스 노트 확인 후 업데이트 |
+| 비밀번호 | 관리자 계정과 restic 암호 위치(종이)가 안전한지 |
+| 문서 | 서버 노트의 변경 사항 반영 |
+
+<Lab id="18-1" title="보안 점검과 분실 훈련" time="2시간">
+
+- [ ] `unattended-upgrades` 동작과 최근 로그를 확인했다
+- [ ] ufw를 규칙대로 설정했고 SSH 창 하나를 더 열어 둔 채 켰다
+- [ ] `ss -tulpn`으로 열린 포트를 확인하고, 의도하지 않은 포트가 없는지 보았다
+- [ ] SSH 하드닝(`PermitRootLogin no`, `AllowUsers`) 후 접속이 되는지 확인했다
+- [ ] SMART 상태를 확인했다
+- [ ] **분실 훈련**: 내 오래된 기기 하나를 Tailscale에서 제거하고, 서버에 접속되지 않는 것을 확인했다(필요하면 다시 연결)
+- [ ] 분실 시 순서표를 출력해 서버 노트와 함께 보관했다
+- [ ] 분기별 점검 일정을 달력에 넣었다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 19 최종 프로젝트** — 지금까지의 모든 것을 조립해 가족이 쓰는 홈서버를 완성하고, 인수 점검을 합니다.
+
+<small>확인 기준일 2026-11-15. unattended-upgrades의 기본 활성화, Docker가 ufw를 우회하는 동작, smartctl 사용법은 제 지식 기준이며 이 서버에서 직접 시험하지 않았습니다. 서비스별 로그아웃·토큰 삭제 메뉴 위치는 버전마다 다르니 각 서비스 화면에서 확인하세요.</small>

@@ -1,0 +1,181 @@
+---
+title: 서비스 감시와 코드 저장소 (Uptime Kuma, Gitea)
+description: Uptime Kuma로 서비스 상태 감시와 알림, 주간 점검 생존 신호, Gitea로 서버 설정 변경 기록 관리
+sidebar:
+  label: Chapter 15 · 감시와 저장소
+  order: 15
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+서비스가 7개가 되면 "지금 다 잘 돌고 있나"를 눈으로 확인할 수 없습니다. 가족이 "사진이 안 올라가요"라고 말해야 알게 되는 서버는 **관리되지 않는 서버**입니다. 이번 챕터에서는 서비스가 죽으면 내가 먼저 알게 만들고, 서버 설정에 **변경 기록**을 남깁니다.
+
+<Note type="why" title="이 챕터를 마치면">
+- 서비스 상태를 감시하고 알림을 받을 수 있다
+- 자동 점검이 멈췄을 때 알려 주는 생존 신호를 만들 수 있다
+- 서버 설정을 Git 저장소에 넣어 변경 이력을 남길 수 있다
+- 저장소에 **넣으면 안 되는 것**을 구분할 수 있다
+</Note>
+
+## 15.1 Uptime Kuma로 감시하기
+
+### 설치
+
+Uptime Kuma는 서비스가 응답하는지 주기적으로 확인하고, 이상이 있으면 알림을 보냅니다. 서버 안의 `127.0.0.1` 주소를 직접 감시해야 하므로 **호스트 네트워크**로 올리고, 관리 화면 자체는 서버 안에만 엽니다.
+
+`/srv/compose/uptime-kuma/compose.yaml`
+
+```yaml
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      UPTIME_KUMA_HOST: 127.0.0.1
+      UPTIME_KUMA_PORT: 13001
+    volumes:
+      - /srv/data/uptime-kuma:/app/data
+```
+
+<Term title="homeserver (admin)" code={`
+$ mkdir -p /srv/compose/uptime-kuma /srv/data/uptime-kuma
+$ cd /srv/compose/uptime-kuma && docker compose up -d
+`} />
+
+Caddyfile에 3001 칸(안쪽 `127.0.0.1:13001`)을 추가하고, `https://homeserver.tail1234.ts.net:3001`에서 관리자 계정을 만듭니다. 이미지 태그는 실제 운영에서는 `latest` 대신 **버전 번호로 고정**하고, 공식 문서의 권장 태그를 확인하세요.
+
+### 감시 항목
+
+| 감시 이름 | 종류 | 주소 |
+|---|---|---|
+| Immich | HTTP | `http://127.0.0.1:12283` |
+| Jellyfin | HTTP | `http://192.168.0.50:8096` |
+| Vaultwarden | HTTP | `http://127.0.0.1:18222` |
+| Home Assistant | HTTP | `http://127.0.0.1:18123` |
+| Gitea | HTTP | `http://127.0.0.1:13002` |
+| AdGuard DNS | DNS | 이름 `example.com`, 서버 `127.0.0.1`, 포트 53 |
+| 인증서 만료 | HTTP(S) | Caddy의 HTTPS 주소. **인증서 만료 알림** 켜기 |
+| 인터넷 연결 | 핑 | `1.1.1.1` |
+
+확인 간격은 60초, 재시도는 2~3회로 둡니다. 한 번 응답이 늦은 것으로 알림이 오면 곧 무뎌집니다.
+
+### 알림 연결
+
+설정의 알림에서 종류를 **ntfy**로 고르고, Chapter 8에서 만든 서버 주소(`https://homeserver.tail1234.ts.net:8580`)와 주제 이름을 넣습니다. 모든 감시 항목에 이 알림을 연결합니다. 중요한 알림이 일반 점검과 섞이지 않도록 **감시용 주제는 별도로** 만들어도 좋습니다.
+
+<Note type="warn" title="서버가 죽으면 서버가 보내는 알림도 죽습니다">
+감시도 알림도 같은 서버에서 돌기 때문에, **서버 전체가 꺼지면 아무 알림도 오지 않습니다.** 이 약점을 줄이려면 서버 밖에서 서버를 감시해야 합니다. 방법은 공개 감시 서비스를 쓰거나, 다른 항상 켜진 기기에서 이 서버를 감시하는 것입니다. 이 과정은 한 대 구성이므로 "서버가 통째로 멈추면 알림이 없다"는 한계를 알고, **주간 보고서가 오지 않으면 이상하다고 생각**하는 습관으로 보완합니다(다음).
+</Note>
+
+## 15.2 주간 점검의 생존 신호
+
+Chapter 8의 주간 점검이 조용히 멈추는 것을 막기 위해 **푸시(Push) 감시**를 씁니다. 거꾸로 점검 스크립트가 "나 살아 있음" 신호를 Kuma에 보내고, 신호가 오지 않으면 Kuma가 경고합니다.
+
+1. Kuma에서 새 감시를 만들고 종류를 **Push**로 합니다. 확인 간격은 **8일**(주 1회 + 하루 여유)로 합니다.
+2. 만들어진 주소(`.../api/push/토큰?status=up&msg=OK`)를 복사합니다.
+3. `weekly.sh`의 마지막 줄 뒤에 추가합니다.
+
+```bash
+curl -fsS "http://127.0.0.1:13001/api/push/토큰?status=up&msg=OK" > /dev/null
+```
+
+`claudeops`가 `curl`을 쓸 수 있으므로(deny 규칙은 클로드의 도구 안에서만 적용) 스크립트에서는 정상 실행됩니다. 스크립트가 도중에 실패하면 이 줄까지 도달하지 못해 신호가 가지 않고, **8일 뒤 경고가 옵니다.**
+
+<Mini title="푸시 감시를 쓰는 이유">
+주간 보고서가 오지 않을 때 직접 알아채면 되는데, 푸시 감시가 필요한 이유는 무엇일까요?
+
+<Answer>
+사람은 **오지 않은 것**을 알아채기 어렵습니다. 알림이 오면 눈에 띄지만, 알림이 조용히 사라진 것은 몇 주가 지나도 모릅니다. 점검 시스템이 죽은 것도 같은 방식으로 죽습니다. 정상 신호가 끊기면 경고하는 구조는 의료 기기와 서버 운영에서 쓰는 오래된 방법(heartbeat)이고, "아무 일도 없음"과 "감시가 멈춤"을 구분하게 해 줍니다.
+</Answer>
+</Mini>
+
+## 15.3 Gitea로 변경 기록 남기기
+
+Chapter 7에서 `CHANGELOG.md`에 한 줄씩 남겼지만, **정확히 어떤 줄이 어떻게 바뀌었는지**는 Git이 기록해 줍니다. 서버 설정을 Git에 넣으면 "지난주에 Caddyfile 어디를 고쳤지"에 바로 답할 수 있고, 잘못 고쳤을 때 이전 상태로 돌아갈 수 있습니다. Gitea는 가벼운 직접 운영형 Git 서비스입니다.
+
+`/srv/compose/gitea/compose.yaml`
+
+```yaml
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA__server__ROOT_URL: https://homeserver.tail1234.ts.net:3002/
+      GITEA__service__DISABLE_REGISTRATION: "true"
+    volumes:
+      - /srv/data/gitea:/data
+    ports:
+      - "127.0.0.1:13002:3000"
+```
+
+<Term title="homeserver (admin)" code={`
+$ mkdir -p /srv/compose/gitea /srv/data/gitea
+$ cd /srv/compose/gitea && docker compose up -d
+`} />
+
+Caddyfile에 3002 칸(안쪽 13002)을 추가하고 접속하면 설치 화면이 나옵니다. 데이터베이스는 SQLite3로 충분하고, **관리자 계정을 설치 화면에서 만듭니다.** 사용자 가입은 닫았으므로 가족에게 계정이 필요하면 관리자가 만들어 줍니다.
+
+### 서버 설정을 저장소로
+
+`/srv/compose` 전체를 하나의 저장소로 만들되, **비밀과 자료는 제외**합니다.
+
+<Term title="homeserver (admin)" code={`
+$ cd /srv/compose
+$ cat > .gitignore <<'EOF'
+.env
+**/.env
+*.key
+*.crt
+*.bak*
+EOF
+$ git init -b main
+$ git add -A
+$ git status --short
+`} />
+
+`git status`의 목록을 **눈으로 훑어** 비밀번호가 들어 있을 만한 파일이 없는지 확인합니다. 확인이 끝나면 커밋하고, Gitea에서 빈 저장소를 만든 뒤 주소로 올립니다.
+
+<Term title="homeserver (admin)" code={`
+$ git commit -m "서버 설정 초기 기록"
+$ git remote add origin https://homeserver.tail1234.ts.net:3002/관리자이름/server-config.git
+$ git push -u origin main
+`} />
+
+비밀번호 대신 Gitea 설정에서 만든 **접근 토큰**을 입력합니다. 이후 설정을 고칠 때마다 `git diff`로 바뀐 줄을 보고 커밋합니다.
+
+<Note type="danger" title="저장소에 넣으면 안 되는 것">
+`.env`(비밀번호), 인증서 키, 서비스 자료(사진, 데이터베이스), 백업 파일은 **저장소에 넣지 마세요.** 한번 커밋된 비밀은 파일을 지워도 기록 안에 남습니다. 실수로 올렸다면 해당 비밀번호를 **바꿔야** 합니다(기록에서 지우는 것으로는 부족합니다). 저장소가 서버 안에 있어도 마찬가지입니다. 이 서버의 백업에 저장소가 포함되기 때문입니다.
+</Note>
+
+<Note type="tip" title="클로드와 함께 쓰기">
+Chapter 6의 "제안은 클로드가, 적용은 사람이" 흐름에서, 클로드의 제안서가 **diff 형태**이면 검토가 쉽습니다. 사람이 적용한 뒤 Git에 커밋 메시지를 남기면 CHANGELOG의 역할도 합니다. `~/ops`도 별도 저장소로 만들 수 있습니다(스크립트와 CLAUDE.md의 변경 기록).
+</Note>
+
+<Lab id="15-1" title="감시와 기록 시작" time="2시간">
+
+- [ ] Uptime Kuma에 서비스 6개 이상을 등록했다
+- [ ] ntfy 알림을 연결했고, 컨테이너 하나를 일부러 멈춰 알림이 오는 것을 확인했다(확인 후 되돌림)
+- [ ] 인증서 만료 알림을 켰다
+- [ ] 주간 점검의 푸시 감시를 만들고 `weekly.sh`에 신호 줄을 넣었다
+- [ ] Gitea 저장소를 만들었고 `.gitignore`로 비밀 파일이 제외된 것을 확인했다
+- [ ] `/srv/compose`의 첫 커밋을 올렸다
+- [ ] Caddyfile에서 줄 하나를 고치고 `git diff`를 본 뒤 커밋했다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 16 문서 보관과 메모 동기화 (Paperless-ngx, Syncthing)** — 종이 문서를 스캔해 검색 가능한 문서로 만들고, 클로드에게 문서를 읽힐 때 지킬 선을 정합니다.
+
+<small>확인 기준일 2026-11-15. Uptime Kuma의 환경 변수(UPTIME_KUMA_HOST, UPTIME_KUMA_PORT)와 푸시 주소 형식, Gitea의 환경 변수 이름은 제 지식 기준이며 버전에 따라 다를 수 있으니 공식 문서를 확인하세요. 이미지 태그 `latest`는 설명 편의를 위한 것입니다. 이 서버에서 직접 시험하지 않았습니다.</small>

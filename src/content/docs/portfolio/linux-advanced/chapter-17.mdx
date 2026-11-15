@@ -1,0 +1,260 @@
+---
+title: 백업 3-2-1과 복구 훈련
+description: restic으로 암호화 백업을 만들고, 서비스별 일관된 덤프를 뜨고, 외장 디스크와 서버 밖에 보관하고, 실제로 복구해 보는 훈련
+sidebar:
+  label: Chapter 17 · 백업과 복구
+  order: 17
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+이 서버에는 가족의 사진, 비밀번호, 문서가 있습니다. **디스크 한 개가 고장 나거나, 서버가 도난당하거나, 내가 실수로 지우면** 그 자료는 사라집니다. 이 챕터가 3부의 모든 서비스를 안심하고 쓰게 해 주는 마지막 퍼즐입니다.
+
+<Note type="danger" title="백업은 복구해 보기 전까지 백업이 아닙니다">
+백업이 매일 잘 돌고 있어도, **복구가 되는지 시험하지 않았다면 아직 모르는 것**입니다. 압축 파일이 깨져 있거나, 암호를 잊었거나, 필요한 폴더가 빠져 있는 일은 복구하려는 순간에야 드러납니다. 이 챕터의 마지막 절은 복구 훈련입니다. 건너뛰지 마세요.
+</Note>
+
+<Note type="why" title="이 챕터를 마치면">
+- 3-2-1 규칙을 설명하고 우리 서버에 적용할 수 있다
+- 서비스별로 백업해야 할 것과 하지 않아도 되는 것을 구분할 수 있다
+- restic으로 암호화된 백업을 만들고 정리 규칙을 정할 수 있다
+- 백업이 매일 돌고 있다는 것을 감시할 수 있다
+- 파일 하나와 서버 전체를 복구해 본 경험을 갖는다
+</Note>
+
+## 17.1 3-2-1 규칙
+
+<Hist year="2000s" title="사진가들이 만든 규칙">
+3-2-1 규칙은 디지털 사진가 피터 크로그가 널리 퍼뜨린 것으로 알려진 백업 원칙입니다. 한 곳에 몰려 있는 자료는 한 번의 사고로 사라지므로, **사본을 여러 개, 여러 종류의 저장 장치에, 여러 장소에** 두라는 단순한 약속입니다.
+</Hist>
+
+| 숫자 | 뜻 | 우리 서버에서 |
+|---|---|---|
+| **3** | 자료가 총 3벌 | 서버 원본 + 외장 디스크 백업 + 서버 밖 백업 |
+| **2** | 서로 다른 저장 장치 2종류 | 서버 내부 SSD, 외장 디스크 |
+| **1** | 1벌은 다른 장소 | 서버 밖(클라우드 또는 다른 집) |
+
+외장 디스크는 서버 옆에 있으므로 **화재, 침수, 도난에는 서버와 함께 사라집니다.** 그래서 서버 밖 사본이 필요합니다.
+
+## 17.2 무엇을 백업하나
+
+| 대상 | 백업 | 방법 |
+|---|---|---|
+| `/srv/compose` | 필수. 서버 설정 전체 (Git 저장소와 함께) | 파일 그대로 |
+| Immich 사진 | **필수.** 가장 중요한 자료 | `/srv/media/immich/library`. 미리보기(`thumbs`)와 변환 영상(`encoded-video`)은 다시 만들 수 있어 제외 |
+| Immich 데이터베이스 | 필수 | 서비스의 자체 덤프 기능 사용. 실행 중인 데이터베이스 폴더를 그대로 복사하지 않는다 |
+| Vaultwarden | **필수** | `vaultwarden backup` 명령 |
+| Paperless 문서 | 필수 | `document_exporter` 명령(문서와 목록을 내보낸다) |
+| Home Assistant | 필수 | 설정 폴더 + 앱의 자체 백업 |
+| Gitea, Uptime Kuma, AdGuard 설정 | 권장 | 설정 폴더 |
+| Jellyfin 설정 | 선택 | 다시 만들 수 있지만 시청 기록이 사라진다 |
+| Jellyfin의 영상 원본 | 중요도에 따라 | 직접 촬영한 영상은 필수, 다시 구할 수 있는 것은 선택 |
+| 인증서, Tailscale 키 | 불필요 | 다시 발급 받는다 |
+
+<Note type="warn" title="실행 중인 데이터베이스를 그냥 복사하면 안 됩니다">
+데이터베이스는 파일 여러 개가 맞물려 있어서, **쓰는 도중에 복사하면 중간 상태가 복사**되어 복구가 안 될 수 있습니다. 그래서 서비스가 제공하는 덤프나 백업 명령으로 **일관된 파일**을 먼저 만들고, 그 파일을 백업합니다.
+</Note>
+
+## 17.3 백업 전에 덤프 만들기
+
+`/usr/local/bin/pre-backup.sh`
+
+```bash
+#!/bin/bash
+set -e
+# Vaultwarden: 일관된 데이터베이스 백업 파일 만들기
+docker exec vaultwarden /vaultwarden backup
+# Paperless: 문서와 목록 내보내기
+docker compose -f /srv/compose/paperless/compose.yaml exec -T webserver document_exporter ../export
+# Immich 데이터베이스는 관리 화면의 자동 DB 백업(덤프) 설정으로 만들어진다.
+# 덤프가 최근 것인지 확인한다 (없으면 오류로 알린다)
+find /srv/media/immich/library/backups -name '*.sql.gz' -mtime -2 | grep -q . || { echo "Immich DB 덤프가 2일 이내에 없음"; exit 1; }
+```
+
+- Vaultwarden의 `backup` 명령, Paperless의 `document_exporter`, Immich의 DB 덤프 기능은 모두 **버전마다 이름과 위치가 달라질 수 있습니다.** 서비스의 공식 문서를 확인하고, 실행해서 파일이 실제로 생기는지 눈으로 보세요.
+- 마지막 줄은 덤프가 **오래되었으면 백업을 실패로 처리**해, 오래된 덤프를 안 채로 백업이 "성공"으로 끝나는 일을 막습니다.
+
+## 17.4 restic으로 백업
+
+restic은 암호화, 중복 제거, 시점별 보관을 한 번에 해 주는 백업 도구입니다.
+
+<Term title="homeserver (admin)" code={`
+$ sudo apt install -y restic
+$ sudo chmod +x /usr/local/bin/pre-backup.sh
+`} />
+
+### 외장 디스크 연결
+
+외장 디스크를 서버에 꽂고 `lsblk -f`로 이름과 UUID를 확인한 뒤, 재부팅해도 같은 자리에 붙게 설정합니다.
+
+<Term title="homeserver (admin)" code={`
+$ lsblk -f
+$ sudo mkdir -p /mnt/backup
+$ echo 'UUID=여기에-UUID  /mnt/backup  ext4  defaults,nofail  0  2' | sudo tee -a /etc/fstab
+$ sudo mount -a
+$ df -h /mnt/backup
+`} />
+
+디스크를 처음 쓸 때는 `mkfs.ext4`로 초기화해야 하는데, **이 명령은 디스크 안의 자료를 모두 지웁니다.** 디스크 이름을 `lsblk`로 두 번 확인하세요. `nofail`은 디스크가 없어도 서버가 부팅되게 하는 옵션입니다.
+
+### 저장소 만들기와 암호
+
+<Term title="homeserver (admin)" code={`
+$ sudo install -m 600 /dev/null /root/.restic-pass
+$ sudo nano /root/.restic-pass
+$ sudo restic init -r /mnt/backup/restic --password-file /root/.restic-pass
+`} />
+
+<Note type="danger" title="restic 암호를 잃으면 모든 백업을 잃습니다">
+restic은 백업 전체를 암호로 암호화하므로, **암호를 잃으면 아무도 복구할 수 없습니다.** 그런데 이 암호를 Vaultwarden에만 저장하면 안 됩니다. Vaultwarden 자체가 이 백업 안에 있기 때문에 **순환**이 됩니다(금고를 열려면 백업이 필요하고, 백업을 열려면 금고가 필요). 암호는 **종이에 적어 서버 밖 안전한 곳**에 두고, 가족 중 한 명에게도 위치를 알리세요.
+</Note>
+
+### 백업 실행
+
+`/usr/local/bin/backup.sh`
+
+```bash
+#!/bin/bash
+set -e
+export RESTIC_PASSWORD_FILE=/root/.restic-pass
+/usr/local/bin/pre-backup.sh
+restic -r /mnt/backup/restic backup \
+  /srv/compose /srv/data /srv/media \
+  --exclude /srv/data/immich/postgres \
+  --exclude /srv/data/jellyfin/cache \
+  --exclude /srv/data/paperless/redis \
+  --exclude '/srv/media/immich/library/thumbs' \
+  --exclude '/srv/media/immich/library/encoded-video' \
+  --tag daily
+restic -r /mnt/backup/restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
+# 감시 서비스에 성공 신호 보내기
+curl -fsS "http://127.0.0.1:13001/api/push/백업토큰?status=up&msg=OK" > /dev/null
+```
+
+- Immich의 `postgres` 데이터베이스 폴더는 **제외**했습니다. 실행 중인 폴더를 복사하지 않고 17.3의 덤프로 대신합니다.
+- `forget` 줄은 최근 7일, 4주, 12개월치만 남기고 정리합니다.
+- 마지막 줄은 Uptime Kuma의 푸시 감시(Chapter 15)로, **백업이 성공했을 때만 신호**가 갑니다.
+
+### 매일 자동 실행
+
+<Term title="homeserver (admin)" code={`
+$ sudo chmod +x /usr/local/bin/backup.sh
+$ sudo tee /etc/systemd/system/backup.service <<'EOF'
+[Unit]
+Description=Daily restic backup
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/backup.sh
+EOF
+$ sudo tee /etc/systemd/system/backup.timer <<'EOF'
+[Unit]
+Description=Daily backup at 03:30
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+[Install]
+WantedBy=timers.target
+EOF
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable --now backup.timer
+$ sudo systemctl start backup.service
+$ sudo restic -r /mnt/backup/restic snapshots --password-file /root/.restic-pass
+`} />
+
+Uptime Kuma에서 **푸시 감시**(간격 25시간)를 만들어 토큰을 위 스크립트에 넣으세요. 백업이 하루라도 빠지면 알림이 옵니다.
+
+## 17.5 서버 밖 사본
+
+같은 restic 저장소를 **다른 장소**에도 만듭니다. 선택지는 두 가지입니다.
+
+| 방법 | 설명 | 판단 |
+|---|---|---|
+| 클라우드 저장소 | restic이 직접 지원하는 저장소(예: Backblaze B2, S3 호환 서비스)에 올린다. 암호화되어 올라가므로 클라우드 회사는 내용을 읽을 수 없다 | 가장 쉽다. 저장 용량과 전송량에 요금이 든다. **요금은 가입 시점의 공식 가격표 확인** |
+| 다른 집의 서버나 디스크 | 가까운 가족의 집에 이 서버와 같은 구조의 작은 기기를 두고, Tailscale 경유로 SFTP 저장 | 무료지만 상대 집의 협조와 관리가 필요 |
+
+클라우드 예시입니다(계정과 버킷은 서비스에서 만든 뒤).
+
+```
+restic -r b2:버킷이름:restic backup ...
+```
+
+환경 변수에 접근 키를 두고 같은 명령으로 올립니다. 키는 **그 버킷만 쓸 수 있는 제한된 키**로 만들고, 서버의 root만 읽을 수 있는 파일에 둡니다. 처음 올리는 데는 사진 용량에 따라 수 일이 걸릴 수 있으니 천천히 올리세요.
+
+<Mini title="우리 집 3-2-1 점검">
+서버 SSD(원본), 서버 옆 외장 디스크(restic), 클라우드(restic)가 있습니다. 집에 불이 나면 어느 것이 남나요? 3-2-1 규칙을 만족하나요?
+
+<Answer>
+서버와 외장 디스크는 같은 집에 있어 **함께 사라질 수 있고**, 클라우드 사본이 남습니다. 3벌(원본, 외장, 클라우드), 장치 2종류(SSD, 외장 디스크/클라우드), 다른 장소 1벌(클라우드)이라 3-2-1을 만족합니다. 다만 클라우드의 restic 암호를 종이로 집 밖에 두지 않았다면 그 사본을 열 수 없습니다.
+</Answer>
+</Mini>
+
+## 17.6 복구 훈련
+
+### 훈련 1: 파일 하나 되살리기 (10분)
+
+<Term title="homeserver (admin)" code={`
+$ export RESTIC_PASSWORD_FILE=/root/.restic-pass
+$ sudo -E restic -r /mnt/backup/restic snapshots
+$ sudo -E restic -r /mnt/backup/restic restore latest --target /tmp/restore --include /srv/compose/caddy/Caddyfile
+$ diff /tmp/restore/srv/compose/caddy/Caddyfile /srv/compose/caddy/Caddyfile && echo "같음"
+$ rm -rf /tmp/restore
+`} />
+
+### 훈련 2: 비밀번호 금고 복구해 보기 (30분)
+
+1. Vaultwarden의 데이터를 **다른 폴더로** 복원합니다(원본을 덮어쓰지 않습니다).
+
+<Term title="homeserver (admin)" code={`
+$ sudo -E restic -r /mnt/backup/restic restore latest --target /tmp/vw-restore --include /srv/data/vaultwarden
+$ sudo ls -l /tmp/vw-restore/srv/data/vaultwarden
+$ sudo sqlite3 /tmp/vw-restore/srv/data/vaultwarden/db.sqlite3 "PRAGMA integrity_check;"
+`} />
+
+`ok`가 나오면 데이터베이스가 온전한 것입니다. (`sqlite3`가 없으면 `sudo apt install -y sqlite3`)
+
+2. 시험이 끝나면 `sudo rm -rf /tmp/vw-restore`로 지웁니다. **복원한 폴더에는 모든 비밀번호가 들어 있습니다.**
+
+### 훈련 3: 서버를 통째로 다시 세우는 절차 읽기와 점검
+
+실제로 서버를 지워서 시험하기는 어려우니, 절차를 적어 두고 **빠진 것이 없는지** 점검합니다.
+
+| 순서 | 작업 | 필요한 것 |
+|---|---|---|
+| 1 | Ubuntu Server 설치 | Chapter 1 서버 노트 |
+| 2 | 공유기에서 같은 주소 예약 | 서버 노트의 MAC 주소 |
+| 3 | Tailscale 설치, 같은 이름으로 로그인 | 계정 (콘솔에서 이전 기기 삭제) |
+| 4 | Docker 설치 | Chapter 3 |
+| 5 | restic 설치, 외장 디스크 연결, **restic 암호 확인** | **종이 암호** |
+| 6 | `/srv` 복원 | `restic restore latest --target /` |
+| 7 | 서비스별 `docker compose up -d` | 복원된 compose 폴더 |
+| 8 | Immich DB 덤프 복원 | Immich 공식 복구 문서 |
+| 9 | 인증서 다시 받기, Caddy 시작 | Chapter 3 |
+| 10 | 서비스 하나씩 접속 확인 | 가족 안내 페이지 |
+
+이 표를 **종이로 출력**해 restic 암호와 함께 보관하세요. 서버가 죽은 날 서버 안의 문서는 읽을 수 없습니다.
+
+<Lab id="17-1" title="백업 완성과 복구 시험" time="3시간">
+
+- [ ] 외장 디스크가 재부팅해도 `/mnt/backup`에 붙는다
+- [ ] restic 암호를 종이에 적어 서버 밖에 보관했다
+- [ ] `pre-backup.sh`를 손으로 실행해 Vaultwarden 백업, Paperless 내보내기, Immich 덤프를 확인했다
+- [ ] `backup.sh`를 손으로 실행해 스냅샷이 만들어졌다
+- [ ] 매일 03:30 타이머를 등록했고, Uptime Kuma 푸시 감시가 연결되었다
+- [ ] 서버 밖 저장소에도 백업을 올렸다
+- [ ] 복구 훈련 1과 훈련 2를 직접 해 보았다
+- [ ] 복구 절차표(훈련 3)를 출력해 암호와 함께 보관했다
+- [ ] 이제 가족의 소중한 자료를 서비스로 옮긴다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 18 감시와 보안 유지** — 방화벽, 자동 업데이트, 분실한 기기 대응처럼 서버를 오래 안전하게 쓰는 습관을 만듭니다.
+
+<small>확인 기준일 2026-11-15. restic의 명령(init, backup, forget, restore)과 B2 저장소 형식은 제 지식 기준이며 `restic --help`로 확인하세요. Vaultwarden backup 명령, Paperless document_exporter 경로, Immich DB 덤프 위치는 버전에 따라 달라질 수 있습니다. 3-2-1 규칙의 출처는 널리 알려진 설명을 따랐고 원 출처를 직접 확인하지는 않았습니다. 클라우드 요금은 적지 않았습니다. 이 서버에서 직접 시험하지 않았습니다.</small>

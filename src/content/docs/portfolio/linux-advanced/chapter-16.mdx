@@ -1,0 +1,188 @@
+---
+title: 문서 보관과 메모 동기화 (Paperless-ngx, Syncthing)
+description: Paperless-ngx로 종이 문서를 검색 가능한 문서로 보관, Syncthing으로 메모 동기화, 클로드에게 문서를 읽힐 때 지킬 선
+sidebar:
+  label: Chapter 16 · 문서와 메모
+  order: 16
+---
+
+import Term from '../../../../components/Term.astro';
+import Hist from '../../../../components/Hist.astro';
+import Note from '../../../../components/Note.astro';
+import Mini from '../../../../components/Mini.astro';
+import Answer from '../../../../components/Answer.astro';
+import Lab from '../../../../components/Lab.astro';
+
+보험 증권, 계약서, 공과금 고지서, 아이 학교 서류. 가족의 종이 문서는 서랍 속에서 필요할 때마다 사라집니다. **스캔해서 글자까지 인식하고(OCR), 검색할 수 있게** 보관하면 "그 서류 어디 있지"가 사라집니다. 이 챕터의 후반부는 이 문서를 **클로드에게 읽힐 때 지킬 선**을 다룹니다.
+
+<Note type="why" title="이 챕터를 마치면">
+- Paperless-ngx를 설치하고 한국어 OCR을 설정할 수 있다
+- 문서를 넣고 태그로 정리하는 방법을 안다
+- Syncthing으로 메모(Obsidian 등)를 기기 사이에 동기화할 수 있다
+- 클로드에게 어떤 문서를 읽혀도 되는지 **기준**을 세울 수 있다
+</Note>
+
+## 16.1 Paperless-ngx 설치
+
+Paperless-ngx는 스캔한 문서의 글자를 읽어(OCR) 검색할 수 있게 하고, 태그와 보낸 곳을 자동으로 붙여 줍니다. 구성 요소는 웹 서비스와 메시지 저장소(Redis) 두 개입니다.
+
+`/srv/compose/paperless/compose.yaml`
+
+```yaml
+services:
+  broker:
+    image: docker.io/library/redis:7
+    restart: unless-stopped
+    volumes:
+      - /srv/data/paperless/redis:/data
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    depends_on:
+      - broker
+    env_file: .env
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+    ports:
+      - "127.0.0.1:18000:8000"
+    volumes:
+      - /srv/data/paperless/data:/usr/src/paperless/data
+      - /srv/media/paperless/media:/usr/src/paperless/media
+      - /srv/media/paperless/export:/usr/src/paperless/export
+      - /srv/media/paperless/consume:/usr/src/paperless/consume
+```
+
+`/srv/compose/paperless/.env`
+
+```
+USERMAP_UID=1000
+USERMAP_GID=1000
+PAPERLESS_URL=https://homeserver.tail1234.ts.net:8000
+PAPERLESS_SECRET_KEY=아무도-모를-긴-임의의-문자열
+PAPERLESS_TIME_ZONE=Asia/Seoul
+PAPERLESS_OCR_LANGUAGE=kor+eng
+PAPERLESS_OCR_LANGUAGES=kor
+```
+
+- `PAPERLESS_OCR_LANGUAGE`: 문서에서 읽을 언어(한국어와 영어)입니다.
+- `PAPERLESS_OCR_LANGUAGES`: 한국어 언어 데이터를 컨테이너에 설치하게 합니다. 이 설정이 없으면 한국어 글자를 읽지 못합니다.
+
+<Term title="homeserver (admin)" code={`
+$ mkdir -p /srv/compose/paperless /srv/data/paperless/redis /srv/data/paperless/data /srv/media/paperless/media /srv/media/paperless/export /srv/media/paperless/consume
+$ cd /srv/compose/paperless
+$ chmod 600 .env
+$ docker compose up -d
+$ docker compose exec webserver createsuperuser
+`} />
+
+마지막 명령은 관리자 계정을 만듭니다. Caddyfile에 8000 칸(안쪽 18000)을 추가하고 `https://homeserver.tail1234.ts.net:8000`에서 로그인합니다.
+
+## 16.2 문서 넣고 정리하기
+
+| 방법 | 설명 |
+|---|---|
+| 웹에 끌어다 놓기 | 화면에 PDF나 사진을 올린다 |
+| 수신(consume) 폴더 | 서버의 `/srv/media/paperless/consume`에 파일을 넣으면 자동으로 가져간다 |
+| 휴대폰 스캔 | 휴대폰 문서 스캔 앱으로 PDF를 만들어 웹으로 올린다 |
+
+문서가 들어오면 OCR이 돌고 내용이 검색됩니다. 정리는 세 가지 이름표로 합니다.
+
+| 이름표 | 예 |
+|---|---|
+| 태그 | 세금, 보험, 집, 아이, 의료 |
+| 보낸 곳 | 국민건강보험, 통신사, 학교 |
+| 문서 종류 | 고지서, 계약서, 증명서 |
+
+처음 20~30개는 직접 붙이고, 그 뒤에는 **자동 분류(matching)** 가 비슷한 문서에 이름표를 붙여 줍니다. 맞지 않는 것은 고쳐 주며 학습시킵니다.
+
+<Note type="danger" title="주민등록번호와 계좌번호가 들어 있습니다">
+가족의 문서에는 주민등록번호, 계좌번호, 의료 정보가 들어 있습니다. 이 서버는 **디스크 전체 암호화가 설정되어 있지 않으므로**, 서버를 도난당하면 이 자료가 그대로 읽힙니다. 이 위험을 줄이려면 설치 때 디스크 암호화를 설정하거나(재설치가 필요), 서버를 집 안 안전한 곳에 두고, **백업은 반드시 암호화**하세요(Chapter 17).
+</Note>
+
+## 16.3 가족 문서 권한
+
+Paperless-ngx에서 가족마다 계정을 만들고, 문서에 **소유자와 공유 권한**을 줍니다. 각자의 문서를 비공개로 두고 공유할 문서만 가족에게 보이게 합니다. 부부의 공동 문서(집 계약서, 보험)는 공유하고, 개인 문서(의료 기록)는 소유자만 보게 하는 식입니다.
+
+## 16.4 Syncthing으로 메모 동기화
+
+Obsidian 같은 메모 앱은 **폴더에 마크다운 파일**로 저장합니다. 여러 기기에서 같은 메모를 보려면 폴더를 동기화해야 합니다. Syncthing은 클라우드를 거치지 않고 **기기끼리 직접** 폴더를 맞춰 주는 도구입니다.
+
+`/srv/compose/syncthing/compose.yaml`
+
+```yaml
+services:
+  syncthing:
+    image: syncthing/syncthing
+    container_name: syncthing
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      PUID: 1000
+      PGID: 1000
+      STGUIADDRESS: 127.0.0.1:18384
+    volumes:
+      - /srv/data/syncthing:/var/syncthing
+      - /srv/media/notes:/notes
+```
+
+관리 화면은 서버 안(`127.0.0.1:18384`)에만 열리고, 접속은 노트북에서 SSH 터널을 씁니다(Chapter 13과 같은 방식).
+
+<Term title="내 노트북" code={`
+$ ssh -L 18384:127.0.0.1:18384 사용자이름@homeserver
+`} />
+
+설정의 요점입니다.
+
+- **서버를 항상 켜진 중계점**으로 씁니다. 노트북과 휴대폰이 서버를 통해 서로 동기화합니다.
+- 공개 중계 서버와 전역 검색 기능을 끄고, 기기 주소는 **Tailscale 주소**(`tcp://100.x.y.z:22000`)로 직접 지정합니다. 이 서버의 목적이 외부에 의존하지 않는 것이기 때문입니다.
+- 안드로이드는 Syncthing 앱이 있습니다. 아이폰은 공식 앱이 없어 제3자 앱을 쓰는데 유료인 경우가 있으니, **아이폰이 주력이면 다른 방법(예: 폴더 대신 Git 저장소 또는 서비스)을 검토**하세요.
+
+<Note type="warn" title="동기화는 백업이 아닙니다">
+한 기기에서 파일을 지우면 **모든 기기에서 지워집니다.** 동기화는 같은 상태를 유지하는 것이지 과거 상태를 보존하는 것이 아닙니다. 폴더 설정의 **파일 버전 관리**(삭제된 파일 보관)를 켜고, 이 서버의 노트 폴더도 백업 대상으로 넣으세요.
+</Note>
+
+## 16.5 클로드에게 문서를 읽힐 때의 선
+
+문서 검색과 요약은 클로드가 가장 잘하는 일입니다. 하지만 **문서의 내용은 Anthropic의 서비스로 전송됩니다.** 이 선택은 서버 속 클로드가 가장 조심해야 하는 지점이라 기준을 세워 둡니다.
+
+| 문서 종류 | 클로드에게 읽혀도 될까 | 이유 |
+|---|---|---|
+| 공과금 고지서, 안내문, 이용 약관 | 가능(개인 식별 정보 가리기) | 개인 식별 정보가 적고 내용 이해가 목적 |
+| 계약서 요약 | 신중. 이름·주소·금액 가린 뒤 | 내용 이해에는 도움되지만 개인 정보가 많다 |
+| 주민등록번호, 계좌번호, 카드번호가 있는 문서 | **가리지 않고는 안 됨** | 유출되면 피해가 크다 |
+| 의료 기록, 가족 간 법적 서류 | **원칙적으로 안 됨** | 민감정보. 필요하면 사람이 직접 읽고 필요한 부분만 |
+| 출처를 모르는 외부 문서(받은 메일 첨부) | 읽힐 수는 있으나 **주입 위험** | Chapter 9. 문서 속 지시를 따르게 될 수 있다 |
+
+### 안전한 방법
+
+1. 클로드의 계정(`claudeops`)이 **문서 저장소를 직접 읽지 못하게** 둡니다(Chapter 6의 권한 벽 그대로).
+2. 읽힐 문서는 관리자가 **문서 하나씩 골라** 가릴 곳을 가린 텍스트로 `~/ops/docs-inbox/`에 넣습니다.
+3. 클로드에게는 **요약만** 시키고, 요약이 말하는 "해야 할 일"은 **사람이 원문을 확인**합니다.
+4. 클로드가 문서에 있다고 말하는 숫자(금액, 날짜)는 **원문과 대조**합니다. 요약은 틀릴 수 있습니다(Chapter 7).
+
+<Mini title="바로 읽히면 편한데 왜 이렇게 번거롭게 하나요">
+Paperless-ngx 전체를 클로드가 읽을 수 있게 연결하면 "작년 세금 서류 찾아서 요약해줘"가 한 번에 됩니다. 이 방식을 이 과정이 택하지 않은 이유는 무엇일까요?
+
+<Answer>
+Chapter 9의 위험 조건 세 가지가 한꺼번에 채워지기 때문입니다. **믿을 수 없는 글**(외부에서 받은 문서)과 **개인정보**(가족 전체 문서)가 같은 곳에 있고, 클로드가 **외부와 통신**할 수 있다면, 문서 속 숨은 지시 하나로 개인정보가 밖으로 나갈 수 있습니다. 편리함을 얻는 대신 사고가 났을 때 피해가 가장 큰 구성입니다. 필요한 문서만 골라 주는 번거로움이 그 피해 범위를 한 문서로 줄입니다.
+</Answer>
+</Mini>
+
+<Lab id="16-1" title="문서 서랍 만들기" time="2시간 30분">
+
+- [ ] Paperless-ngx가 실행 중이고 HTTPS 주소에서 로그인된다
+- [ ] 한국어 문서 1장을 올려 검색어로 찾아지는 것을 확인했다(OCR 성공)
+- [ ] 태그, 보낸 곳, 문서 종류를 각각 하나 이상 만들었다
+- [ ] 가족 계정을 만들고 공유와 비공개 문서를 하나씩 정했다
+- [ ] Syncthing 폴더 동기화를 노트북과 서버 사이에서 시험했다
+- [ ] 파일 버전 관리를 켜고, 지운 파일이 복구되는지 확인했다
+- [ ] 클로드에게 읽힐 문서의 선(표)을 가족과 함께 정했다
+- [ ] 안내문 1개를 가려서 `docs-inbox`에 넣고 요약받아 원문과 대조했다
+
+</Lab>
+
+---
+
+**다음 챕터 · Chapter 17 백업 3-2-1과 복구 훈련** — 지금까지 올린 모든 서비스의 자료를 한 번에 지키는 백업을 만들고, 실제로 복구해 봅니다. 이 챕터가 3부의 모든 서비스를 안심하고 쓰게 해 주는 마지막 퍼즐입니다.
+
+<small>확인 기준일 2026-11-15. Paperless-ngx의 OCR 언어 환경 변수, Syncthing의 환경 변수와 이미지는 제 지식 기준이므로 공식 문서에서 이름을 확인하세요. 아이폰용 Syncthing 호환 앱의 현황은 확인하지 못했습니다. 이 서버에서 직접 시험하지 않았습니다.</small>
