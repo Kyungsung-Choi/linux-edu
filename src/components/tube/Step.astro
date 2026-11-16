@@ -1,0 +1,12 @@
+---
+// 실습 한 단계: 번호 + 제목 + 설명(슬롯) + 그림(슬롯) + "이렇게 보이면 OK"
+const { n, title, ok = '' } = Astro.props;
+---
+<section class="tl__step">
+  <div class="tl__sn">{n}</div>
+  <div class="tl__sb">
+    <h4>{title}</h4>
+    <slot />
+    {ok && <p class="tl__sok"><b>확인</b>{ok}</p>}
+  </div>
+</section>

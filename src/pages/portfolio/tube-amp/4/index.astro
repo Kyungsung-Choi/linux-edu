@@ -1,8 +1,19 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import BbStep from '../../../../components/tube/BbStep.astro';
+import Step from '../../../../components/tube/Step.astro';
 import Divider from '../../../../components/tube/Divider.astro';
 import PotInside from '../../../../components/tube/PotInside.astro';
 import TaperCurves from '../../../../components/tube/TaperCurves.astro';
+const K10 = ['#7b4a2a', '#111111', '#f08a24', '#c9a23a'];
+const K47 = ['#f1d11c', '#7b3fa0', '#d63a2e', '#c9a23a'];
+const RT = { t: 'res', a: 'c2', b: 'c6', label: '10kΩ', bands: K10 };
+const RB = { t: 'res', a: 'c6', b: 'c10', label: '10kΩ', bands: K10 };
+const WR = { t: 'wire', from: '+2', to: 'a2', color: 'red' };
+const WB = { t: 'wire', from: 'a10', to: '-10', color: 'black' };
+const rows = [1, 12];
+const potRows = [1, 10];
+const POT = { t: 'pot', pins: ['c4', 'c5', 'c6'], label: 'B103' };
 ---
 <TubeLesson
   num="4"
@@ -52,26 +63,69 @@ import TaperCurves from '../../../../components/tube/TaperCurves.astro';
     "B103"은 B타입 10kΩ(10 × 10³Ω)이라는 뜻입니다. 제조사에 따라 표기가 다를 수 있으니 구매 후 확인합니다.</p>
   </div>
 
-  <h2>3. 실습</h2>
+  <h2>3. 실습: 따라 해 보기</h2>
   <div class="tl__box warn">
     <b class="h">먼저</b>
-    <p>회로를 바꿀 때는 건전지를 먼저 분리합니다.</p>
+    <p>회로를 바꿀 때는 건전지를 먼저 분리합니다. 노란 후광이 이번 단계에서 새로 꽂거나 바꾸는 부분입니다.</p>
   </div>
-  <ol>
-    <li><b>같은 저항 2개</b>: 10kΩ 2개를 직렬로 꽂고 한쪽을 건전지 +, 다른 쪽을 −에 연결합니다. 두 저항 사이의 점과 −(접지) 사이를 재면 <b>약 4.5V</b>가 나옵니다.</li>
-    <li><b>비율 바꾸기</b>: 위쪽 10kΩ, 아래쪽 4.7kΩ으로 바꿔 아래쪽 저항 양끝을 잽니다. <b>약 2.9V</b>(계산 2.88V)가 나옵니다.
-      위아래를 서로 바꾸면 약 6.1V가 나오고, 두 전압을 더하면 9V입니다.</li>
-    <li><b>가변저항 핀 확인</b>: 전원을 뽑은 상태에서 가변저항 1번-3번 사이를 Ω로 재면 손잡이와 상관없이 약 10kΩ입니다.
-      1번-2번, 2번-3번은 돌리면 값이 바뀌고 두 값을 더하면 약 10kΩ입니다.</li>
-    <li><b>가변저항으로 전압 만들기</b>: 1번을 − 레일, 3번을 + 레일에 꽂고, 멀티미터로 2번 핀과 − 레일 사이를 잽니다.
-      손잡이를 끝까지 한쪽으로 돌리면 0V, 반대쪽 끝에서는 약 9V가 나오고, 돌리면서 연속적으로 변합니다.</li>
-    <li><b>부하 효과 (선택)</b>: 2번 단계의 분배기(10kΩ 위, 4.7kΩ 아래)에서 아래쪽 저항에 10kΩ 저항을 하나 더 병렬로 이어 봅니다.
-      출력 전압이 약 2.9V에서 <b>약 2.2V</b>로 내려갑니다. 출력에 다른 회로를 연결하면 전압이 내려갈 수 있다는 뜻입니다.</li>
-  </ol>
-  <p>
-    5번에서 전압이 내려간 이유는 병렬로 이은 저항 때문에 아래쪽 저항이 약 3.2kΩ(4.7kΩ과 10kΩ의 병렬)으로 작아졌기 때문입니다.
-    앰프의 입력 볼륨을 설계할 때 이 효과를 고려해야 하며, 16회에서 다시 다룹니다.
-  </p>
+
+  <Step n={1} title="같은 저항 2개로 절반 전압 만들기" ok="약 4.5V (4.3~4.7V).">
+    <ol>
+      <li>10kΩ(갈색·검정·주황) 2개를 꽂습니다. 위쪽: 2번 줄~6번 줄, 아래쪽: 6번 줄~10번 줄. <b>6번 줄</b>에서 두 저항이 만납니다.</li>
+      <li>빨간 점퍼선: + 레일 ~ 2번 줄 a. 검은 점퍼선: 10번 줄 a ~ − 레일.</li>
+      <li>건전지를 연결하고, 멀티미터(V⎓)의 빨간 리드를 <b>6번 줄 b</b>(두 저항 사이), 검은 리드를 − 레일에 댑니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ ...RT, hl: true }, { ...RB, hl: true }, { ...WR, hl: true }, { ...WB, hl: true }]} batt={{ label: '9V' }} probes={{ red: 'b6', black: '-6', mode: 'dcv', reading: '4.5V', label: '가운데 점' }} caption="두 저항의 사이(6번 줄)와 − 레일 사이의 전압 = 절반." />
+  </Step>
+
+  <Step n={2} title="아래쪽 저항을 4.7kΩ으로 바꾸기" ok="아래쪽 저항 양끝 약 2.9V (계산 2.88V).">
+    <ol>
+      <li><b>건전지를 분리</b>하고 아래쪽 10kΩ을 뽑아 <b>4.7kΩ(노랑·보라·빨강)</b>을 같은 자리(6번 줄~10번 줄)에 꽂습니다.</li>
+      <li>건전지를 연결하고 <b>아래쪽 저항 양끝</b>(6번 줄 b와 10번 줄 b)을 잽니다.</li>
+      <li>같은 방법으로 위쪽 저항 양끝(2번 줄 b와 6번 줄 b)도 재어 두 값을 더해 봅니다. 약 6.1V + 2.9V = 9V입니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[RT, { ...RB, label: '4.7kΩ', bands: K47, hl: true }, WR, WB]} batt={{ label: '9V' }} probes={{ red: 'b6', black: 'b10', mode: 'dcv', reading: '2.9V', label: '아래쪽 저항' }} caption="저항이 작은 쪽(4.7kΩ)에 더 작은 전압이 걸린다." />
+  </Step>
+
+  <Step n={3} title="가변저항 핀 확인 (전원 없이)" ok="1번~3번은 항상 약 10kΩ, 1번~2번은 손잡이를 돌릴 때마다 달라진다.">
+    <ol>
+      <li>가변저항(B103)의 다리 3개를 <b>한 줄 아래로 나란히</b> 꽂습니다 (4·5·6번 줄, c열). 핀 번호는 그림의 1·2·3입니다.</li>
+      <li>다이얼을 <b>Ω</b>로 돌립니다.</li>
+      <li><b>1번과 3번</b>(a4, a6)을 잽니다. 손잡이를 돌려도 약 10kΩ입니다.</li>
+      <li><b>1번과 2번</b>(a4, a5)을 재면서 손잡이를 돌립니다. 값이 0Ω~10kΩ 사이에서 변합니다.</li>
+    </ol>
+    <BbStep rows={potRows} parts={[{ ...POT, hl: true }]} probes={{ red: 'a4', black: 'a6', mode: 'ohm', reading: '10.0k', label: '1번-3번' }} caption="양쪽 끝(1·3번)은 항상 전체 저항" />
+    <BbStep rows={potRows} parts={[POT]} probes={{ red: 'a4', black: 'a5', mode: 'ohm', reading: '4.9k', label: '1번-2번' }} caption="1번과 2번 사이는 손잡이 위치에 따라 변한다." />
+  </Step>
+
+  <Step n={4} title="가변저항으로 0~9V 만들기" ok="손잡이를 돌리면 2번 핀 전압이 0V에서 약 9V까지 연속으로 변한다.">
+    <ol>
+      <li>1번 핀(4번 줄)을 검은 점퍼선으로 − 레일에, 3번 핀(6번 줄)을 빨간 점퍼선으로 + 레일에 연결합니다.</li>
+      <li>건전지를 연결합니다.</li>
+      <li>멀티미터(V⎓)의 빨간 리드를 <b>2번 핀(5번 줄 a)</b>, 검은 리드를 − 레일에 댑니다.</li>
+      <li>손잡이를 한쪽 끝에서 다른 쪽 끝까지 천천히 돌리며 숫자를 봅니다.</li>
+    </ol>
+    <BbStep rows={potRows} parts={[POT, { t: 'wire', from: '+6', to: 'a6', color: 'red', hl: true }, { t: 'wire', from: 'a4', to: '-4', color: 'black', hl: true }]} batt={{ label: '9V' }} probes={{ red: 'a5', black: '-8', mode: 'dcv', reading: '4.6V', label: '2번 핀' }} caption="돌리는 위치에 따라 0V~9V 사이의 값이 나온다 (볼륨의 원리)." />
+  </Step>
+
+  <Step n={5} title="(선택) 부하를 달면 전압이 내려간다" ok="약 2.9V에서 약 2.2V로 내려간다.">
+    <ol>
+      <li>2단계 회로(위 10kΩ, 아래 4.7kΩ)에서 <b>건전지를 분리</b>합니다.</li>
+      <li>아래쪽 4.7kΩ과 나란히 <b>10kΩ</b>을 하나 더 꽂습니다 (6번 줄 e ~ 10번 줄 e).</li>
+      <li>건전지를 연결하고 아래쪽 양끝 전압을 잽니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[RT, { ...RB, label: '', bands: K47 }, { t: 'res', a: 'e6', b: 'e10', label: '10kΩ 추가', bands: K10, hl: true }, WR, WB]} batt={{ label: '9V' }} probes={{ red: 'b6', black: 'b10', mode: 'dcv', reading: '2.2V', label: '아래쪽(부하 있음)' }} caption="아래쪽에 나란히 저항을 하나 더 달았다 (원래 4.7kΩ은 그림에서 가운데 열)." />
+  </Step>
+
+  <div class="tl__learn">
+    <h3>실습으로 알 수 있는 것</h3>
+    <ul>
+      <li>저항 2개로 <b>원하는 비율의 전압</b>을 만들 수 있고, 계산(Vout = Vin × R2 ÷ (R1 + R2))과 측정값이 맞습니다.</li>
+      <li>위아래 저항에 걸리는 전압을 더하면 <b>전체(9V)</b>가 됩니다. 전압은 저항에 비례해 나뉩니다.</li>
+      <li>가변저항은 이 분배기를 <b>손으로 돌려 비율을 바꾸는 것</b>입니다. 앰프의 볼륨이 이 원리입니다.</li>
+      <li>분배기의 출력에 <b>다른 회로를 연결하면 전압이 내려갑니다</b>. 앰프의 입력 회로를 설계할 때 이 효과를 고려해야 합니다 (16회).</li>
+    </ul>
+  </div>
 
   <h2>이렇게 보이면 성공</h2>
   <div class="tl__box ok">

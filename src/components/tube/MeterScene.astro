@@ -1,0 +1,93 @@
+---
+// 멀티미터로 부품 하나를 재는 장면. scene: aa | v9 | res | cont | series | dioF | dioR | spk
+const { scene, caption = '' } = Astro.props;
+const ANGLE = { dcv: 50, acv: 100, ohm: 150, diode: 210 };
+const S = {
+  aa: {
+    mode: 'dcv', reading: '1.55', unit: 'V', red: [284, 150], black: [70, 150],
+    obj: `<rect x="70" y="120" width="200" height="60" rx="8" fill="#3a3a3a"/><rect x="70" y="120" width="40" height="60" rx="8" fill="#c9a23a"/><rect x="270" y="140" width="14" height="20" rx="3" fill="#c9ccd1" stroke="#8a8f98"/>
+      <text class="b c" x="180" y="157" style="fill:#fff; font-size:18px">AA 건전지</text><text class="b" x="276" y="124" style="font-size:20px; fill:#d63a2e">+</text><text class="b" x="52" y="157" style="font-size:20px; fill:#2f5fc4">−</text>`,
+    note: '빨강은 + 쪽(볼록한 끝), 검정은 − 쪽(평평한 끝)',
+  },
+  v9: {
+    mode: 'dcv', reading: '9.42', unit: 'V', red: [236, 112], black: [150, 112],
+    obj: `<rect x="100" y="100" width="190" height="110" rx="8" fill="#2b2b2b"/><rect x="100" y="100" width="190" height="22" rx="8" fill="#c9a23a"/>
+      <circle cx="150" cy="112" r="11" fill="#c9ccd1" stroke="#8a8f98"/><circle cx="236" cy="112" r="7" fill="#c9ccd1" stroke="#8a8f98"/>
+      <text class="b c" x="195" y="172" style="fill:#fff; font-size:28px">9V</text>
+      <text class="b" x="146" y="92" style="font-size:16px; fill:#2f5fc4">−</text><text class="b" x="232" y="92" style="font-size:16px; fill:#d63a2e">+</text>`,
+    note: '위쪽 단자 2개: 작은 쪽이 +, 큰 쪽이 −',
+  },
+  res: {
+    mode: 'ohm', reading: '4.68', unit: 'kΩ', red: [100, 150], black: [300, 150],
+    obj: `<line x1="90" y1="150" x2="320" y2="150" stroke="#8a8f98" stroke-width="5" stroke-linecap="round"/><rect x="140" y="124" width="120" height="52" rx="24" fill="#e6cf9f" stroke="#b79d62" stroke-width="2"/>
+      <rect x="164" y="125" width="12" height="50" fill="#f1d11c"/><rect x="184" y="125" width="12" height="50" fill="#7b3fa0"/><rect x="204" y="125" width="12" height="50" fill="#d63a2e"/><rect x="236" y="125" width="10" height="50" fill="#c9a23a"/>
+      <text class="s c" x="200" y="205">4.7kΩ 저항 (회로에서 뺀 것)</text>`,
+    note: '양쪽 다리에 하나씩. 손가락으로 다리를 잡지 않기',
+  },
+  cont: {
+    mode: 'diode', reading: '0.2', unit: 'Ω', red: [90, 170], black: [310, 170], bubble: '삑!',
+    obj: `<path d="M90 170Q200 70 310 170" fill="none" stroke="#3a9a4a" stroke-width="7" stroke-linecap="round"/><circle cx="90" cy="170" r="6" fill="#c9ccd1"/><circle cx="310" cy="170" r="6" fill="#c9ccd1"/>
+      <text class="s c" x="200" y="215">점퍼선 한 가닥</text>`,
+    note: '두 끝이 이어져 있으면 "삑" 소리',
+  },
+  series: {
+    mode: 'dcv', reading: '3.10', unit: 'V', red: [300, 150], black: [50, 150],
+    obj: `<rect x="50" y="125" width="110" height="50" rx="7" fill="#3a3a3a"/><rect x="50" y="125" width="26" height="50" rx="7" fill="#c9a23a"/><rect x="160" y="141" width="14" height="18" rx="3" fill="#c9ccd1" stroke="#8a8f98"/>
+      <rect x="176" y="125" width="110" height="50" rx="7" fill="#3a3a3a"/><rect x="176" y="125" width="26" height="50" rx="7" fill="#c9a23a"/><rect x="286" y="141" width="14" height="18" rx="3" fill="#c9ccd1" stroke="#8a8f98"/>
+      <text class="b c" x="118" y="156" style="fill:#fff">AA ①</text><text class="b c" x="244" y="156" style="fill:#fff">AA ②</text>
+      <text class="s c" x="168" y="200">① 의 + 끝과 ② 의 − 끝을 맞대어 눌러 줌</text>`,
+    note: '이어 붙인 양 끝을 재면 전압이 더해짐',
+  },
+  dioF: {
+    mode: 'diode', reading: '0.58', unit: 'V', red: [90, 150], black: [310, 150],
+    obj: `<line x1="80" y1="150" x2="320" y2="150" stroke="#8a8f98" stroke-width="5" stroke-linecap="round"/><rect x="150" y="132" width="100" height="36" rx="4" fill="#33363c"/><rect x="226" y="132" width="14" height="36" fill="#d9dce1"/>
+      <text class="b" x="84" y="124" style="font-size:16px; fill:#d63a2e">+ 애노드</text><text class="b" x="238" y="124" style="font-size:16px; fill:#2f5fc4">− 캐소드(띠)</text>`,
+    note: '빨강 = 띠 반대쪽, 검정 = 띠 쪽 → 숫자가 나옴',
+  },
+  dioR: {
+    mode: 'diode', reading: 'OL', unit: '', red: [310, 150], black: [90, 150],
+    obj: `<line x1="80" y1="150" x2="320" y2="150" stroke="#8a8f98" stroke-width="5" stroke-linecap="round"/><rect x="150" y="132" width="100" height="36" rx="4" fill="#33363c"/><rect x="226" y="132" width="14" height="36" fill="#d9dce1"/>
+      <text class="b" x="84" y="124" style="font-size:16px; fill:#d63a2e">+ 애노드</text><text class="b" x="238" y="124" style="font-size:16px; fill:#2f5fc4">− 캐소드(띠)</text>`,
+    note: '리드를 반대로 → OL(막힘)',
+  },
+  spk: {
+    mode: 'ohm', reading: '6.8', unit: 'Ω', red: [100, 120], black: [100, 180],
+    obj: `<rect x="130" y="95" width="130" height="110" rx="10" fill="#4b4f57"/><circle cx="195" cy="150" r="42" fill="#2b2d31" stroke="#8a8f98" stroke-width="3"/><circle cx="195" cy="150" r="14" fill="#6b7078"/>
+      <rect x="90" y="115" width="40" height="10" fill="#c9ccd1"/><rect x="90" y="175" width="40" height="10" fill="#c9ccd1"/>
+      <text class="s c" x="195" y="228">8Ω 스피커</text><text class="s" x="40" y="112">단자</text><text class="s" x="40" y="196">단자</text>`,
+    note: '스피커 단자 2개에 리드를 하나씩',
+  },
+};
+const sc = S[scene];
+const ang = ANGLE[sc.mode];
+const rad = (ang * Math.PI) / 180;
+const cx = 485, cy = 168;
+const marks = [['OFF', 0], ['V⎓', 50], ['V~', 100], ['Ω', 150], ['▷|', 210], ['A', 260]];
+let meter = '';
+meter += `<rect x="400" y="14" width="170" height="294" rx="22" fill="#d9dce1" stroke="#8a8f98" stroke-width="2"/>`;
+meter += `<rect x="416" y="30" width="138" height="56" rx="6" fill="#cfe3d2" stroke="#6b7078" stroke-width="2"/>`;
+meter += `<text x="530" y="74" text-anchor="end" style="font-size:30px; font-weight:700; fill:#243a2a; font-family:ui-monospace,Menlo,monospace">${sc.reading}</text><text x="548" y="74" text-anchor="end" style="font-size:14px; fill:#243a2a; font-weight:700">${sc.unit}</text>`;
+meter += `<circle cx="${cx}" cy="${cy}" r="50" fill="#eceef1" stroke="#8a8f98" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="20" fill="#4b5a74"/>`;
+meter += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.sin(rad) * 38}" y2="${cy - Math.cos(rad) * 38}" stroke="#fff" stroke-width="5" stroke-linecap="round"/>`;
+for (const [t, a] of marks) {
+  const r2 = (a * Math.PI) / 180, on = a === ang;
+  meter += `<line x1="${cx + Math.sin(r2) * 52}" y1="${cy - Math.cos(r2) * 52}" x2="${cx + Math.sin(r2) * 60}" y2="${cy - Math.cos(r2) * 60}" stroke="#6b7078" stroke-width="2"/>`;
+  meter += `<text text-anchor="middle" x="${cx + Math.sin(r2) * 72}" y="${cy - Math.cos(r2) * 72 + 4}" style="font-size:12px; font-weight:${on ? 800 : 400}; fill:${on ? '#d63a2e' : '#33363c'}">${t}</text>`;
+}
+meter += `<circle cx="450" cy="274" r="12" fill="#2b2b2b"/><circle cx="520" cy="274" r="12" fill="#d63a2e"/><text class="s c" x="450" y="256" style="font-size:11px">COM</text><text class="s c" x="520" y="256" style="font-size:11px">VΩ</text>`;
+let leads = '';
+for (const [c, t, jx, yy] of [['#2b2b2b', sc.black, 450, 322], ['#d63a2e', sc.red, 520, 334]]) {
+  leads += `<path d="M${jx} 286V${yy}H${t[0]}V${t[1]}" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  leads += `<circle cx="${t[0]}" cy="${t[1]}" r="9" fill="${c}" stroke="#fff" stroke-width="2"/>`;
+}
+---
+<figure class="tl__fig tl__fig--step">
+  <svg class="sv" viewBox="0 0 600 350" role="img" aria-label={caption}>
+    <g set:html={sc.obj} />
+    <g set:html={meter} />
+    <g set:html={leads} />
+    {sc.bubble && <g><rect x="330" y="40" width="56" height="30" rx="15" fill="#fff6d6" stroke="#e0b020" stroke-width="2"/><text class="b c" x="358" y="61" style="font-size:16px">{sc.bubble}</text></g>}
+    <text class="b c" x="190" y="52" style="font-size:13px">{sc.note}</text>
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

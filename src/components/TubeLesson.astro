@@ -77,6 +77,27 @@ const { num, title, desc, prev, next } = Astro.props;
   .tl__tag.red{color:var(--danger); border-color:var(--danger)}
   .tl__tag.green{color:var(--ok); border-color:var(--ok)}
 
+  /* 실습 단계 카드 */
+  .tl__step{display:grid; grid-template-columns:34px minmax(0,1fr); gap:12px; padding:18px 0; border-top:1px solid var(--rule)}
+  .tl__steps-start{border-top:0}
+  .tl__sn{width:34px; height:34px; border-radius:50%; background:var(--ink); color:var(--ground); display:flex; align-items:center; justify-content:center; font-weight:700}
+  .tl__sb h4{font-size:1.05rem; margin:4px 0 6px}
+  .tl__sb p{margin:0 0 8px}
+  .tl__sb ul,.tl__sb ol{margin:0 0 8px}
+  .tl__sok{padding:8px 12px; background:var(--surface); border:1px solid var(--ok); border-radius:10px; font-size:.92rem; line-height:1.65}
+  .tl__sok b{display:inline-block; margin-right:8px; font-size:.78rem; color:var(--ok)}
+  .tl__fig--step{margin:10px 0 12px}
+  .tl__fig--step svg{max-width:520px; margin:0}
+  .tl__fig--step figcaption{text-align:left}
+  @media (max-width:640px){
+    .tl__step{grid-template-columns:minmax(0,1fr); gap:6px}
+    .tl__sn{width:28px; height:28px; font-size:.85rem}
+    .tl__fig--step svg{min-width:440px}
+    .tl__fig--step::before{content:'← 옆으로 밀어서 전체 보기'; display:block; font-size:.72rem; color:var(--ink3); margin:0 0 4px}
+  }
+  .tl__learn{margin:26px 0 8px; padding:16px 18px; border:2px solid var(--accent); border-radius:14px; background:var(--surface)}
+  .tl__learn h3{margin:0 0 8px; font-size:1.1rem}
+  .tl__learn ul{margin:0; padding-left:1.2em}
   .tl__nav{display:flex; justify-content:space-between; gap:12px; margin-top:48px; padding-top:20px; border-top:1px solid var(--rule)}
   .tl__nav a{display:block; padding:10px 14px; border:1px solid var(--rule); border-radius:10px; text-decoration:none; color:var(--ink); line-height:1.5; max-width:48%}
   .tl__nav a small{display:block; font-size:.75rem; color:var(--ink3)}

@@ -1,7 +1,15 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import BbStep from '../../../../components/tube/BbStep.astro';
+import MeterScene from '../../../../components/tube/MeterScene.astro';
+import Step from '../../../../components/tube/Step.astro';
 import DiodeIV from '../../../../components/tube/DiodeIV.astro';
 import Rectifier from '../../../../components/tube/Rectifier.astro';
+const rows = [1, 13];
+const R470 = { t: 'res', a: 'd5', b: 'd9', label: '470Ω' };
+const LED6 = { t: 'led', a: 'a9', k: 'a12' };
+const WR = { t: 'wire', from: '+2', to: 'a2', color: 'red' };
+const WB = { t: 'wire', from: 'b12', to: '-12', color: 'black' };
 ---
 <TubeLesson
   num="6"
@@ -55,30 +63,60 @@ import Rectifier from '../../../../components/tube/Rectifier.astro';
     실제 교류를 다루는 전원부는 22회 이후에 안전 수칙을 배운 뒤에 만듭니다. 지금은 원리만 이해하고, 8회에서 안전한 소리 신호로 반파 정류를 확인해 봅니다.
   </p>
 
-  <h2>3. 실습</h2>
-  <h3>① 멀티미터 다이오드 테스트</h3>
-  <ol>
-    <li>다이얼을 다이오드 모드(▷| 기호)에 맞춥니다.</li>
-    <li>빨간 리드를 <b>애노드(띠 반대쪽)</b>, 검은 리드를 <b>캐소드(띠 쪽)</b>에 댑니다. 화면에 <b>약 0.5~0.7V</b>가 나옵니다.</li>
-    <li>리드를 반대로 대면 <b>OL</b>(막힘)이 나옵니다.</li>
-    <li>1N4007, 1N4148 모두 같은 방법으로 재 봅니다. LED도 재 보면 약 1.7~2V가 나오고, 모델에 따라 희미하게 켜지기도 합니다.</li>
-  </ol>
+  <h2>3. 실습: 따라 해 보기</h2>
 
-  <h3>② 역접속 보호 회로</h3>
-  <div class="tl__box warn">
-    <b class="h">먼저</b>
-    <p>회로를 바꿀 때는 건전지를 분리합니다.</p>
+  <Step n={1} title="다이오드 방향 확인하고 다이오드 모드로 재기" ok="정방향에서 약 0.5~0.7V가 표시된다.">
+    <ol>
+      <li>다이오드 몸의 <b>띠(은색 줄)</b>가 있는 쪽이 캐소드(−)입니다. 띠 반대쪽이 애노드(+)입니다.</li>
+      <li>다이얼을 <b>다이오드 모드(▷|)</b>에 맞춥니다.</li>
+      <li><b>빨간 리드를 애노드</b>(띠 반대쪽), <b>검은 리드를 캐소드</b>(띠 쪽)에 댑니다.</li>
+    </ol>
+    <MeterScene scene="dioF" caption="정방향: 화면에 약 0.5~0.7V (예시 0.58V)." />
+  </Step>
+
+  <Step n={2} title="리드를 반대로 대 보기" ok="OL(막힘)이 표시된다.">
+    <ol>
+      <li>빨간 리드를 캐소드(띠 쪽), 검은 리드를 애노드에 대 봅니다.</li>
+      <li>화면에 <b>OL</b>이 나옵니다. 역방향으로는 전류가 흐르지 않는다는 뜻입니다.</li>
+    </ol>
+    <MeterScene scene="dioR" caption="역방향: OL (전류가 막힘)." />
+  </Step>
+
+  <Step n={3} title="1N4148과 LED도 같은 방법으로" ok="1N4148도 약 0.5~0.7V, LED는 약 1.7~2V (모델에 따라 희미하게 켜짐).">
+    <p>1N4007, 1N4148, LED를 번갈아 재서 값을 표에 적어 둡니다. 띠가 있는 쪽(캐소드)에 검은 리드를 댑니다.</p>
+  </Step>
+
+  <Step n={4} title="역접속 보호 회로 만들기 (다이오드를 정방향으로)" ok="LED가 켜지고, 다이오드 양끝은 약 0.7V.">
+    <ol>
+      <li><b>건전지를 분리</b>한 상태에서 꽂습니다.</li>
+      <li>다이오드 1N4007: 2번 줄 c(애노드) ~ 5번 줄 c(캐소드, 띠). 띠가 아래(저항 쪽)를 향합니다.</li>
+      <li>저항 470Ω: 5번 줄 d ~ 9번 줄 d.</li>
+      <li>LED: 긴 다리를 9번 줄 a, 짧은 다리를 12번 줄 a.</li>
+      <li>빨간 점퍼선: + 레일 ~ 2번 줄 a. 검은 점퍼선: 12번 줄 b ~ − 레일.</li>
+      <li>건전지를 연결합니다. LED가 켜지면 다이오드 양끝(2번 줄 b, 5번 줄 b)을 재 봅니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ t: 'dio', a: 'c2', k: 'c5', label: '1N4007', hl: true }, { ...R470, hl: true }, { ...LED6, lit: true, hl: true }, { ...WR, hl: true }, { ...WB, hl: true }]} batt={{ label: '9V' }} probes={{ red: 'b2', black: 'b5', mode: 'dcv', reading: '0.70V', label: '다이오드 양끝' }} caption="정방향: 전류가 흘러 LED가 켜지고, 다이오드는 약 0.7V를 쓴다." />
+  </Step>
+
+  <Step n={5} title="다이오드를 거꾸로 꽂아 보기" ok="LED가 꺼지고, 다이오드 양끝에 약 9V가 걸린다.">
+    <ol>
+      <li><b>건전지를 분리</b>하고 다이오드를 뽑아 방향을 바꿔 꽂습니다 (띠가 위, 2번 줄 쪽).</li>
+      <li>건전지를 연결합니다. LED가 켜지지 않습니다.</li>
+      <li>다이오드 양끝(2번 줄 b, 5번 줄 b)을 재면 <b>약 9V</b>가 나옵니다. 막힌 다이오드에 전체 전압이 걸려 있기 때문입니다.</li>
+      <li>확인한 뒤 건전지를 분리하고 원래 방향으로 돌려 놓습니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ t: 'dio', a: 'c5', k: 'c2', label: '1N4007', hl: true }, R470, LED6, WR, WB]} batt={{ label: '9V' }} probes={{ red: 'b2', black: 'b5', mode: 'dcv', reading: '9.0V', label: '다이오드 양끝' }} caption="역방향: 전류가 막혀 뒤의 부품(LED)에는 전압이 걸리지 않는다." />
+  </Step>
+
+  <div class="tl__learn">
+    <h3>실습으로 알 수 있는 것</h3>
+    <ul>
+      <li>다이오드는 <b>한 방향으로만 전류를 흘립니다</b> (정방향은 숫자가 나오고 역방향은 OL).</li>
+      <li>전류가 흐르는 동안에도 다이오드는 <b>약 0.6~0.7V를 소비</b>합니다. 그래서 LED가 조금 어두워집니다.</li>
+      <li>거꾸로 꽂으면 <b>전체 전압(9V)이 다이오드에 걸리고</b> 뒤의 부품에는 걸리지 않습니다. 그래서 건전지를 거꾸로 연결해도 회로를 보호하는 데 쓰입니다.</li>
+      <li>교류의 한쪽 방향만 통과시키는 성질이 <b>정류</b>입니다. 진공관 앰프의 전원부가 이 원리로 교류를 직류로 바꿉니다 (22~25회).</li>
+    </ul>
   </div>
-  <ol>
-    <li>2회의 LED 회로에서 건전지 + 쪽과 저항 사이에 1N4007을 끼워 넣습니다. <b>띠(캐소드)가 저항 쪽</b>을 향하게 합니다.</li>
-    <li>건전지를 연결합니다. LED가 켜집니다. 다이오드 양끝 전압을 재면 <b>약 0.7V</b>가 걸려 있습니다(전류가 흐르는 동안).</li>
-    <li>건전지를 분리하고 다이오드를 <b>거꾸로</b> 꽂은 뒤 다시 연결합니다. LED가 켜지지 않습니다.</li>
-    <li>이때 다이오드 양끝 전압을 재면 <b>약 9V</b>가 나옵니다. 막힌 다이오드에 전체 전압이 걸려 있다는 뜻입니다. LED 양끝은 0V이므로 LED는 안전합니다.</li>
-  </ol>
-  <p>
-    건전지를 거꾸로 꽂아도 부품이 망가지지 않게 해 주는 이 방법은 실제 제품의 전원 입력에 흔히 쓰입니다.
-    대신 다이오드에서 약 0.7V가 손해로 사라집니다.
-  </p>
 
   <h2>이렇게 보이면 성공</h2>
   <div class="tl__box ok">

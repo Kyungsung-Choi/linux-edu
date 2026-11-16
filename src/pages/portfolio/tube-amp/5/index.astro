@@ -1,9 +1,16 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import BbStep from '../../../../components/tube/BbStep.astro';
+import Step from '../../../../components/tube/Step.astro';
 import CapStructure from '../../../../components/tube/CapStructure.astro';
 import RCCurve from '../../../../components/tube/RCCurve.astro';
 import RcCircuit from '../../../../components/tube/RcCircuit.astro';
 import CouplingWave from '../../../../components/tube/CouplingWave.astro';
+const K1 = ['#7b4a2a', '#111111', '#d63a2e', '#c9a23a'];
+const rows = [1, 11];
+const CAPd = { t: 'cap', plus: 'd4', minus: 'd8', label: '1000µF' };
+const WR5 = { t: 'wire', from: '+2', to: 'a2', color: 'red' };
+const WB5 = { t: 'wire', from: 'a9', to: '-9', color: 'black' };
 ---
 <TubeLesson
   num="5"
@@ -66,21 +73,62 @@ import CouplingWave from '../../../../components/tube/CouplingWave.astro';
   </ul>
 
   <h2>3. 실습: 충전과 방전 보기</h2>
+  <p>전체 회로는 아래와 같습니다. 왼쪽이 충전(2~3단계), 오른쪽이 방전(4단계)입니다.</p>
   <RcCircuit />
   <div class="tl__box warn">
     <b class="h">먼저</b>
-    <p>전해 커패시터는 <b>+ 쪽(긴 다리)을 건전지 + 쪽</b>에 연결합니다. 반대로 꽂으면 뜨거워지고 터질 수 있습니다.
-    줄무늬가 있는 쪽이 −입니다. 건전지는 연결하기 전까지 분리해 둡니다.</p>
+    <p>전해 커패시터는 <b>+ 쪽(긴 다리)을 건전지 + 쪽</b>에 연결합니다. 줄무늬가 있는 쪽이 −입니다. 거꾸로 꽂으면 뜨거워지고 터질 수 있습니다. 노란 후광이 이번 단계에서 새로 꽂는 부분입니다.</p>
   </div>
-  <ol>
-    <li><b>방전해 두기</b>: 커패시터의 두 다리를 470Ω 저항 양끝에 잠깐 대어 남은 전기를 뺍니다. 멀티미터로 재서 0V에 가까운지 확인합니다.</li>
-    <li><b>충전 회로</b>: 건전지 + → 10kΩ → 커패시터 + 쪽, 커패시터 − 쪽 → 건전지 −로 꽂습니다. 멀티미터(V⎓)를 커패시터 양끝에 연결합니다.</li>
-    <li><b>시간 재기</b>: 건전지를 연결하는 순간 초시계를 시작해 10초, 20초, 30초, 50초에 전압을 읽어 적습니다.
-      대략 <b>5.7V → 7.8V → 8.6V → 9V 가까이</b>가 나옵니다. 전해 커패시터는 오차가 커서 ±20~30%는 정상입니다.</li>
-    <li><b>방전으로 LED 켜기</b>: 건전지를 분리하고 커패시터 + 쪽 → 470Ω → LED 긴 다리, LED 짧은 다리 → 커패시터 − 쪽으로 연결합니다.
-      LED가 처음에 밝게 켜졌다가 서서히 어두워지며 꺼집니다.</li>
-    <li><b>바꿔 보기</b>: 10kΩ을 1kΩ으로 바꿔 다시 충전해 봅니다. 시간상수가 10분의 1(1초)이 되어 훨씬 빨리 찹니다.</li>
-  </ol>
+
+  <Step n={1} title="커패시터 방전해 두기" ok="멀티미터가 0V에 가깝다.">
+    <ol>
+      <li>커패시터(1000µF)의 긴 다리를 4번 줄 d, 짧은 다리를 8번 줄 d에 꽂습니다.</li>
+      <li>470Ω 저항을 4번 줄 b와 8번 줄 b에 꽂아 커패시터 양끝을 이어 줍니다. 남은 전기가 저항을 통해 빠집니다.</li>
+      <li>멀티미터(V⎓)로 커패시터 양끝(4번 줄 a, 8번 줄 a)을 재서 0V 근처인지 확인합니다. 확인한 뒤 470Ω을 뽑습니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[CAPd, { t: 'res', a: 'b4', b: 'b8', hl: true }]} probes={{ red: 'a4', black: 'a8', mode: 'dcv', reading: '0.00V', label: '커패시터' }} caption="시작하기 전에 커패시터를 비워 둔다 (470Ω으로 연결)." />
+  </Step>
+
+  <Step n={2} title="충전 회로 꽂고 시간 재기" ok="10초 약 5.7V, 20초 약 7.8V, 30초 약 8.6V, 50초 약 9V 가까이 (±20~30%).">
+    <ol>
+      <li>커패시터를 5번 줄 d(긴 다리, +)와 9번 줄 d(짧은 다리, −)에 꽂습니다.</li>
+      <li>저항 <b>10kΩ</b>을 2번 줄 c ~ 5번 줄 c에 꽂습니다.</li>
+      <li>빨간 점퍼선: + 레일 ~ 2번 줄 a. 검은 점퍼선: 9번 줄 a ~ − 레일.</li>
+      <li>멀티미터(V⎓)의 빨간 리드를 5번 줄 b, 검은 리드를 9번 줄 b에 대 둡니다.</li>
+      <li><b>건전지를 연결하는 순간 초시계를 시작</b>하고, 10·20·30·50초에 전압을 적습니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ t: 'cap', plus: 'd5', minus: 'd9', label: '1000µF', hl: true }, { t: 'res', a: 'c2', b: 'c5', label: '10kΩ', bands: ['#7b4a2a', '#111111', '#f08a24', '#c9a23a'], hl: true }, { ...WR5, hl: true }, { ...WB5, hl: true }]} batt={{ label: '9V' }} probes={{ red: 'b5', black: 'b9', mode: 'dcv', reading: '5.7V', label: '10초 후' }} caption="충전 중인 커패시터 양끝 전압: 처음엔 빨리, 나중엔 천천히 오른다." />
+  </Step>
+
+  <Step n={3} title="방전해서 LED 켜기" ok="LED가 처음에 밝다가 서서히 어두워지며 꺼진다.">
+    <ol>
+      <li>충전이 끝난 뒤 <b>건전지를 분리</b>하고 위 회로를 다음처럼 바꿉니다.</li>
+      <li>커패시터: 4번 줄 d(+) ~ 10번 줄 d(−). 저항 470Ω: 4번 줄 b ~ 7번 줄 b.</li>
+      <li>LED: 긴 다리를 7번 줄 a, 짧은 다리를 10번 줄 a에 꽂습니다.</li>
+      <li>LED가 켜졌다가 꺼지는 것을 봅니다. (처음에 켜지지 않으면 다시 충전한 뒤 회로를 만듭니다.)</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ t: 'cap', plus: 'd4', minus: 'd10', label: '충전된 1000µF' }, { t: 'res', a: 'b4', b: 'b7', hl: true }, { t: 'led', a: 'a7', k: 'a10', lit: true, hl: true }]} caption="커패시터에 모아 둔 전기가 저항과 LED를 거쳐 빠져나간다." />
+  </Step>
+
+  <Step n={4} title="저항을 1kΩ으로 바꿔 충전해 보기" ok="전압이 10배 빨리 오른다 (1초 만에 약 5.7V).">
+    <ol>
+      <li>커패시터를 다시 방전해 둡니다 (1단계).</li>
+      <li>충전 회로(2단계)에서 10kΩ을 뽑고 <b>1kΩ(갈색·검정·빨강)</b>을 꽂습니다.</li>
+      <li>건전지를 연결하면 커패시터 전압이 훨씬 빨리 올라갑니다 (τ = 1kΩ × 1000µF = 1초).</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ t: 'cap', plus: 'd5', minus: 'd9', label: '1000µF' }, { t: 'res', a: 'c2', b: 'c5', label: '1kΩ', bands: K1, hl: true }, WR5, WB5]} batt={{ label: '9V' }} probes={{ red: 'b5', black: 'b9', mode: 'dcv', reading: '5.7V', label: '1초 후' }} caption="저항이 10분의 1이 되자 같은 전압에 도달하는 데 10분의 1의 시간이 걸린다." />
+  </Step>
+
+  <div class="tl__learn">
+    <h3>실습으로 알 수 있는 것</h3>
+    <ul>
+      <li>커패시터는 <b>전기를 모아 둘 수 있는 부품</b>입니다. 충전하면 전압이 올라가고, 연결을 끊어도 남아 있다가 LED를 켤 만큼 내보냅니다.</li>
+      <li>충전은 <b>처음에는 빠르고 나중에는 느립니다</b>. 곡선 모양이 이론과 같습니다.</li>
+      <li>충전 시간은 <b>저항 × 용량</b>(시간상수)으로 정해집니다. 저항을 10분의 1로 줄이면 시간도 10분의 1이 됩니다.</li>
+      <li>전해 커패시터는 <b>방향(극성)</b>이 있고, 용량 오차가 커서 계산값과 ±20~30% 차이는 정상입니다.</li>
+      <li>전원 회로에서 흔들리는 전압을 고르게 펴 주는 평활용 커패시터도 이렇게 충전·방전하며 동작합니다 (22~25회).</li>
+    </ul>
+  </div>
 
   <h2>4. 직류는 막고 교류는 통과</h2>
   <p>

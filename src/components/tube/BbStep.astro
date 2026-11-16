@@ -1,0 +1,137 @@
+---
+// 브레드보드 실습 장면. 구멍 이름: 'c2'(c열 2번 줄), '+3'(왼쪽 + 레일 3번 줄), '-3'(왼쪽 − 레일 3번 줄)
+// parts: wire / res / led / cap / dio / pot, 각각 hl:true 이면 "이번 단계에서 새로 꽂는 부품"으로 노란 후광을 줌
+const { rows = [1, 12], parts = [], probes = null, badges = [], batt = null, caption = '' } = Astro.props;
+const [r0, r1] = rows;
+const n = r1 - r0 + 1;
+const XS = { a: 115, b: 135, c: 155, d: 175, e: 195, f: 235, g: 255, h: 275, i: 295, j: 315 };
+const Y0 = 70;
+const pos = (id) => {
+  let m = /^([a-j])(\d+)$/.exec(id);
+  if (m) return { x: XS[m[1]], y: Y0 + 20 * (+m[2] - r0) };
+  m = /^([+-])(\d+)$/.exec(id);
+  if (m) return { x: m[1] === '+' ? 55 : 75, y: Y0 + 20 * (+m[2] - r0) };
+  throw new Error('bad hole ' + id);
+};
+const WIRE = { red: '#d63a2e', black: '#2b2b2b', blue: '#2f5fc4', yellow: '#e0b020', green: '#3a9a4a', orange: '#f08a24' };
+const bottom = Y0 + 20 * (n - 1) + 14;
+const H = Math.max(batt ? bottom + 86 : bottom + 18, probes ? 215 : 0);
+const HALO = '#ffd166';
+const halo = (a, b, w = 18) => `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${HALO}" stroke-opacity=".75" stroke-width="${w}" stroke-linecap="round"/>`;
+
+let svg = '';
+// 보드
+svg += `<rect x="30" y="34" width="315" height="${bottom - 34}" rx="10" fill="#eceef1" stroke="#8a8f98" stroke-width="2"/>`;
+svg += `<rect x="205" y="42" width="20" height="${bottom - 50}" fill="#d4d7dc"/>`;
+svg += `<line x1="43" y1="${Y0 - 8}" x2="43" y2="${bottom - 8}" stroke="#d63a2e" stroke-width="2"/><line x1="87" y1="${Y0 - 8}" x2="87" y2="${bottom - 8}" stroke="#2f5fc4" stroke-width="2"/>`;
+svg += `<text class="b c red" x="55" y="52">+</text><text class="b c" x="75" y="52" style="fill:#2f5fc4">−</text>`;
+for (const [l, x] of Object.entries(XS)) svg += `<text class="s c" x="${x}" y="${Y0 - 14}" style="font-size:12px">${l}</text>`;
+for (let r = r0; r <= r1; r++) {
+  const y = Y0 + 20 * (r - r0);
+  svg += `<text class="s" x="106" y="${y + 4}" text-anchor="end" style="font-size:11px">${r}</text>`;
+  for (const x of [55, 75, ...Object.values(XS)]) svg += `<rect x="${x - 4}" y="${y - 4}" width="8" height="8" rx="1" fill="#33363c"/>`;
+}
+
+// 후광(새로 꽂는 부품)
+for (const p of parts) {
+  if (!p.hl) continue;
+  if (p.t === 'wire') {
+    const a = pos(p.from), b = pos(p.to);
+    const same = Math.abs(a.x - b.x) < 5;
+    const cx = same ? a.x + 26 : (a.x + b.x) / 2, cy = same ? (a.y + b.y) / 2 : Math.min(a.y, b.y) - 26;
+    svg += `<path d="M${a.x} ${a.y}Q${cx} ${cy} ${b.x} ${b.y}" fill="none" stroke="${HALO}" stroke-opacity=".75" stroke-width="16" stroke-linecap="round"/>`;
+  } else if (p.t === 'pot') {
+    const q = p.pins.map(pos);
+    svg += `<circle cx="${q[1].x + 34}" cy="${q[1].y}" r="32" fill="${HALO}" fill-opacity=".6"/>` + halo(q[0], q[2]);
+  } else {
+    const k = p.t === 'cap' ? ['plus', 'minus'] : p.t === 'res' ? ['a', 'b'] : p.t === 'led' ? ['a', 'k'] : ['a', 'k'];
+    svg += halo(pos(p[k[0]]), pos(p[k[1]]));
+  }
+}
+
+// 부품
+for (const p of parts) {
+  if (p.t === 'wire') {
+    const a = pos(p.from), b = pos(p.to), c = WIRE[p.color] || '#2b2b2b';
+    const same = Math.abs(a.x - b.x) < 5;
+    const cx = same ? a.x + 26 : (a.x + b.x) / 2, cy = same ? (a.y + b.y) / 2 : Math.min(a.y, b.y) - 26;
+    svg += `<path d="M${a.x} ${a.y}Q${cx} ${cy} ${b.x} ${b.y}" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round"/><circle cx="${a.x}" cy="${a.y}" r="4" fill="${c}"/><circle cx="${b.x}" cy="${b.y}" r="4" fill="${c}"/>`;
+  } else if (p.t === 'res') {
+    const a = pos(p.a), b = pos(p.b), yc = (a.y + b.y) / 2, x = a.x;
+    const bands = p.bands || ['#f1d11c', '#7b3fa0', '#7b4a2a', '#c9a23a'];
+    svg += `<line x1="${x}" y1="${a.y}" x2="${x}" y2="${yc - 18}" stroke="#8a8f98" stroke-width="3"/><line x1="${x}" y1="${yc + 18}" x2="${x}" y2="${b.y}" stroke="#8a8f98" stroke-width="3"/>`;
+    svg += `<rect x="${x - 7}" y="${yc - 18}" width="14" height="36" rx="7" fill="#e6cf9f" stroke="#b79d62" stroke-width="1.5"/>`;
+    [-12, -5, 2].forEach((d, i) => (svg += `<rect x="${x - 7}" y="${yc + d}" width="14" height="4" fill="${bands[i]}"/>`));
+    svg += `<rect x="${x - 7}" y="${yc + 10}" width="14" height="3" fill="${bands[3]}"/>`;
+    if (p.label) svg += `<text class="s" x="${x + 22}" y="${yc + 4}" style="paint-order:stroke; stroke:#eceef1; stroke-width:4px">${p.label}</text>`;
+  } else if (p.t === 'led') {
+    const a = pos(p.a), k = pos(p.k), cx = a.x, cy = (a.y + k.y) / 2;
+    const fill = p.lit ? '#ff6f61' : '#e9605a';
+    svg += `<line x1="${a.x}" y1="${a.y}" x2="${cx}" y2="${cy}" stroke="#8a8f98" stroke-width="3"/><line x1="${k.x}" y1="${k.y}" x2="${cx}" y2="${cy}" stroke="#8a8f98" stroke-width="3"/>`;
+    if (p.lit) svg += `<circle cx="${cx}" cy="${cy}" r="24" fill="#ff8a80" fill-opacity=".45"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="11" fill="${fill}" stroke="#b8403a" stroke-width="2"/><circle cx="${cx - 3}" cy="${cy - 3}" r="3" fill="#fff" fill-opacity=".6"/>`;
+    svg += `<text class="b" x="${a.x + 10}" y="${a.y + 4}" style="font-size:13px; fill:#d63a2e">+</text><text class="b" x="${k.x + 10}" y="${k.y + 4}" style="font-size:13px; fill:#2f5fc4">−</text>`;
+    if (p.label) svg += `<text class="s" x="${cx + 24}" y="${cy + 4}" style="paint-order:stroke; stroke:#eceef1; stroke-width:4px">${p.label}</text>`;
+  } else if (p.t === 'cap') {
+    const a = pos(p.plus), m = pos(p.minus), cx = a.x, cy = (a.y + m.y) / 2;
+    svg += `<line x1="${a.x}" y1="${a.y}" x2="${cx}" y2="${cy}" stroke="#8a8f98" stroke-width="3"/><line x1="${m.x}" y1="${m.y}" x2="${cx}" y2="${cy}" stroke="#8a8f98" stroke-width="3"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="14" fill="#3b4a63"/>`;
+    const sweep = m.y > a.y ? 0 : 1;
+    svg += `<path d="M${cx - 14} ${cy}A14 14 0 0 ${sweep} ${cx + 14} ${cy}Z" fill="#c9cfdb"/><text class="b c" x="${cx}" y="${cy + (m.y > a.y ? 11 : -3)}" style="font-size:12px; fill:#33363c">−</text>`;
+    svg += `<text class="b" x="${a.x + 10}" y="${a.y + 4}" style="font-size:13px; fill:#d63a2e">+</text>`;
+    if (p.label) svg += `<text class="s" x="${cx + 26}" y="${cy + 4}" style="paint-order:stroke; stroke:#eceef1; stroke-width:4px">${p.label}</text>`;
+  } else if (p.t === 'dio') {
+    const a = pos(p.a), k = pos(p.k), x = a.x, cy = (a.y + k.y) / 2, down = k.y > a.y;
+    svg += `<line x1="${x}" y1="${a.y}" x2="${x}" y2="${cy}" stroke="#8a8f98" stroke-width="3"/><line x1="${x}" y1="${k.y}" x2="${x}" y2="${cy}" stroke="#8a8f98" stroke-width="3"/>`;
+    svg += `<rect x="${x - 7}" y="${cy - 15}" width="14" height="30" rx="2" fill="#33363c"/><rect x="${x - 7}" y="${down ? cy + 9 : cy - 15}" width="14" height="6" fill="#d9dce1"/>`;
+    svg += `<text class="b" x="${a.x + 12}" y="${a.y + 4}" style="font-size:13px; fill:#d63a2e">+</text><text class="b" x="${k.x + 12}" y="${k.y + 4}" style="font-size:13px; fill:#2f5fc4">−</text>`;
+    if (p.label) svg += `<text class="s" x="${x + 26}" y="${cy + 4}" style="paint-order:stroke; stroke:#eceef1; stroke-width:4px">${p.label}</text>`;
+  } else if (p.t === 'pot') {
+    const q = p.pins.map(pos), bx = q[1].x + 34, by = q[1].y;
+    q.forEach((s, i) => (svg += `<line x1="${s.x}" y1="${s.y}" x2="${bx - 20}" y2="${s.y}" stroke="#8a8f98" stroke-width="3"/><text class="b" x="${s.x - 12}" y="${s.y + 4}" style="font-size:11px; fill:#274b75">${i + 1}</text>`));
+    svg += `<circle cx="${bx}" cy="${by}" r="24" fill="#3a6ea5" stroke="#274b75" stroke-width="2"/><circle cx="${bx}" cy="${by}" r="8" fill="#c4c8ce"/><line x1="${bx}" y1="${by - 8}" x2="${bx}" y2="${by - 18}" stroke="#8a8f98" stroke-width="2"/>`;
+    svg += `<text class="b c" x="${bx}" y="${by + 22}" style="font-size:9px; fill:#fff">${p.label || 'B103'}</text>`;
+  }
+}
+
+// 건전지
+if (batt) {
+  const yb = bottom + 24;
+  const rp = pos('+' + r1), rm = pos('-' + r1);
+  svg += `<path d="M64 ${yb}L${rp.x} ${rp.y}" stroke="#d63a2e" stroke-width="4" stroke-linecap="round"/><path d="M122 ${yb}L${rm.x} ${rm.y}" stroke="#2b2b2b" stroke-width="4" stroke-linecap="round"/>`;
+  svg += `<rect x="44" y="${yb}" width="96" height="46" rx="6" fill="#3b4a63"/><text class="b c" x="92" y="${yb + 30}" style="fill:#fff; font-size:17px">${batt.label || '9V'}</text>`;
+}
+
+// 번호 표시
+for (const b of badges) {
+  const p = pos(b.at), x = p.x + (b.dx ?? 20), y = p.y + (b.dy ?? -12);
+  svg += `<circle cx="${x}" cy="${y}" r="10" fill="#111"/><text class="b c" x="${x}" y="${y + 4}" style="fill:#fff; font-size:12px">${b.n}</text>`;
+}
+
+// 측정기와 프로브
+if (probes) {
+  const MODE = { dcv: 'V⎓', ohm: 'Ω', cont: '•)))', diode: '▷|', acv: 'V~', ma: 'mA⎓' };
+  const mx = 372, my = 64;
+  const rj = { x: mx, y: my + 82 }, bj = { x: mx, y: my + 102 };
+  svg += `<rect x="${mx}" y="${my}" width="92" height="132" rx="12" fill="#d9dce1" stroke="#8a8f98" stroke-width="2"/>`;
+  svg += `<rect x="${mx + 8}" y="${my + 8}" width="76" height="34" rx="4" fill="#cfe3d2" stroke="#6b7078" stroke-width="1.5"/>`;
+  svg += `<text x="${mx + 80}" y="${my + 33}" text-anchor="end" style="font-size:17px; font-weight:700; fill:#243a2a; font-family:ui-monospace,Menlo,monospace">${probes.reading}</text>`;
+  svg += `<text class="b c" x="${mx + 46}" y="${my + 60}" style="font-size:13px">${MODE[probes.mode] || ''}</text>`;
+  svg += `<text class="s c" x="${mx + 46}" y="${my + 76}" style="font-size:10px">${probes.label || ''}</text>`;
+  svg += `<circle cx="${rj.x + 12}" cy="${rj.y + 4}" r="7" fill="#d63a2e"/><text class="s" x="${rj.x + 24}" y="${rj.y + 8}" style="font-size:10px">${probes.jack || 'VΩ'}</text>`;
+  svg += `<circle cx="${bj.x + 12}" cy="${bj.y + 4}" r="7" fill="#2b2b2b"/><text class="s" x="${bj.x + 24}" y="${bj.y + 8}" style="font-size:10px">COM</text>`;
+  for (const [c, id, j] of [['#d63a2e', probes.red, rj], ['#2b2b2b', probes.black, bj]]) {
+    const p = pos(id);
+    const up = c === '#d63a2e' ? -12 : 12;
+    svg += `<circle cx="${p.x}" cy="${p.y}" r="11" fill="none" stroke="${HALO}" stroke-width="3"/>`;
+    svg += `<path d="M${p.x} ${p.y}L${p.x + 12} ${p.y + up}H${j.x - 14}L${j.x + 5} ${j.y + 4}" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    svg += `<circle cx="${p.x}" cy="${p.y}" r="5" fill="${c}" stroke="#fff" stroke-width="1.5"/>`;
+  }
+}
+---
+<figure class="tl__fig tl__fig--step">
+  <svg class="sv" viewBox={`0 0 470 ${H}`} role="img" aria-label={caption}>
+    <g set:html={svg} />
+  </svg>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

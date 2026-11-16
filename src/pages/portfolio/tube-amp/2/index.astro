@@ -1,7 +1,14 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import BbStep from '../../../../components/tube/BbStep.astro';
+import Step from '../../../../components/tube/Step.astro';
 import BreadboardRules from '../../../../components/tube/BreadboardRules.astro';
 import LedOnBoard from '../../../../components/tube/LedOnBoard.astro';
+const R = { t: 'res', a: 'c2', b: 'c6', label: '470Ω' };
+const LED = { t: 'led', a: 'd6', k: 'd9' };
+const WR = { t: 'wire', from: '+2', to: 'a2', color: 'red' };
+const WB = { t: 'wire', from: 'a9', to: '-9', color: 'black' };
+const rows = [1, 10];
 ---
 <TubeLesson
   num="2"
@@ -46,24 +53,90 @@ import LedOnBoard from '../../../../components/tube/LedOnBoard.astro';
   <LedOnBoard />
   <p>전류가 가는 길은 <b>+ 레일 → 빨간 점퍼선 → 2번 줄 → 저항 → 6번 줄 → LED → 9번 줄 → 검은 점퍼선 → − 레일</b>입니다. 한 줄로 이어지는 길을 따라가 보면 회로가 보입니다.</p>
 
-  <h2>3. 실습</h2>
+  <h2>3. 실습: 따라 해 보기</h2>
   <div class="tl__box warn">
     <b class="h">먼저</b>
-    <p>회로를 꽂는 동안에는 건전지 스냅을 <b>분리</b>해 둡니다. 회로를 바꿀 때도 항상 전원을 먼저 뽑습니다. (0-2회 점검 5가지를 다시 확인합니다.)</p>
+    <p>회로를 꽂는 동안에는 건전지 스냅을 <b>분리</b>해 둡니다. 회로를 바꿀 때도 항상 전원을 먼저 뽑습니다. 아래 그림에서 <b>노란 후광</b>이 이번 단계에서 새로 꽂는 부품입니다.</p>
   </div>
-  <ol>
-    <li><b>연결 확인</b>: 통전 모드로 같은 줄의 두 구멍(예: 2번 줄 a와 c)에 대 봅니다. "삑" 소리가 납니다.
-      가운데 홈을 건너(예: e와 f)에 대면 소리가 나지 않습니다.</li>
-    <li><b>부품 꽂기</b>: 저항을 2번 줄 c와 6번 줄 c에 꽂습니다. LED의 <b>긴 다리</b>를 6번 줄 d에, <b>짧은 다리</b>를 9번 줄 d에 꽂습니다.</li>
-    <li><b>점퍼선</b>: 빨간 선을 + 레일과 2번 줄 a에, 검은 선을 9번 줄 a와 − 레일에 꽂습니다.</li>
-    <li><b>건전지 연결</b>: 스냅의 빨간 선을 + 레일, 검은 선을 − 레일에 꽂은 뒤 건전지를 끼웁니다. LED가 켜집니다.</li>
-    <li><b>측정</b>: 다이얼을 V⎓에 맞추고 저항 양끝 전압을 잽니다. 약 7V가 나옵니다.
-      LED 양끝은 약 2V(빨간 LED는 1.8~2.1V)입니다. 두 값을 더하면 건전지 전압(약 9V)과 거의 같습니다.</li>
-    <li><b>바꿔 보기</b>: 전원을 뽑고 LED를 반대 방향으로 꽂은 뒤 연결해 봅니다. 켜지지 않습니다. 확인한 뒤 다시 원래대로 돌려놓습니다.</li>
-  </ol>
+
+  <Step n={1} title="브레드보드 연결 확인 (통전 모드)" ok="같은 줄은 삑, 홈 건너편은 소리 없음(OL).">
+    <ol>
+      <li>다이얼을 통전(•)))에 맞춥니다.</li>
+      <li>3번 줄의 <b>a와 e</b>에 리드를 대어 소리가 나는지 봅니다.</li>
+      <li>이번에는 <b>e와 f</b>(가운데 홈 건너)에 대어 소리가 나지 않는지 봅니다.</li>
+    </ol>
+    <BbStep rows={rows} probes={{ red: 'a3', black: 'e3', mode: 'cont', reading: '0.1', label: '삑!' }} caption="3번 줄의 a와 e: 이어져 있어 삑 소리가 난다." />
+    <BbStep rows={rows} probes={{ red: 'e3', black: 'f3', mode: 'cont', reading: 'OL', label: '소리 없음' }} caption="e와 f: 가운데 홈을 건너면 이어져 있지 않다." />
+  </Step>
+
+  <Step n={2} title="저항 꽂기" ok="저항이 2번 줄 c와 6번 줄 c에 꽂혀 있다.">
+    <ol>
+      <li>저항 470Ω(노랑·보라·갈색·금색)을 꺼냅니다.</li>
+      <li>한쪽 다리를 <b>2번 줄 c</b>, 다른 쪽 다리를 <b>6번 줄 c</b>에 꽂습니다. 방향은 상관없습니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[{ ...R, hl: true }]} caption="저항은 2번 줄과 6번 줄을 이어 줍니다." />
+  </Step>
+
+  <Step n={3} title="LED 꽂기 (방향 주의)" ok="LED의 긴 다리가 6번 줄, 짧은 다리가 9번 줄에 꽂혀 있다.">
+    <ol>
+      <li>LED의 <b>긴 다리(+)</b>를 6번 줄 d에 꽂습니다. 저항이 있는 줄과 같은 줄이어야 이어집니다.</li>
+      <li><b>짧은 다리(−)</b>를 9번 줄 d에 꽂습니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[R, { ...LED, hl: true }]} caption="그림의 + 표시 쪽이 LED의 긴 다리입니다." />
+  </Step>
+
+  <Step n={4} title="점퍼선 2개 꽂기" ok="빨간 선: + 레일 ~ 2번 줄 a, 검은 선: 9번 줄 a ~ − 레일.">
+    <ol>
+      <li><b>빨간 점퍼선</b>: + 레일의 2번 줄 높이 구멍과 2번 줄 a를 이어 줍니다.</li>
+      <li><b>검은 점퍼선</b>: 9번 줄 a와 − 레일의 9번 줄 높이 구멍을 이어 줍니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[R, LED, { ...WR, hl: true }, { ...WB, hl: true }]} caption="이제 전원만 연결하면 회로가 완성됩니다." />
+  </Step>
+
+  <Step n={5} title="건전지 연결하기" ok="LED가 켜진다.">
+    <ol>
+      <li>스냅의 <b>빨간 선</b>을 + 레일 맨 아래 구멍에, <b>검은 선</b>을 − 레일 맨 아래 구멍에 꽂습니다.</li>
+      <li>9V 건전지를 스냅에 끼웁니다. LED가 켜집니다.</li>
+      <li>켜지지 않으면 바로 건전지를 빼고 "막힐 때"를 확인합니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[R, { ...LED, lit: true }, WR, WB]} batt={{ label: '9V' }} caption="전류가 가는 길: + 레일 → 빨간 선 → 저항 → LED → 검은 선 → − 레일" />
+  </Step>
+
+  <Step n={6} title="전압 재기: 두 부품이 전압을 나눠 가진다" ok="저항 양끝 약 7V + LED 양끝 약 2V = 건전지 약 9V.">
+    <ol>
+      <li>멀티미터를 V⎓(직류 전압)에 맞춥니다.</li>
+      <li><b>저항 양끝</b>: 2번 줄 b와 6번 줄 b에 리드를 댑니다. 약 7V입니다.</li>
+      <li><b>LED 양끝</b>: 6번 줄 b와 9번 줄 b에 댑니다. 약 2V입니다(빨간 LED는 1.8~2.1V).</li>
+      <li>두 값을 더해 건전지 전압(약 9V)과 비교합니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[R, { ...LED, lit: true }, WR, WB]} batt={{ label: '9V' }} probes={{ red: 'b2', black: 'b6', mode: 'dcv', reading: '7.0V', label: '저항 양끝' }} caption="저항 양끝: 약 7V" />
+    <BbStep rows={rows} parts={[R, { ...LED, lit: true }, WR, WB]} batt={{ label: '9V' }} probes={{ red: 'b6', black: 'b9', mode: 'dcv', reading: '1.9V', label: 'LED 양끝' }} caption="LED 양끝: 약 2V" />
+  </Step>
+
+  <Step n={7} title="LED를 거꾸로 꽂아 보기" ok="LED가 켜지지 않는다. 확인한 뒤 원래대로 돌려놓는다.">
+    <ol>
+      <li><b>건전지를 먼저 뺍니다.</b></li>
+      <li>LED를 뽑아 긴 다리를 9번 줄, 짧은 다리를 6번 줄로 바꿔 꽂습니다.</li>
+      <li>건전지를 연결해 봅니다. 불이 켜지지 않습니다.</li>
+      <li>건전지를 다시 빼고 LED를 원래 방향으로 돌려놓습니다.</li>
+    </ol>
+    <BbStep rows={rows} parts={[R, { t: 'led', a: 'd9', k: 'd6', hl: true }, WR, WB]} batt={{ label: '9V' }} caption="LED가 반대로 꽂히면 전류가 흐르지 못해 켜지지 않는다 (고장은 아님)." />
+  </Step>
+
   <div class="tl__box warn">
     <b class="h">하지 않을 것</b>
     <p>저항을 빼고 LED를 건전지에 바로 연결하지 않습니다. 순간적으로 큰 전류가 흘러 LED가 망가질 수 있습니다.</p>
+  </div>
+
+  <div class="tl__learn">
+    <h3>실습으로 알 수 있는 것</h3>
+    <ul>
+      <li>브레드보드에서는 <b>같은 줄(5개 구멍)이 하나의 점</b>입니다. 부품 다리를 같은 줄에 꽂으면 연결되고, 다른 줄에 꽂으면 연결되지 않습니다.</li>
+      <li>회로는 <b>끊기지 않는 하나의 길</b>이어야 동작합니다 (건전지 + → 저항 → LED → 건전지 −).</li>
+      <li>저항이 <b>전류를 제한</b>해서 LED를 보호합니다.</li>
+      <li>전압은 부품들이 <b>나눠 가집니다</b>. 저항 7V + LED 2V ≈ 건전지 9V.</li>
+      <li>LED는 <b>방향</b>이 있습니다. 거꾸로 꽂으면 켜지지 않습니다.</li>
+    </ul>
   </div>
 
   <h2>이렇게 보이면 성공</h2>
