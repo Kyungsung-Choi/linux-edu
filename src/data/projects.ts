@@ -82,6 +82,19 @@ export const projects: Project[] = [
     newWindow: true,
   },
   {
+    slug: 'electronics-basics',
+    section: 'portfolio',
+    title: '전자회로 기초 입문 강좌',
+    kind: '교육 커리큘럼',
+    summary:
+      '전기 지식이 전혀 없어도 브레드보드와 측정 기계로 부품이 하는 일을 직접 확인하며 배우는 30회 과정. 전압·전류부터 트랜지스터, 연산증폭기, 아두이노까지. 현재는 목차를 공개했고 강좌는 한 편씩 추가합니다.',
+    tags: ['전자회로 기초', '브레드보드', '트랜지스터', '아두이노'],
+    href: '/portfolio/electronics-basics/',
+    status: '목차 공개',
+    year: 2026,
+    newWindow: true,
+  },
+  {
     slug: 'ai-tips',
     section: 'library',
     title: 'AI를 활용한 UI구성 TIP',
