@@ -69,6 +69,19 @@ export const projects: Project[] = [
     newWindow: true,
   },
   {
+    slug: 'tube-amp',
+    section: 'portfolio',
+    title: '진공관 앰프 입문 강좌',
+    kind: '교육 커리큘럼',
+    summary:
+      '전자회로를 전혀 몰라도 브레드보드와 멀티미터로 부품의 기능을 직접 익히고, 마지막에 진공관 앰프를 PCB로 설계·제작하는 과정. 현재는 목차만 공개했고, 강좌는 한 편씩 추가합니다.',
+    tags: ['전자회로 기초', '진공관', 'PCB 설계', '브레드보드'],
+    href: '/portfolio/tube-amp/',
+    status: '진행 중',
+    year: 2026,
+    newWindow: true,
+  },
+  {
     slug: 'ai-tips',
     section: 'library',
     title: 'AI를 활용한 UI구성 TIP',
