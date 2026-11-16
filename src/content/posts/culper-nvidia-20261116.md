@@ -80,7 +80,7 @@ Fortune에 따르면 **보고서는 두 사람이 연인이라고 주장하지 �
 
 주가가 내린 원인은 보고서 하나가 아니다. 사임, 조사, 선거 뒤 기술주 약세가 겹쳤다.
 
-<figure><img src="/blog/culper-nvidia-20261116/nvlogo.jpg" alt="검은 배경 위에 엔비디아 로고와 그래픽카드가 놓여 있습니다" loading="lazy"><figcaption>검은 배경 위에 엔비디아 로고와 그래픽카드가 놓여 있습니다. 주가가 내린 회사를 보여 주는 사진입니다<br>[출처: Mariia Berezovsky, Unsplash]</figcaption></figure>
+<figure><img src="/blog/culper-nvidia-20261116/nvlogo.jpg" alt="검은 배경 위에 엔비디아 로고와 그래픽카드가 놓여 있습니다" loading="lazy"><figcaption>검은 배경 위에 엔비디아 로고와 그래픽카드가 놓여 있습니다. 주가가 내린 회사를 보여 주는 사진입니다<br>[출처: Mariia Berezovsky, Unsplash 라이선스]</figcaption></figure>
 
 <div class="ic" data-chart="cu_stock"></div>
 
@@ -110,7 +110,7 @@ Fortune에 따르면 **보고서는 두 사람이 연인이라고 주장하지 �
 
 황 CEO의 사임은 워싱턴에서 가장 큰 방어막 하나가 사라졌다는 뜻이기도 하다.
 
-<figure><img src="/blog/culper-nvidia-20261116/capitol.jpg" alt="푸른 하늘 아래 미국 국회의사당 정면입니다" loading="lazy"><figcaption>푸른 하늘 아래 미국 국회의사당 정면입니다. 칩 수출 규제 법안을 논의하는 의회를 보여 주는 사진입니다<br>[출처: Louis Velazquez, Unsplash]</figcaption></figure>
+<figure><img src="/blog/culper-nvidia-20261116/capitol.jpg" alt="푸른 하늘 아래 미국 국회의사당 정면입니다" loading="lazy"><figcaption>푸른 하늘 아래 미국 국회의사당 정면입니다. 칩 수출 규제 법안을 논의하는 의회를 보여 주는 사진입니다<br>[출처: Louis Velazquez, Unsplash 라이선스]</figcaption></figure>
 
 황 CEO는 몇 년 동안 중국 수출 규제 완화를 위해 로비해 왔습니다. 칩 수출 규제 옹호 측은 "엔비디아 로비의 가장 큰 축이 무너졌다"고 말했습니다 (The Hill 인용, Latin Times 재인용).
 
@@ -128,11 +128,11 @@ Fortune에 따르면 **보고서는 두 사람이 연인이라고 주장하지 �
 
 여기서부터는 보도를 바탕으로 한 제 해석입니다. 예측이 아니라 지켜볼 변수입니다.
 
-<figure><img src="/blog/culper-nvidia-20261116/racks.jpg" alt="케이블이 꽂힌 서버 랙이 서버실에 줄지어 있습니다" loading="lazy"><figcaption>케이블이 꽂힌 서버 랙이 서버실에 줄지어 있습니다. 일반 사진이며 엔비디아나 Megaspeed 시설이 아닙니다<br>[출처: Kevin Ache, Unsplash]</figcaption></figure>
+<figure><img src="/blog/culper-nvidia-20261116/racks.jpg" alt="케이블이 꽂힌 서버 랙이 서버실에 줄지어 있습니다" loading="lazy"><figcaption>케이블이 꽂힌 서버 랙이 서버실에 줄지어 있습니다. 일반 사진이며 엔비디아나 Megaspeed 시설이 아닙니다<br>[출처: Kevin Ache, Unsplash 라이선스]</figcaption></figure>
 
 <div class="ic" data-chart="cu_impact"></div>
 
-<figure><img src="/blog/culper-nvidia-20261116/board.jpg" alt="금색 접점이 보이는 짙은 파란색 회로 기판 클로즈업입니다" loading="lazy"><figcaption>짙은 파란색 회로 기판 클로즈업입니다. 수출 규제 대상인 AI 칩을 보여 주는 일반 사진이며 특정 제품이 아닙니다<br>[출처: Vishnu Mohanan, Unsplash]</figcaption></figure>
+<figure><img src="/blog/culper-nvidia-20261116/board.jpg" alt="금색 접점이 보이는 짙은 파란색 회로 기판 클로즈업입니다" loading="lazy"><figcaption>짙은 파란색 회로 기판 클로즈업입니다. 수출 규제 대상인 AI 칩을 보여 주는 일반 사진이며 특정 제품이 아닙니다<br>[출처: Vishnu Mohanan, Unsplash 라이선스]</figcaption></figure>
 
 **1. 수출 규제와 위치 검증.** 칩이 어디에 있는지 확인하는 장치가 의무가 되면 동남아 네오클라우드(GPU 임대 회사)와 칩 유통이 영향을 받습니다. Atlantic Council은 엔비디아의 위치 추적 기능이 지금은 자발적 참여이고 클라우드 파트너만 대상이라고 지적합니다.
 
