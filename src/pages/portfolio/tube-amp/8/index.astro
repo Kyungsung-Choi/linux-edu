@@ -4,6 +4,7 @@ import AudioScene from '../../../../components/tube/AudioScene.astro';
 import Step from '../../../../components/tube/Step.astro';
 import SineLabels from '../../../../components/tube/SineLabels.astro';
 import ScopeScreen from '../../../../components/tube/ScopeScreen.astro';
+import Aos02Scope from '../../../../components/tube/Aos02Scope.astro';
 
 ---
 <TubeLesson
@@ -20,7 +21,7 @@ import ScopeScreen from '../../../../components/tube/ScopeScreen.astro';
   <div class="tl__box">
     <b class="h">준비물</b>
     <ul>
-      <li>ANENG AOS02 (오실로스코프 모드)와 오실로스코프용 프로브(테스트 스틱)</li>
+      <li>ANENG AOS02 (오실로스코프 모드)와 BNC 프로브(1X/10X 스위치가 있는 것, 구성품)</li>
       <li>스마트폰(주파수 톤 발생 앱), 3.5mm 오디오 잭 브레이크아웃, 점퍼선</li>
       <li>선택 실습용: 다이오드 1N4148, 저항 10kΩ</li>
     </ul>
@@ -84,8 +85,10 @@ import ScopeScreen from '../../../../components/tube/ScopeScreen.astro';
       <li>입력 저항 1MΩ(16pF), 프로브 배율 ×1 / ×10</li>
       <li>소리(20Hz~20kHz)를 보기에는 충분한 성능입니다.</li>
     </ul>
-    <p>세로·가로 눈금과 트리거 같은 조작 버튼의 이름은 기기의 설명서로 확인합니다. 모드 전환은 MODE 키입니다.</p>
+    <p>모드 전환은 <b>MODE 키</b>, 파형을 자동으로 맞추는 것은 <b>AUTO RANGE 키</b>, 눈금·위치·트리거 설정은 <b>F1~F4 키</b>입니다(제품 사진 기준).</p>
   </div>
+  <Aos02Scope />
+  <p>화면의 칸을 세어 읽는 방법은 아래 그림 3과 같습니다.</p>
   <ScopeScreen />
   <ul>
     <li><b>세로 눈금(전압/칸)</b>: 한 칸이 몇 V인지 정합니다. 파형이 화면에 크게 보이도록 조절합니다.</li>
@@ -107,8 +110,10 @@ import ScopeScreen from '../../../../components/tube/ScopeScreen.astro';
   <Step n={1} title="스마트폰과 오실로스코프 연결" ok="프로브 끝은 L, 접지 클립은 GND에 닿아 있다.">
     <ol>
       <li>7회와 같이 3.5mm 잭 모듈에 스마트폰을 연결합니다.</li>
-      <li>오실로스코프 프로브의 <b>끝</b>을 모듈의 <b>L</b>에, <b>접지 클립</b>을 모듈의 <b>GND</b>에 댑니다.</li>
-      <li>프로브의 배율 스위치를 <b>×1</b>로 놓고, 오실로스코프 설정도 ×1로 맞춥니다.</li>
+      <li>프로브의 BNC 커넥터를 기기 <b>왼쪽 옆면의 BNC 입력</b>에 꽂고 돌려 잠급니다.</li>
+      <li><b>MODE 키</b>를 눌러 오실로스코프 모드로 바꿉니다 (화면이 파형 화면으로 바뀝니다).</li>
+      <li>프로브의 <b>끝</b>을 모듈의 <b>L</b>에, <b>접지 클립</b>을 모듈의 <b>GND</b>에 댑니다.</li>
+      <li>프로브의 배율 스위치를 <b>1X</b>로 놓고, 기기의 프로브 배율 설정도 같은 값으로 맞춥니다 (MENU 메뉴에서 찾아봅니다).</li>
     </ol>
     <AudioScene scene="scope" caption="프로브 끝은 신호(L), 접지 클립은 GND." />
   </Step>
@@ -116,13 +121,19 @@ import ScopeScreen from '../../../../components/tube/ScopeScreen.astro';
   <Step n={2} title="1kHz 톤 재생하고 파형 맞추기" ok="화면에 사인파가 2~5주기쯤 멈춰서 보인다.">
     <ol>
       <li>스마트폰에서 <b>1kHz</b> 톤을 중간 음량으로 재생합니다.</li>
-      <li>오실로스코프의 <b>자동 설정(Auto set)</b> 버튼이 있으면 누릅니다.</li>
-      <li>없으면 세로 눈금(전압/칸)을 <b>0.5V</b>쯤, 가로 눈금(시간/칸)을 <b>0.5ms</b>쯤 맞추고 트리거를 자동(Auto)으로 둡니다.</li>
+      <li><b>AUTO RANGE 키</b>(자동 파형 측정)를 누르면 파형이 자동으로 맞춰집니다.</li>
+      <li>부족하면 <b>F1(VOL/TIME)</b>으로 세로 눈금을 <b>0.5V</b>쯤, 가로 눈금을 <b>0.5ms</b>쯤 맞추고, <b>F3(TRIG)</b>로 파형이 멈춰 보이게 합니다.</li>
+      <li>화면 위쪽의 <b>M:</b>(가로 한 칸의 시간)과 세로 눈금 값을 읽어 둡니다.</li>
     </ol>
   </Step>
 
+  <div class="tl__box">
+    <b class="h">연습 팁</b>
+    <p>AOS02 오른쪽 옆면의 덮개 안에 <b>3V / 1kHz 사각파 출력 단자</b>가 있다고 제품 사진에 표기되어 있습니다. 설명서에서 위치를 확인해 프로브를 연결하면 스마트폰 없이도 눈금 읽는 연습을 할 수 있습니다. 사각파는 사인파와 모양이 다르지만 칸 수를 세는 방법은 같습니다.</p>
+  </div>
+
   <Step n={3} title="파형에서 값 읽기" ok="주기가 약 1ms, 계산한 주파수가 약 1kHz.">
-    <p>그림 2처럼 칸 수를 세어 계산해 표에 적어 둡니다.</p>
+    <p>그림 3처럼 칸 수를 세어 계산해 표에 적어 둡니다.</p>
     <div class="tl__scroll">
       <table class="tl__tb">
         <thead><tr><th>읽을 것</th><th>방법</th><th>1kHz에서 나오는 값(예)</th></tr></thead>
@@ -169,7 +180,7 @@ import ScopeScreen from '../../../../components/tube/ScopeScreen.astro';
   </Step>
 
   <Step n={7} title="(선택) 멀티미터 교류 전압과 비교" ok="멀티미터 값 ≈ 오실로스코프 Vpp × 0.354.">
-    <p>스마트폰에서 <b>100Hz</b> 톤을 재생하고 멀티미터 V~로 신호를 재 봅니다. 값은 실효값이며 Vrms = Vpp ÷ (2 × 1.414)입니다. 저가형 멀티미터는 높은 주파수에서 값이 낮게 나올 수 있어 낮은 주파수로 비교합니다.</p>
+    <p>스마트폰에서 <b>100Hz</b> 톤을 재생하고 MODE 키로 멀티미터 모드로 돌아가 F1(V)을 AC로 바꿔 신호를 재 봅니다. 값은 실효값이며 Vrms = Vpp ÷ (2 × 1.414)입니다. AOS02의 교류 전압 주파수 범위는 40Hz~1kHz(제품 사양표 기준)여서 1kHz는 범위의 끝입니다. 낮은 주파수로 비교합니다.</p>
   </Step>
 
   <div class="tl__learn">

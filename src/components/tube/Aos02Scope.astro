@@ -1,0 +1,54 @@
+---
+// ANENG AOS02 오실로스코프 모드 화면 (제품 사진 속 화면의 항목 이름을 바탕으로 직접 그린 그림)
+const gx = 34, gy = 54, gw = 292, gh = 240; // 10칸 x 8칸
+const dx = gw / 10, dy = gh / 8;
+const pts = Array.from({ length: 201 }, (_, i) => {
+  const x = gx + (gw * i) / 200;
+  return `${i ? 'L' : 'M'}${x.toFixed(1)} ${(gy + gh / 2 - 2 * dy * Math.sin((2 * Math.PI * (x - gx)) / (2 * dx))).toFixed(1)}`;
+}).join('');
+const keys = ['VOL/TIME', 'MOVE', 'TRIG', 'AC'];
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 680 440" role="img" aria-labelledby="as-t as-d">
+    <title id="as-t">AOS02 오실로스코프 모드 화면과 키</title>
+    <desc id="as-d">화면 위쪽에 RUN, 가로 눈금(M), 세로 눈금, 트리거 레벨이 표시되고, 가운데에 파형, 아래쪽에 주파수와 Vpp 같은 자동 측정값, 맨 아래에 F1~F4 메뉴가 있다.</desc>
+    <rect x="16" y="8" width="328" height="424" rx="20" fill="#c0392b"/><rect x="22" y="14" width="316" height="412" rx="16" fill="#1b1b1d"/>
+    <!-- 상단 정보줄 -->
+    <text x="34" y="40" style="font-size:12px; font-weight:700; fill:#7dffa8">RUN</text>
+    <text x="96" y="40" style="font-size:12px; font-weight:700; fill:#5fd3ff">M:0.5ms</text>
+    <text x="196" y="40" style="font-size:12px; font-weight:700; fill:#ffd166">0.5V</text>
+    <text x="262" y="40" style="font-size:12px; font-weight:700; fill:#fff">T:0mV</text>
+    <!-- 눈금과 파형 -->
+    <rect x={gx} y={gy} width={gw} height={gh} fill="#0f1a14"/>
+    {Array.from({ length: 11 }, (_, i) => <line x1={gx + i * dx} y1={gy} x2={gx + i * dx} y2={gy + gh} stroke="#2f6b47" stroke-width={i === 5 ? 1.6 : 0.8}/>)}
+    {Array.from({ length: 9 }, (_, i) => <line x1={gx} y1={gy + i * dy} x2={gx + gw} y2={gy + i * dy} stroke="#2f6b47" stroke-width={i === 4 ? 1.6 : 0.8}/>)}
+    <path d={pts} stroke="#7dffa8" stroke-width="3" fill="none" stroke-linejoin="round"/>
+    <!-- 자동 측정값 -->
+    <text x="34" y="318" style="font-size:12px; font-weight:700; fill:#ffd166">FreQ:1.000K</text>
+    <text x="130" y="318" style="font-size:12px; font-weight:700; fill:#ffd166">VPP:2.00V</text>
+    <text x="226" y="318" style="font-size:12px; font-weight:700; fill:#ffd166">Vmax:1.00V</text>
+    <!-- 메뉴 -->
+    {keys.map((k, i) => (
+      <g>
+        <rect x={gx + i * 74} y="334" width="68" height="28" rx="4" fill={i === 0 ? '#c0392b' : '#3a3a3f'}/>
+        <text x={gx + i * 74 + 34} y="353" text-anchor="middle" style="font-size:11px; font-weight:700; fill:#fff">{k}</text>
+        <rect x={gx + i * 74} y="372" width="68" height="22" rx="5" fill="#8a2a20"/>
+        <text x={gx + i * 74 + 34} y="388" text-anchor="middle" style="font-size:11px; font-weight:700; fill:#fff">F{i + 1}</text>
+      </g>
+    ))}
+
+    <!-- 설명 -->
+    <g>
+      <text class="b" x="368" y="36" style="fill:#2a9d5c">RUN</text><text class="s" x="368" y="54" style="font-size:12px">파형이 계속 갱신되는 중</text>
+      <text class="b" x="368" y="86" style="fill:#1b7fb0">M:0.5ms</text><text class="s" x="368" y="104" style="font-size:12px">가로 한 칸의 시간</text>
+      <text class="b" x="368" y="136" style="fill:#b98a00">0.5V</text><text class="s" x="368" y="154" style="font-size:12px">세로 한 칸의 전압</text>
+      <text class="b" x="368" y="186">T:0mV</text><text class="s" x="368" y="204" style="font-size:12px">트리거 레벨 (파형을 멈춰 보이게 하는 기준)</text>
+      <text class="b" x="368" y="246" style="fill:#b98a00">FreQ · VPP · Vmax</text><text class="s" x="368" y="264" style="font-size:12px">기기가 계산해 주는 주파수·Vpp·최대값.</text><text class="s" x="368" y="280" style="font-size:12px">직접 읽은 값과 비교해 본다.</text>
+      <text class="b" x="368" y="332">F1~F4 (VOL/TIME · MOVE · TRIG · AC)</text>
+      <text class="s" x="368" y="350" style="font-size:12px">눈금 바꾸기 · 파형 위치 · 트리거 · 교류/직류</text>
+      <text class="b" x="368" y="388">AUTO RANGE 키</text><text class="s" x="368" y="406" style="font-size:12px">파형을 자동으로 맞춰 줌</text>
+    </g>
+    <text class="s" x="368" y="428" style="font-size:11px">※ 제품 사진 속 화면의 항목 이름 기준</text>
+  </svg>
+  <figcaption>그림 2. AOS02 오실로스코프 모드 화면(개념도). 위쪽 숫자는 눈금 설정, 아래쪽 숫자는 자동 측정값입니다.</figcaption>
+</figure>

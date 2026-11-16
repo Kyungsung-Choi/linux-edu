@@ -34,19 +34,33 @@ if (scene === 'phone') {
   svg += `<text class="s" x="326" y="152" style="font-size:12px">R: 연결하지 않음</text><text class="s c" x="100" y="292" style="font-size:12px">오디오 케이블</text>`;
   svg += `<text class="s c" x="320" y="278">스마트폰 음량은 가장 작게 시작</text>`;
 } else if (scene === 'scope') {
+  h = 318;
   svg += phone(20, 40) + breakout(190, 80);
   svg += `<path d="M63 200C63 250 120 250 170 130" fill="none" stroke="#33363c" stroke-width="5" stroke-linecap="round"/>`;
-  svg += `<rect x="440" y="30" width="180" height="150" rx="12" fill="#1d2630"/><rect x="452" y="42" width="156" height="104" fill="#0f1a14"/>`;
-  for (let i = 1; i < 6; i++) svg += `<line x1="${452 + i * 26}" y1="42" x2="${452 + i * 26}" y2="146" stroke="#2f6b47"/>`;
-  for (let i = 1; i < 4; i++) svg += `<line x1="452" y1="${42 + i * 26}" x2="608" y2="${42 + i * 26}" stroke="#2f6b47"/>`;
-  svg += `<path d="${sine(452, 156, 94, 30, 3)}" stroke="#7dffa8" stroke-width="2.5" fill="none"/>`;
-  svg += `<text class="b c" x="530" y="168" style="fill:#fff; font-size:13px">오실로스코프</text>`;
-  svg += `<circle cx="470" cy="196" r="8" fill="#6b7078"/><circle cx="520" cy="196" r="8" fill="#6b7078"/>`;
-  // 프로브(빨강): 끝을 L, 접지 클립(검정): GND
-  svg += `<path d="M470 204C470 280 360 280 322 108" fill="none" stroke="#d63a2e" stroke-width="4" stroke-linecap="round"/><circle cx="322" cy="100" r="7" fill="#d63a2e" stroke="#fff" stroke-width="2"/>`;
-  svg += `<path d="M520 204C520 268 380 268 322 158" fill="none" stroke="#2b2b2b" stroke-width="4" stroke-linecap="round"/><path d="M314 150h16l-3 14h-10z" fill="#2b2b2b"/>`;
-  svg += `<text class="b" x="330" y="86" style="fill:#d63a2e; font-size:13px">프로브 끝 → L</text><text class="b" x="334" y="148" style="font-size:13px">접지 클립 → GND</text>`;
-  svg += `<text class="s c" x="320" y="290">접지 클립은 반드시 GND에만</text>`;
+  // ANENG AOS02 (오실로스코프 모드)
+  svg += `<rect x="476" y="14" width="138" height="276" rx="24" fill="#c0392b"/><rect x="481" y="19" width="128" height="266" rx="20" fill="#2e2e32"/>`;
+  svg += `<rect x="489" y="30" width="112" height="124" rx="5" fill="#0f1a14"/>`;
+  for (let i = 1; i < 6; i++) svg += `<line x1="${489 + i * 18.7}" y1="42" x2="${489 + i * 18.7}" y2="146" stroke="#2f6b47"/>`;
+  for (let i = 1; i < 6; i++) svg += `<line x1="489" y1="${42 + i * 17.3}" x2="601" y2="${42 + i * 17.3}" stroke="#2f6b47"/>`;
+  svg += `<path d="${sine(489, 112, 94, 28, 3)}" stroke="#7dffa8" stroke-width="2.5" fill="none"/>`;
+  svg += `<text x="493" y="40" style="font-size:7px; fill:#7dffa8">RUN</text><text x="560" y="40" style="font-size:7px; fill:#7dffa8">M:0.5ms</text>`;
+  [0, 1, 2, 3].forEach((i) => (svg += `<rect x="${487 + i * 28}" y="160" width="25" height="12" rx="3" fill="#8a2a20"/>`));
+  svg += `<rect x="487" y="180" width="25" height="14" rx="4" fill="#4a4a50" stroke="#ffd166" stroke-width="2"/><text x="499.5" y="190" text-anchor="middle" style="font-size:6px; fill:#fff">AUTO</text>`;
+  svg += `<rect x="571" y="180" width="30" height="14" rx="4" fill="#4a4a50" stroke="#ffd166" stroke-width="2"/><text x="586" y="190" text-anchor="middle" style="font-size:7px; fill:#fff; font-weight:700">MODE</text>`;
+  svg += `<circle cx="545" cy="238" r="30" fill="#3a3a3f"/><circle cx="545" cy="238" r="15" fill="#55555c"/>`;
+  svg += `<rect x="466" y="112" width="16" height="28" rx="3" fill="#8a8f98" stroke="#555" stroke-width="1.5"/><circle cx="470" cy="126" r="5" fill="#33363c"/>`;
+  // 프로브: 머리 → BNC, 끝(빨강) → L, 접지 클립(검정) → GND
+  svg += `<path d="M436 126H468" stroke="#111" stroke-width="5" stroke-linecap="round"/>`;
+  svg += `<rect x="376" y="117" width="60" height="18" rx="7" fill="#222"/><rect x="396" y="121" width="16" height="10" rx="2" fill="#d63a2e"/>`;
+  svg += `<text x="404" y="130" text-anchor="middle" style="font-size:6px; fill:#fff; font-weight:700">1X 10X</text>`;
+  svg += `<path d="M376 121H342L312 100" fill="none" stroke="#d63a2e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="310" cy="100" r="5" fill="#d63a2e" stroke="#fff" stroke-width="1.5"/>`;
+  svg += `<path d="M376 131H342L318 152" fill="none" stroke="#2b2b2b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M306 146h14l-2 12h-10z" fill="#2b2b2b"/>`;
+  svg += `<text class="b" x="322" y="88" style="fill:#d63a2e; font-size:13px">프로브 끝 → L</text>`;
+  svg += `<text class="b" x="322" y="176" style="font-size:13px">접지 클립 → GND</text>`;
+  svg += `<text class="s c" x="406" y="108" style="font-size:11px">프로브 (1X / 10X 스위치)</text>`;
+  svg += `<text class="s" x="404" y="152" style="font-size:11px">BNC 입력</text>`;
+  svg += `<text class="s c" x="545" y="306" style="font-size:11px">MODE 키로 오실로스코프 모드</text>`;
+  svg += `<text class="s c" x="190" y="306">접지 클립은 반드시 GND에만</text>`;
 } else if (scene === 'half') {
   h = 330;
   svg += `<text class="b" x="30" y="40" style="font-size:16px">L (스마트폰 신호)</text>`;

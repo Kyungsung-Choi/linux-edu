@@ -1,66 +1,101 @@
 ---
-// 다이얼 눈금: 각도(0=위, 시계 방향)와 이름
-const cx = 300, cy = 215, r = 78;
-const marks = [
-  { a: 0, t: 'OFF', dx: 0, dy: -14, anchor: 'middle' },
-  { a: 50, t: 'V⎓ (직류 전압)', dx: 12, dy: -6, anchor: 'start' },
-  { a: 100, t: 'V~ (교류 전압)', dx: 14, dy: 4, anchor: 'start' },
-  { a: 150, t: 'Ω (저항)', dx: 12, dy: 12, anchor: 'start' },
-  { a: 210, t: '통전·다이오드', dx: -12, dy: 12, anchor: 'end' },
-  { a: 260, t: 'A (전류)', dx: -14, dy: 4, anchor: 'end' },
-].map((m) => {
-  const rad = (m.a * Math.PI) / 180;
-  return { ...m, x1: cx + Math.sin(rad) * (r + 4), y1: cy - Math.cos(rad) * (r + 4), x2: cx + Math.sin(rad) * (r + 14), y2: cy - Math.cos(rad) * (r + 14) };
-});
-const px = cx + Math.sin((50 * Math.PI) / 180) * 52;
-const py = cy - Math.cos((50 * Math.PI) / 180) * 52;
+// ANENG AOS02 앞면 (제품 사진의 표기를 기준으로 직접 그린 그림)
+const fx = [216, 270, 324, 378];
+const menu = [['V', true], ['Ω ▷|', false], ['A', false], ['mV ℃', false]];
+const btn = [
+  ['⏻', 'REL', '#c0392b'],
+  ['AUTO', 'RANGE', '#4a4a50'],
+  ['HOLD', 'SAVE', '#4a4a50'],
+  ['MODE', '', '#4a4a50'],
+];
+const jacks = [[238, '10A'], [292, 'mA'], [346, 'COM'], [400, 'VΩ']];
 ---
 <figure class="tl__fig">
-  <svg class="sv" viewBox="0 0 620 485" role="img" aria-labelledby="mm-t mm-d">
-    <title id="mm-t">멀티미터의 각 부분</title>
-    <desc id="mm-d">숫자가 표시되는 화면, 측정 종류를 고르는 다이얼, 리드선을 꽂는 단자(COM, VΩ). 빨간 리드는 VΩ, 검은 리드는 COM에 꽂는다.</desc>
+  <svg class="sv" viewBox="0 0 640 650" role="img" aria-labelledby="mm-t mm-d">
+    <title id="mm-t">ANENG AOS02 멀티미터의 각 부분</title>
+    <desc id="mm-d">화면과 F1~F4 키, 전원·자동 범위·홀드·모드 키, 메뉴와 방향 키, 단자 10A·mA·COM·VΩ. 빨간 리드는 VΩ, 검은 리드는 COM에 꽂는다. 왼쪽 옆면에 오실로스코프 입력, 오른쪽 옆면에 1kHz 사각파 출력이 있다.</desc>
 
-    <rect x="200" y="10" width="200" height="445" rx="26" fill="#d9dce1" stroke="#8a8f98" stroke-width="2"/>
-    <rect x="222" y="30" width="156" height="64" rx="6" fill="#cfe3d2" stroke="#6b7078" stroke-width="2"/>
-    <text x="366" y="82" text-anchor="end" style="font-size:32px; font-weight:700; fill:#243a2a; font-family:ui-monospace,Menlo,monospace">1.52</text>
-    <text x="232" y="52" style="font-size:12px; fill:#243a2a">DC</text>
-    <text x="368" y="48" style="font-size:12px; fill:#243a2a" text-anchor="end">V</text>
+    <!-- 몸체 -->
+    <rect x="180" y="8" width="280" height="612" rx="40" fill="#c0392b"/>
+    <rect x="190" y="18" width="260" height="592" rx="32" fill="#2e2e32"/>
+    <rect x="204" y="26" width="104" height="20" rx="3" fill="#f2b900"/>
+    <text x="212" y="41" style="font-size:12px; font-weight:800; fill:#111">ANENG AOS02</text>
+    <text x="318" y="41" style="font-size:9px; fill:#bbb">AUTO POWER OFF</text>
 
-    <circle cx={cx} cy={cy} r={r + 2} fill="#eceef1" stroke="#8a8f98" stroke-width="2"/>
-    <circle cx={cx} cy={cy} r="30" fill="#4b5a74"/>
-    <line x1={cx} y1={cy} x2={px} y2={py} stroke="#fff" stroke-width="6" stroke-linecap="round"/>
-    {marks.map((m) => <line x1={m.x1} y1={m.y1} x2={m.x2} y2={m.y2} stroke="#6b7078" stroke-width="2"/>)}
+    <!-- 화면 -->
+    <rect x="206" y="54" width="228" height="172" rx="8" fill="#171719" stroke="#5a5a60" stroke-width="2"/>
+    <path d="M222 96Q320 64 418 96" fill="none" stroke="#777" stroke-width="2"/>
+    <text x="218" y="92" style="font-size:9px; fill:#aaa">0</text><text x="402" y="92" style="font-size:9px; fill:#aaa">100</text>
+    <text x="218" y="122" style="font-size:13px; fill:#ccc; font-weight:700">DC</text>
+    <text x="390" y="164" text-anchor="end" style="font-size:58px; font-weight:700; fill:#fff; font-family:ui-monospace,Menlo,monospace">1.52</text>
+    <text x="396" y="164" style="font-size:22px; fill:#fff; font-weight:700">V</text>
+    <text x="320" y="180" text-anchor="middle" style="font-size:10px; fill:#aaa">AUTO</text>
+    {menu.map((m, i) => (
+      <g>
+        <rect x={fx[i] - 4} y="194" width="54" height="24" rx="3" fill={m[1] ? '#c0392b' : '#3a3a3f'}/>
+        <text x={fx[i] + 23} y="211" text-anchor="middle" style="font-size:12px; fill:#fff; font-weight:700">{m[0]}</text>
+      </g>
+    ))}
 
-    <g class="s">
-      <text x="300" y="118" class="c">OFF</text>
-      <text x="402" y="150">V⎓</text>
-      <text x="402" y="232">V~</text>
-      <text x="400" y="298">Ω</text>
-      <text x="196" y="296" text-anchor="end">•))) ▷|</text>
-      <text x="196" y="236" text-anchor="end">A</text>
-    </g>
+    <!-- F1~F4 -->
+    {fx.map((x, i) => (
+      <g>
+        <rect x={x - 4} y="236" width="54" height="22" rx="5" fill="#8a2a20"/>
+        <text x={x + 23} y="251" text-anchor="middle" style="font-size:12px; fill:#fff; font-weight:700">F{i + 1}</text>
+      </g>
+    ))}
+
+    <!-- 기능 키 -->
+    {btn.map((b, i) => (
+      <g>
+        <rect x={fx[i] - 4} y="268" width="54" height="30" rx="6" fill={b[2]}/>
+        <text x={fx[i] + 23} y={b[1] ? 281 : 288} text-anchor="middle" style="font-size:10px; fill:#fff; font-weight:700">{b[0]}</text>
+        {b[1] && <text x={fx[i] + 23} y="292" text-anchor="middle" style="font-size:10px; fill:#fff; font-weight:700">{b[1]}</text>}
+      </g>
+    ))}
+
+    <!-- 방향 키 -->
+    <circle cx="320" cy="376" r="68" fill="#3a3a3f"/>
+    <path d="M320 318L307 332H333Z M320 434L307 420H333Z M262 376L276 363V389Z M378 376L364 363V389Z" fill="#cfcfd4"/>
+    <circle cx="320" cy="376" r="36" fill="#55555c"/>
+    <text x="320" y="381" text-anchor="middle" style="font-size:14px; fill:#fff; font-weight:800">MENU</text>
 
     <!-- 단자 -->
-    <g>
-      <circle cx="248" cy="372" r="15" fill="#33363c"/><circle cx="300" cy="372" r="15" fill="#33363c"/><circle cx="352" cy="372" r="15" fill="#33363c"/>
-      <text class="s c" x="248" y="346">10A</text>
-      <text class="s c b" x="300" y="346">COM</text>
-      <text class="s c b" x="352" y="346">VΩ</text>
-    </g>
-    <!-- 리드 -->
-    <path d="M352 387C352 430 440 410 470 440" fill="none" stroke="#d63a2e" stroke-width="5" stroke-linecap="round"/>
-    <path d="M300 387C300 440 190 410 150 440" fill="none" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round"/>
+    {jacks.map((j) => (
+      <g>
+        <text x={j[0]} y="480" text-anchor="middle" style="font-size:14px; fill:#fff; font-weight:800">{j[1]}</text>
+        <circle cx={j[0]} cy="506" r="15" fill="#111" stroke={j[1] === 'VΩ' ? '#e24a3b' : j[1] === 'COM' ? '#eee' : '#888'} stroke-width="4"/>
+      </g>
+    ))}
+    <path d="M400 521C400 580 500 575 566 594" fill="none" stroke="#d63a2e" stroke-width="5" stroke-linecap="round"/>
+    <path d="M346 521C346 575 250 575 176 594" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
 
-    <!-- 설명 -->
-    <path d="M222 62H110" stroke="var(--ink2)" stroke-width="1.5"/>
-    <text class="b" x="20" y="58">화면</text><text class="s" x="20" y="76">숫자가 나오는 곳</text>
-    <text class="b" x="470" y="40">다이얼</text><text class="s" x="470" y="58">측정 종류를 고름</text>
-    <path d="M520 66L378 168" stroke="var(--ink2)" stroke-width="1.5"/>
-    <text class="b" x="428" y="372" style="fill:#d63a2e">빨간 리드</text>
-    <text class="s" x="428" y="390">→ VΩ 단자</text>
-    <text class="b" x="30" y="372">검은 리드</text>
-    <text class="s" x="30" y="390">→ COM 단자</text>
-    <text class="s c" x="300" y="474">※ 모델마다 모양과 배치가 다릅니다</text>
+    <!-- 옆면 -->
+    <rect x="164" y="112" width="26" height="38" rx="4" fill="#8a8f98" stroke="#555" stroke-width="2"/><circle cx="177" cy="131" r="8" fill="#33363c"/>
+    <rect x="458" y="150" width="14" height="64" rx="3" fill="#6b7078"/>
+
+    <!-- 설명: 왼쪽 -->
+    <text class="b" x="8" y="70">화면</text><text class="s" x="8" y="88" style="font-size:12px">숫자와 눈금 막대,</text><text class="s" x="8" y="104" style="font-size:12px">아래에 메뉴 이름</text>
+    <path d="M118 66H204" stroke="var(--ink2)" stroke-width="1.5"/>
+    <text class="b" x="8" y="136">BNC 입력</text><text class="s" x="8" y="154" style="font-size:12px">오실로스코프용</text><text class="s" x="8" y="170" style="font-size:12px">(왼쪽 옆면)</text>
+    <path d="M100 132H162" stroke="var(--ink2)" stroke-width="1.5"/>
+    <text class="b" x="8" y="230">F1~F4</text><text class="s" x="8" y="248" style="font-size:12px">화면 아래 메뉴와</text><text class="s" x="8" y="264" style="font-size:12px">같은 순서로 기능 고름</text>
+    <path d="M118 226H210" stroke="var(--ink2)" stroke-width="1.5"/>
+
+    <!-- 설명: 오른쪽 -->
+    <text class="b" x="484" y="232">F1 V · F2 Ω</text><text class="s" x="484" y="250" style="font-size:12px">F3 A · F4 mV ℃</text>
+    <text class="b" x="484" y="282">⏻ 길게: 전원</text>
+    <text class="s" x="484" y="300" style="font-size:12px">AUTO RANGE: 자동/수동</text><text class="s" x="484" y="316" style="font-size:12px">HOLD: 값 고정</text><text class="s" x="484" y="332" style="font-size:12px">MODE: 멀티미터 ↔</text><text class="s" x="484" y="348" style="font-size:12px">오실로스코프</text>
+    <text class="b" x="484" y="388">MENU · 화살표</text><text class="s" x="484" y="406" style="font-size:12px">설정 메뉴, 값 조절</text>
+    <text class="b" x="484" y="130">1kHz 사각파</text><text class="s" x="484" y="148" style="font-size:12px">출력(오른쪽 옆면)</text>
+    <path d="M480 160H474" stroke="var(--ink2)" stroke-width="1.5"/>
+
+    <!-- 단자 설명 -->
+    <text class="s" x="8" y="500" style="font-size:12px">10A: 큰 전류용</text><text class="s" x="8" y="516" style="font-size:12px">(이 강좌에서 안 씀)</text>
+    <text class="s" x="8" y="540" style="font-size:12px">mA: 전류 측정</text>
+    <text class="b" x="632" y="624" text-anchor="end" style="fill:#d63a2e">빨간 리드 → VΩ</text>
+    <text class="b" x="8" y="620">검은 리드 → COM</text>
+    <text class="s" x="320" y="644" text-anchor="middle" style="font-size:10px">※ 제품 사진의 표기를 바탕으로 그린 그림입니다. 실제 화면 메뉴는 설정에 따라 다를 수 있습니다.</text>
   </svg>
-  <figcaption>그림 2. 멀티미터의 구조(일반적인 모양). 지금 쓰는 기기의 설명서와 비교해 같은 이름을 찾아봅니다.</figcaption>
+  <figcaption>그림 2. ANENG AOS02(멀티미터 모드). 회전 다이얼이 없고, 화면 아래 F1~F4 키로 기능을 고릅니다.</figcaption>
 </figure>
