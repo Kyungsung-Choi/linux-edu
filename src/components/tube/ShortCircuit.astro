@@ -1,0 +1,37 @@
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 270" role="img" aria-labelledby="sc-t sc-d">
+    <title id="sc-t">합선과 정상 연결 비교</title>
+    <desc id="sc-d">왼쪽은 건전지의 플러스와 마이너스를 도선으로 바로 이은 합선. 오른쪽은 저항과 LED를 거쳐 전류가 제한되는 정상 연결.</desc>
+
+    <rect class="panel" x="5" y="5" width="320" height="260" rx="12"/>
+    <rect class="panel" x="335" y="5" width="320" height="260" rx="12"/>
+    <text class="b l red" x="20" y="36">✕ 합선 (하면 안 됨)</text>
+    <text class="b l grn" x="350" y="36">○ 정상 (전류를 제한하는 부품)</text>
+
+    <!-- 왼쪽: 합선 -->
+    <path d="M60 80V125M60 140V225H270V80H60" fill="none" stroke="var(--danger)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="42" y1="125" x2="78" y2="125" stroke="var(--ink)" stroke-width="4"/>
+    <line x1="50" y1="140" x2="70" y2="140" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="22" y="130">+</text>
+    <text class="b" x="22" y="152">−</text>
+    <text class="s" x="84" y="117">건전지</text>
+    <text class="s c" x="165" y="140">전류가 한꺼번에 흘러</text>
+    <text class="s c" x="165" y="160">선과 건전지가 뜨거워짐</text>
+
+    <!-- 오른쪽: 정상 -->
+    <path d="M390 80V125M390 140V225H600V170M600 120V80H535M495 80H390" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="372" y1="125" x2="408" y2="125" stroke="var(--ink)" stroke-width="4"/>
+    <line x1="380" y1="140" x2="400" y2="140" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="352" y="130">+</text>
+    <text class="b" x="352" y="152">−</text>
+    <text class="s" x="414" y="117">건전지</text>
+    <rect x="495" y="68" width="40" height="24" rx="3" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s c" x="515" y="58">저항</text>
+    <path d="M586 120H614L600 148Z" fill="#e9605a" fill-opacity=".8" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="586" y1="150" x2="614" y2="150" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s" x="620" y="140">LED</text>
+    <text class="s c" x="480" y="140">저항이 전류를 줄여</text>
+    <text class="s c" x="480" y="160">LED가 안전하게 켜짐</text>
+  </svg>
+  <figcaption>그림 3. 건전지의 +와 −를 도선으로 바로 이으면 합선입니다. 반드시 저항이나 부품(부하)을 사이에 둡니다.</figcaption>
+</figure>
