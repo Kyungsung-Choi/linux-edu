@@ -1,0 +1,48 @@
+---
+// 각 그래프: 너비 280, 높이 130, 0V 선은 아래에서 30px 위
+const W = 280, N = 120;
+const cyc = 3;
+const line = (fn, x0, y0, sx, sy) =>
+  Array.from({ length: N + 1 }, (_, i) => {
+    const t = i / N;
+    return `${i ? 'L' : 'M'}${(x0 + W * t).toFixed(1)} ${(y0 - sy * fn(t)).toFixed(1)}`;
+  }).join('');
+const sin = (t) => Math.sin(2 * Math.PI * cyc * t);
+const half = (t) => Math.max(0, sin(t));
+const full = (t) => Math.abs(sin(t));
+// 평활: 봉우리마다 1에서 0.8까지 서서히 줄었다가 다음 봉우리가 다시 1로 올림
+const ripple = (x0, y0, sy) => {
+  const bumps = cyc * 2, seg = W / bumps, pts = [];
+  for (let k = 0; k < bumps; k++) {
+    const xs = x0 + k * seg;
+    pts.push(`${k ? 'L' : 'M'}${(xs + seg * 0.25).toFixed(1)} ${(y0 - sy).toFixed(1)}`);
+    pts.push(`L${(xs + seg * 1.0).toFixed(1)} ${(y0 - sy * 0.8).toFixed(1)}`);
+  }
+  return pts.join('');
+};
+const panels = [
+  { x: 20, y: 20, t: '교류 입력 (+와 −가 번갈아)', path: line(sin, 40, 100, 1, 36) },
+  { x: 340, y: 20, t: '다이오드 1개: 반파 정류', path: line(half, 360, 100, 1, 36) },
+  { x: 20, y: 200, t: '다이오드 4개(브리지): 전파 정류', path: line(full, 40, 280, 1, 36) },
+  { x: 340, y: 200, t: '+ 커패시터: 평활 (직류에 가까워짐)', path: ripple(360, 280, 36) },
+];
+const zero = [100, 100, 280, 280];
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 380" role="img" aria-labelledby="rf-t rf-d">
+    <title id="rf-t">정류: 교류를 직류로 바꾸는 과정</title>
+    <desc id="rf-d">교류 입력은 위아래로 번갈아 흔들린다. 다이오드 1개는 위쪽 반만 통과시키고(반파), 다이오드 4개 브리지는 아래쪽을 뒤집어 모두 위쪽으로 만들며(전파), 커패시터를 달면 봉우리 사이가 메워져 직류에 가까워진다.</desc>
+    <rect class="panel" x="5" y="5" width="650" height="370" rx="12"/>
+    {panels.map((p, i) => (
+      <g>
+        <text class="b" x={p.x + 8} y={p.y + 8} style="font-size:14px">{p.t}</text>
+        <path d={`M${p.x + 20} ${zero[i]}H${p.x + 20 + 300}`} stroke="var(--rule2)" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <path d={`M${p.x + 20} ${zero[i] - 50}V${zero[i] + 50}`} stroke="var(--ink)" stroke-width="2"/>
+        <text class="s" x={p.x + 14} y={zero[i] + 4} text-anchor="end" style="font-size:11px">0V</text>
+        <path d={p.path} stroke="var(--accent)" stroke-width="3.5" fill="none" stroke-linejoin="round"/>
+      </g>
+    ))}
+    <text class="s" x="30" y="364" style="font-size:12px">※ 다이오드의 전압 강하(0.6~0.7V)는 생략한 단순화 그림입니다.</text>
+  </svg>
+  <figcaption>그림 2. 정류 3단계. 진공관 앰프의 전원부는 전원 트랜스의 교류를 이렇게 직류로 바꿉니다(22~25회).</figcaption>
+</figure>

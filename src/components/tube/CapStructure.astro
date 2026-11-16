@@ -1,0 +1,40 @@
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 290" role="img" aria-labelledby="cs-t cs-d">
+    <title id="cs-t">커패시터의 구조와 회로 기호</title>
+    <desc id="cs-d">금속판 두 장과 그 사이의 절연체로 이루어지며, 건전지로 충전하면 한쪽 판에 플러스, 반대쪽 판에 마이너스 전기가 쌓인다. 방향 없는 기호와 방향 있는 기호(전해).</desc>
+    <rect class="panel" x="5" y="5" width="400" height="280" rx="12"/>
+    <rect class="panel" x="415" y="5" width="240" height="280" rx="12"/>
+    <text class="b l" x="20" y="36">구조: 금속판 2장</text>
+    <text class="b l" x="430" y="36">회로 기호</text>
+
+    <path d="M60 80V118M60 134V200H220V152M220 80V92" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M60 80H220" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="44" y1="118" x2="76" y2="118" stroke="var(--ink)" stroke-width="4"/><line x1="52" y1="134" x2="68" y2="134" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="22" y="124">+</text><text class="b" x="22" y="144">−</text>
+    <rect x="150" y="92" width="140" height="10" fill="#8a8f98"/>
+    <rect x="150" y="142" width="140" height="10" fill="#8a8f98"/>
+    <rect x="150" y="102" width="140" height="40" fill="#d6e6f5" fill-opacity=".8"/>
+    <path d="M220 92V80M220 152V200" stroke="var(--ink)" stroke-width="3.5" fill="none"/>
+    <g class="b" style="font-size:16px">
+      {[165, 190, 215, 240, 265].map((x) => <text class="c red" x={x} y="116">+</text>)}
+      {[165, 190, 215, 240, 265].map((x) => <text class="c" x={x} y="136" style="fill:#2f5fc4">−</text>)}
+    </g>
+    <text class="s" x="300" y="100">금속판 (위)</text>
+    <text class="s" x="300" y="124">절연체</text>
+    <text class="s" x="300" y="152">금속판 (아래)</text>
+    <text class="s c" x="205" y="236">건전지로 충전하면 위 판에 +,</text>
+    <text class="s c" x="205" y="256">아래 판에 −가 쌓임</text>
+    <text class="s c" x="205" y="276">= 전기를 모아 둠</text>
+
+    <path d="M440 90H480M500 90H540" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M480 70V110M500 70V110" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+    <text class="s" x="440" y="136">극성 없음 (세라믹·필름)</text>
+    <path d="M440 190H478M500 190H540" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M500 170V210" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M478 170Q468 190 478 210" stroke="var(--ink)" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <text class="b" x="508" y="166">+</text>
+    <text class="s" x="440" y="236">극성 있음 (전해)</text>
+    <text class="s" x="440" y="256">곧은 판 쪽이 +</text>
+  </svg>
+  <figcaption>그림 1. 커패시터 = 절연체를 사이에 둔 금속판 2장. 전기를 모아 두었다가 내보냅니다.</figcaption>
+</figure>

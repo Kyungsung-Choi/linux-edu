@@ -1,0 +1,41 @@
+---
+const ox = 230, oy = 270, sx = 110, cap = 190; // 1V = 110px, 최대 높이 190px
+const curve = (vk, n) => {
+  const A = cap / Math.exp(vk / n);
+  const pts = [];
+  for (let v = 0; v <= vk + 0.2; v += 0.01) {
+    const h = Math.min(cap, A * (Math.exp(v / n) - 1));
+    pts.push(`${pts.length ? 'L' : 'M'}${(ox + sx * v).toFixed(1)} ${(oy - h).toFixed(1)}`);
+    if (h >= cap) break;
+  }
+  return pts.join('');
+};
+const si = curve(0.7, 0.06);
+const led = curve(2.0, 0.13);
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 340" role="img" aria-labelledby="di-t di-d">
+    <title id="di-t">다이오드의 전압-전류 특성</title>
+    <desc id="di-d">다이오드는 순방향 전압이 약 0.6~0.7V(실리콘)를 넘으면 전류가 급격히 흐르고, 역방향에서는 거의 흐르지 않는다. LED는 약 1.8~2V 이상에서 흐른다.</desc>
+    <rect class="panel" x="5" y="5" width="650" height="330" rx="12"/>
+    <path d={`M30 ${oy}H${ox + sx * 3 + 10}M${ox} ${oy + 20}V${oy - cap - 20}`} stroke="var(--ink)" stroke-width="2.5" fill="none"/>
+    <path d={`M${ox - 190} ${oy - 1}H${ox}`} stroke="var(--danger)" stroke-width="4"/>
+    <path d={si} stroke="var(--accent)" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    <path d={led} stroke="#e9605a" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    <path d={`M${ox + sx * 0.65} ${oy}V${oy + 8}`} stroke="var(--accent)" stroke-width="2"/>
+    {[0, 1, 2, 3].map((v) => <g><path d={`M${ox + sx * v} ${oy}V${oy + 6}`} stroke="var(--ink)" stroke-width="2"/><text class="s c" x={ox + sx * v} y={oy + 24}>{v}V</text></g>)}
+    <text class="s c" x={ox - 110} y={oy + 24}>−1V</text>
+    <text class="b" x="30" y="30">전류</text>
+    <text class="s" x={ox + sx * 3 - 70} y={oy + 44}>걸어 준 전압 →</text>
+
+    <text class="b" x="338" y="46" style="fill:var(--accent)">일반 다이오드 (실리콘)</text>
+    <text class="s" x="338" y="66">약 0.6~0.7V부터 전류가 흐름</text>
+    <text class="b" x="480" y="130" style="fill:#d6504a">LED</text>
+    <text class="s" x="480" y="150">약 1.8~2V부터</text>
+    <text class="s" x="480" y="168">(색마다 다름)</text>
+    <text class="b" x="30" y="236" style="fill:var(--danger)">역방향 (−)</text>
+    <text class="s" x="30" y="256">거의 흐르지 않음</text>
+    <text class="s" x="30" y="316">※ 곡선 모양은 이해를 돕기 위한 단순화</text>
+  </svg>
+  <figcaption>그림 1. 다이오드는 "일정 전압(문턱)을 넘어야 열리는 일방통행 문"입니다. 열린 뒤에도 양끝에는 그 전압이 계속 걸립니다.</figcaption>
+</figure>

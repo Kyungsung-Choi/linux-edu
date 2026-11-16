@@ -1,0 +1,40 @@
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 270" role="img" aria-labelledby="rcc-t rcc-d">
+    <title id="rcc-t">커패시터 충전·방전 실험 회로</title>
+    <desc id="rcc-d">9V 건전지에서 10kΩ 저항을 거쳐 1000µF 전해 커패시터를 충전하고, 멀티미터로 커패시터 양끝의 전압을 잰다. 충전된 뒤에는 470Ω 저항과 LED로 방전한다.</desc>
+    <rect class="panel" x="5" y="5" width="650" height="260" rx="12"/>
+    <text class="b l" x="20" y="34">① 충전</text>
+    <text class="b l" x="350" y="34">② 방전</text>
+
+    <!-- ① -->
+    <path d="M50 90V118M50 134V220H250V158M250 90V108M50 90H110M170 90H250" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="34" y1="118" x2="66" y2="118" stroke="var(--ink)" stroke-width="4"/><line x1="42" y1="134" x2="58" y2="134" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="12" y="124">+</text><text class="b" x="12" y="144">−</text>
+    <text class="s" x="64" y="168">9V</text>
+    <rect x="110" y="78" width="60" height="24" rx="3" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s c" x="140" y="70">10kΩ</text>
+    <line x1="232" y1="108" x2="268" y2="108" stroke="var(--ink)" stroke-width="4"/>
+    <path d="M232 158Q250 142 268 158" fill="none" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="276" y="106">+</text>
+    <text class="s" x="276" y="140">1000µF</text>
+    <text class="s" x="276" y="158">(전해)</text>
+    <circle cx="190" cy="140" r="20" fill="var(--surface)" stroke="var(--ok)" stroke-width="3"/>
+    <text class="b c grn" x="190" y="148" style="font-size:20px">V</text>
+    <path d="M190 120V108H232M190 160V158H232" fill="none" stroke="var(--ok)" stroke-width="2" stroke-dasharray="4 3"/>
+
+    <!-- ② -->
+    <path d="M380 90V108M380 158V220H600V150M600 118V90H560M520 90H380" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="362" y1="108" x2="398" y2="108" stroke="var(--ink)" stroke-width="4"/>
+    <path d="M362 158Q380 142 398 158" fill="none" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="404" y="106">+</text>
+    <text class="s" x="404" y="140">충전된</text><text class="s" x="404" y="158">커패시터</text>
+    <rect x="520" y="78" width="40" height="24" rx="3" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s c" x="540" y="70">470Ω</text>
+    <path d="M586 118H614L600 146Z" fill="#e9605a" fill-opacity=".85" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="586" y1="148" x2="614" y2="148" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s" x="624" y="140">LED</text>
+    <text class="s c" x="490" y="245">+ 쪽이 LED의 긴 다리로 가게 연결</text>
+    <text class="s c" x="140" y="245">건전지는 +가 커패시터의 + 쪽</text>
+  </svg>
+  <figcaption>그림 3. 충전 실험(왼쪽)과 방전 실험(오른쪽). 전해 커패시터는 반드시 + 쪽을 건전지 + 쪽에 연결합니다.</figcaption>
+</figure>

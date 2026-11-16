@@ -1,0 +1,34 @@
+---
+const cols = [
+  { x: 10, f: 0, v: '0V', t: '손잡이를 왼쪽 끝으로' },
+  { x: 225, f: 0.5, v: '4.5V', t: '손잡이를 가운데로' },
+  { x: 440, f: 1, v: '9V', t: '손잡이를 오른쪽 끝으로' },
+];
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 330" role="img" aria-labelledby="pi-t pi-d">
+    <title id="pi-t">가변저항의 내부와 출력 전압</title>
+    <desc id="pi-d">가변저항은 저항 띠의 양끝(1, 3번 핀)과 그 위를 미끄러지는 접점(2번 핀)으로 이루어진다. 1번 핀을 0V, 3번 핀을 9V에 연결하면 접점 위치에 따라 2번 핀 전압이 0V에서 9V까지 변한다.</desc>
+    <defs>
+      <marker id="pi-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    {cols.map((c) => {
+      const x0 = c.x + 30, x1 = c.x + 170, wx = x0 + (x1 - x0) * c.f;
+      return (
+        <g>
+          <rect class="panel" x={c.x} y="5" width="210" height="320" rx="12"/>
+          <text class="b c" x={c.x + 105} y="32">{c.t}</text>
+          <rect x={x0} y="170" width={x1 - x0} height="18" rx="4" fill="#d9d2c0" stroke="var(--ink)" stroke-width="2.5"/>
+          <path d={`M${x0} 188V212M${x1} 188V212`} stroke="var(--ink)" stroke-width="3"/>
+          <text class="s c" x={x0} y="232">1번 핀</text><text class="s c" x={x0} y="250">0V (−)</text>
+          <text class="s c" x={x1} y="232">3번 핀</text><text class="s c" x={x1} y="250">9V (+)</text>
+          <path d={`M${wx} 100V164`} stroke="var(--accent)" stroke-width="3" marker-end="url(#pi-a)"/>
+          <circle cx={wx} cy="96" r="5" fill="var(--accent)"/>
+          <text class="s" x={c.f === 0 ? wx - 14 : c.f === 1 ? wx + 14 : wx} y="80" text-anchor={c.f === 0 ? 'start' : c.f === 1 ? 'end' : 'middle'}>2번 핀(접점)</text>
+          <text class="b c" x={c.x + 105} y="296" style="font-size:26px">Vout = {c.v}</text>
+        </g>
+      );
+    })}
+  </svg>
+  <figcaption>그림 2. 가변저항 = 움직이는 접점이 달린 저항 띠. 접점 위치에 따라 분배 비율이 바뀌는 "손으로 돌리는 전압 분배기"입니다. 저항 띠 전체가 가변저항의 전체 저항(예: 10kΩ)입니다.</figcaption>
+</figure>

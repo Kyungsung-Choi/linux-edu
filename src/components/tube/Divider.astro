@@ -1,0 +1,31 @@
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 330" role="img" aria-labelledby="dv-t dv-d">
+    <title id="dv-t">저항 2개로 만드는 전압 분배기</title>
+    <desc id="dv-d">위쪽 R1과 아래쪽 R2를 직렬로 이어 가운데에서 출력을 꺼낸다. 출력 전압은 입력 전압 곱하기 R2 나누기 R1 더하기 R2.</desc>
+    <defs>
+      <marker id="dv-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <rect class="panel" x="5" y="5" width="650" height="320" rx="12"/>
+    <circle cx="150" cy="40" r="6" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <text class="b" x="168" y="46">입력 Vin = 9V</text>
+    <path d="M150 46V80M150 134V190M150 244V280" stroke="var(--ink)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <rect x="138" y="80" width="24" height="54" rx="3" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <rect x="138" y="190" width="24" height="54" rx="3" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s" x="102" y="112" text-anchor="end">R1 = 10kΩ</text>
+    <text class="s" x="102" y="222" text-anchor="end">R2 = 4.7kΩ</text>
+    <circle cx="150" cy="162" r="5" fill="var(--ink)"/>
+    <path d="M150 162H250" stroke="var(--ink)" stroke-width="3.5" fill="none" marker-end="url(#dv-a)"/>
+    <text class="b" x="262" y="168">출력 Vout</text>
+    <path d="M128 280H172M136 290H164M144 300H156" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+    <text class="s c" x="150" y="320">0V (접지)</text>
+
+    <text class="b" x="400" y="70" style="font-size:18px">Vout = Vin × R2 ÷ (R1 + R2)</text>
+    <text class="s" x="400" y="100">아래쪽 저항(R2)이 클수록 출력이 커짐</text>
+    <text class="b" x="400" y="150">예) R1 = 10kΩ, R2 = 4.7kΩ</text>
+    <text class="s" x="400" y="176">Vout = 9 × 4.7 ÷ (10 + 4.7)</text>
+    <text class="b" x="400" y="204">≈ 2.88V</text>
+    <text class="b" x="400" y="248">예) R1 = R2 이면</text>
+    <text class="s" x="400" y="274">Vout = 9 × 1/2 = 4.5V (정확히 절반)</text>
+  </svg>
+  <figcaption>그림 1. 전압 분배기. 저항 2개의 비율로 원하는 전압을 만들어 냅니다.</figcaption>
+</figure>

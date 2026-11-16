@@ -1,0 +1,38 @@
+---
+const x0 = 80, y0 = 270, W = 280, H = 210;
+const A = [[0, 0], [10, 2], [20, 4], [30, 7], [40, 10], [50, 15], [60, 23], [70, 35], [80, 52], [90, 75], [100, 100]];
+const px = (r) => x0 + (W * r) / 100;
+const py = (s) => y0 - (H * s) / 100;
+const aPath = A.map((p, i) => `${i ? 'L' : 'M'}${px(p[0])} ${py(p[1])}`).join('');
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 320" role="img" aria-labelledby="tc-t tc-d">
+    <title id="tc-t">가변저항 B타입과 A타입의 변화 모양</title>
+    <desc id="tc-d">B타입은 손잡이를 돌린 만큼 저항이 직선으로 늘고, A타입은 처음에는 천천히 늘다가 끝으로 갈수록 빠르게 늘어난다.</desc>
+    <rect class="panel" x="5" y="5" width="650" height="310" rx="12"/>
+    <path d={`M${x0} ${y0}H${x0 + W + 10}M${x0} ${y0}V${y0 - H - 16}`} stroke="var(--ink)" stroke-width="2.5" fill="none"/>
+    <path d={`M${px(50)} ${y0}V${py(50)}M${x0} ${py(50)}H${px(50)}`} stroke="var(--rule2)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <path d={`M${x0} ${y0}L${px(100)} ${py(100)}`} stroke="var(--ok)" stroke-width="4" fill="none"/>
+    <path d={aPath} stroke="var(--danger)" stroke-width="4" fill="none" stroke-linejoin="round"/>
+    <circle cx={px(50)} cy={py(50)} r="5" fill="var(--ok)"/>
+    <circle cx={px(50)} cy={py(15)} r="5" fill="var(--danger)"/>
+    <text class="s" x={x0 - 8} y={y0 + 4} text-anchor="end">0</text>
+    <text class="s" x={x0 - 8} y={py(50) + 4} text-anchor="end">50%</text>
+    <text class="s" x={x0 - 8} y={py(100) + 4} text-anchor="end">100%</text>
+    <text class="s c" x={px(50)} y={y0 + 20}>50%</text>
+    <text class="s c" x={px(100)} y={y0 + 20}>100%</text>
+    <text class="s c" x={x0 + W / 2} y={y0 + 40}>손잡이를 돌린 정도</text>
+    <text class="s" x="14" y="52">출력 비율</text>
+
+    <text class="b" x="420" y="70" style="fill:var(--ok)">B타입 (직선)</text>
+    <text class="s" x="420" y="92">돌린 만큼 똑같이 변함</text>
+    <text class="s" x="420" y="110">일반 분압, 밝기·전압 조절용</text>
+    <text class="b" x="420" y="160" style="fill:var(--danger)">A타입 (오디오·로그)</text>
+    <text class="s" x="420" y="182">처음엔 천천히, 끝에서 빠르게</text>
+    <text class="s" x="420" y="200">가운데에서 약 10~20%만 변함</text>
+    <text class="s" x="420" y="218">소리 크기(볼륨)용</text>
+    <text class="s" x="420" y="262">※ A타입 곡선은 제품마다 다른</text>
+    <text class="s" x="420" y="280">대략적인 모양입니다.</text>
+  </svg>
+  <figcaption>그림 3. B타입과 A타입. 사람의 귀는 소리 크기를 로그(곱셈) 방식으로 느끼기 때문에 볼륨에는 A타입을 씁니다.</figcaption>
+</figure>

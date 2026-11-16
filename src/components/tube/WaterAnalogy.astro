@@ -1,0 +1,38 @@
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 310" role="img" aria-labelledby="wa-t wa-d">
+    <title id="wa-t">전압·전류·저항을 물에 비유한 그림</title>
+    <desc id="wa-d">위쪽은 수위가 높은 탱크에서 좁은 관을 지나 물이 흐르는 모습, 아래쪽은 같은 구조의 전기 회로. 수위는 전압, 좁은 관은 저항, 흐르는 물의 양은 전류에 해당한다.</desc>
+    <defs>
+      <marker id="wa-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <rect class="panel" x="5" y="5" width="650" height="300" rx="12"/>
+
+    <!-- 물 -->
+    <rect x="52" y="62" width="106" height="76" fill="#8fc2e8" fill-opacity=".65"/>
+    <path d="M50 28V140H160V28" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M160 116H260L280 124H340L360 116H520V140H360L340 132H280L260 140H160Z" fill="#8fc2e8" fill-opacity=".65"/>
+    <path d="M160 116H260L280 124H340L360 116H520M160 140H260L280 132H340L360 140H520" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M385 128H470" stroke="var(--ink)" stroke-width="2.5" marker-end="url(#wa-a)"/>
+    <text class="s c" x="105" y="22">탱크</text>
+
+    <text class="b c" x="105" y="168">수위 = 전압 (V)</text>
+    <text class="s c" x="105" y="188">높을수록 세게 밀어냄</text>
+    <text class="b c" x="310" y="168">좁은 관 = 저항 (R)</text>
+    <text class="s c" x="310" y="188">좁을수록 물이 적게 흐름</text>
+    <text class="b c" x="460" y="168">물의 양 = 전류 (I)</text>
+    <text class="s c" x="460" y="188">흘러가는 양</text>
+
+    <!-- 전기 회로 -->
+    <path d="M105 215V238M105 252V292H520V215M520 215H350M290 215H105" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="88" y1="238" x2="122" y2="238" stroke="var(--ink)" stroke-width="4"/>
+    <line x1="96" y1="252" x2="114" y2="252" stroke="var(--ink)" stroke-width="4"/>
+    <text class="b" x="66" y="243">+</text>
+    <text class="b" x="66" y="262">−</text>
+    <text class="s" x="130" y="248">건전지</text>
+    <rect x="290" y="203" width="60" height="24" rx="3" fill="var(--ground)" stroke="var(--ink)" stroke-width="3"/>
+    <text class="s c" x="320" y="246">저항</text>
+    <path d="M520 235V270" stroke="var(--ink)" stroke-width="2.5" marker-end="url(#wa-a)"/>
+    <text class="s" x="532" y="258">전류</text>
+  </svg>
+  <figcaption>그림 1. 물 비유. 전압은 밀어내는 힘, 저항은 흐름을 막는 정도, 전류는 실제로 흐르는 양입니다.</figcaption>
+</figure>

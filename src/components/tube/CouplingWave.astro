@@ -1,0 +1,40 @@
+---
+const sine = (x0, w, yc, amp, cycles) =>
+  Array.from({ length: 61 }, (_, i) => `${i ? 'L' : 'M'}${(x0 + (w * i) / 60).toFixed(1)} ${(yc - amp * Math.sin((2 * Math.PI * cycles * i) / 60)).toFixed(1)}`).join('');
+const left = sine(60, 190, 159, 18, 3);
+const right = sine(448, 190, 150, 18, 3);
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 300" role="img" aria-labelledby="cw-t cw-d">
+    <title id="cw-t">커패시터는 직류를 막고 교류만 통과시킨다</title>
+    <desc id="cw-d">4.5V를 중심으로 위아래 1V씩 흔들리는 신호가 직렬 커패시터를 지나면 직류 4.5V는 사라지고 0V를 중심으로 흔들리는 교류만 남는다.</desc>
+    <defs>
+      <marker id="cw-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <rect class="panel" x="5" y="5" width="650" height="290" rx="12"/>
+    <text class="b l" x="25" y="36">입력</text>
+    <text class="b l" x="420" y="36">출력</text>
+
+    <path d="M52 60V240H250" stroke="var(--ink)" stroke-width="2" fill="none"/>
+    <path d="M52 159H250" stroke="var(--rule2)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <path d={left} stroke="var(--accent)" stroke-width="3.5" fill="none"/>
+    <text class="s" x="46" y="244" text-anchor="end">0V</text>
+    <text class="s" x="46" y="163" text-anchor="end">4.5V</text>
+    <text class="s c" x="140" y="272">4.5V를 중심으로 ±1V 흔들림</text>
+    <text class="s c" x="140" y="288" style="font-size:12px">(직류 4.5V + 교류 ±1V)</text>
+
+    <path d="M440 60V240" stroke="var(--ink)" stroke-width="2" fill="none"/>
+    <path d="M440 150H640" stroke="var(--rule2)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <path d={right} stroke="var(--accent)" stroke-width="3.5" fill="none"/>
+    <text class="s" x="432" y="154" text-anchor="end">0V</text>
+    <text class="s c" x="530" y="272">0V를 중심으로 ±1V 흔들림</text>
+    <text class="s c" x="530" y="288" style="font-size:12px">(교류만 남음)</text>
+
+    <path d="M262 150H316M344 150H400" stroke="var(--ink)" stroke-width="3.5" fill="none" marker-end="url(#cw-a)"/>
+    <path d="M326 126V174M334 126V174" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>
+    <text class="b c" x="330" y="112">커패시터</text>
+    <text class="s c" x="330" y="196">직류는 막고</text>
+    <text class="s c" x="330" y="214">교류만 통과</text>
+  </svg>
+  <figcaption>그림 4. 결합 커패시터의 역할. 앰프에서 앞단의 직류 전압을 다음 단에 전달하지 않고 소리 신호만 넘길 때 씁니다.</figcaption>
+</figure>

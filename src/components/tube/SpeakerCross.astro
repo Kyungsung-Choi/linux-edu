@@ -1,0 +1,51 @@
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 360" role="img" aria-labelledby="sk-t sk-d">
+    <title id="sk-t">스피커의 단면</title>
+    <desc id="sk-d">자석의 틈 안에 보이스 코일이 들어 있고 코일은 콘(종이 원뿔)에 붙어 있다. 코일에 소리 전류가 흐르면 코일과 콘이 앞뒤로 움직여 공기를 흔들고 소리가 난다.</desc>
+    <defs>
+      <marker id="sk-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <rect class="panel" x="5" y="5" width="650" height="350" rx="12"/>
+
+    <!-- 소리 파동 -->
+    <g fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round">
+      <path d="M270 50Q330 22 390 50"/><path d="M250 36Q330 -2 410 36" transform="translate(0 6)"/>
+    </g>
+    <!-- 프레임 -->
+    <path d="M120 60L240 238M540 60L420 238" stroke="#8a8f98" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- 콘 -->
+    <path d="M150 66L510 66L355 190L305 190Z" fill="#e8dcc0" stroke="#a38f60" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M138 58Q150 52 162 66M522 58Q510 52 498 66" stroke="#6b7078" stroke-width="3" fill="none"/>
+    <!-- 자석 -->
+    <rect x="240" y="252" width="180" height="56" rx="4" fill="#6b7078"/>
+    <rect x="240" y="238" width="62" height="14" fill="#8a8f98"/><rect x="358" y="238" width="62" height="14" fill="#8a8f98"/>
+    <rect x="314" y="196" width="32" height="56" fill="#8a8f98"/>
+    <text class="b c" x="330" y="286" style="fill:#fff">자석</text>
+    <!-- 보이스 코일 -->
+    <rect x="304" y="190" width="8" height="52" fill="#c07a3a"/><rect x="348" y="190" width="8" height="52" fill="#c07a3a"/>
+    <g stroke="#7a4a1c" stroke-width="1.5">
+      {[196, 204, 212, 220, 228, 236].map((y) => <g><line x1="304" y1={y} x2="312" y2={y}/><line x1="348" y1={y} x2="356" y2={y}/></g>)}
+    </g>
+    <path d="M314 196Q330 176 346 196Z" fill="#8a8f98"/>
+
+    <!-- 움직임 -->
+    <path d="M330 150V96" stroke="var(--ink)" stroke-width="2.5" marker-start="url(#sk-a)" marker-end="url(#sk-a)"/>
+    <text class="b c" x="330" y="90" style="font-size:14px">앞뒤로 움직임</text>
+
+    <!-- 단자와 전선 -->
+    <circle cx="48" cy="188" r="7" fill="#d63a2e"/><circle cx="48" cy="220" r="7" fill="#2b2b2b"/>
+    <text class="b" x="62" y="193" style="font-size:16px">+</text><text class="b" x="62" y="225" style="font-size:16px">−</text>
+    <text class="s" x="22" y="168">소리 전류</text>
+    <path d="M55 188Q150 190 200 160Q240 130 306 200M55 220Q160 250 230 262Q290 262 306 232" fill="none" stroke="#c07a3a" stroke-width="2" stroke-dasharray="4 3"/>
+
+    <!-- 라벨 -->
+    <text class="b" x="440" y="136">콘</text><text class="s" x="440" y="154">종이 원뿔 (공기를 밀어냄)</text>
+    <path d="M436 140L400 120" stroke="var(--ink2)" stroke-width="1.5"/>
+    <text class="b" x="440" y="214">보이스 코일</text><text class="s" x="440" y="232">전선을 감은 통 (콘에 붙음)</text>
+    <path d="M436 218L360 218" stroke="var(--ink2)" stroke-width="1.5"/>
+    <text class="s" x="440" y="290">고정된 자석의 틈 안에 코일이 들어 있음</text>
+
+    <text class="s c" x="330" y="334">전류가 흐르면 코일이 자석의 힘을 받아 움직이고, 방향이 바뀌면 반대로 움직임 → 공기가 흔들려 소리가 됨</text>
+  </svg>
+  <figcaption>그림 1. 스피커의 구조(단면 개념도). 소리는 코일에 흐르는 전류의 흔들림을 콘의 진동으로 바꾼 것입니다.</figcaption>
+</figure>

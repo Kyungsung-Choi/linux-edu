@@ -1,0 +1,42 @@
+---
+const x0 = 70, cyc = 200, yc = 190, A = 80;
+const pts = Array.from({ length: 151 }, (_, i) => {
+  const x = x0 + (i * 500) / 150;
+  return `${i ? 'L' : 'M'}${x.toFixed(1)} ${(yc - A * Math.sin((2 * Math.PI * (x - x0)) / cyc)).toFixed(1)}`;
+}).join('');
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 660 365" role="img" aria-labelledby="sn-t sn-d">
+    <title id="sn-t">사인파(교류)의 이름표</title>
+    <desc id="sn-d">0V를 중심으로 위아래로 흔들리는 사인파. 최대값(Vp) 1V, 위아래 전체 폭(Vpp) 2V, 한 번 흔들리는 시간(주기 T) 1ms이면 주파수는 1kHz. 실효값은 최대값의 약 0.707배.</desc>
+    <defs>
+      <marker id="sn-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <rect class="panel" x="5" y="5" width="650" height="350" rx="12"/>
+    <path d={`M${x0} ${yc}H${x0 + 520}M${x0} ${yc - 120}V${yc + 92}`} stroke="var(--ink)" stroke-width="2" fill="none"/>
+    <path d={`M${x0} ${yc - A}H${x0 + 520}M${x0} ${yc + A}H${x0 + 520}`} stroke="var(--rule2)" stroke-width="1.2" stroke-dasharray="4 4"/>
+    <path d={`M${x0} ${yc - 56.6}H${x0 + 520}`} stroke="var(--ok)" stroke-width="1.5" stroke-dasharray="2 4"/>
+    <path d={pts} stroke="var(--accent)" stroke-width="4" fill="none" stroke-linejoin="round"/>
+
+    <text class="s" x={x0 - 8} y={yc + 4} text-anchor="end">0V</text>
+    <text class="s" x={x0 - 8} y={yc - A + 4} text-anchor="end">+1V</text>
+    <text class="s" x={x0 - 8} y={yc + A + 4} text-anchor="end">−1V</text>
+
+    <!-- 주기 T -->
+    <path d={`M${x0 + 50} ${yc - 106}H${x0 + 250}`} stroke="var(--ink)" stroke-width="2" marker-start="url(#sn-a)" marker-end="url(#sn-a)"/>
+    <path d={`M${x0 + 50} ${yc - 100}V${yc - A - 4}M${x0 + 250} ${yc - 100}V${yc - A - 4}`} stroke="var(--rule2)" stroke-width="1.2"/>
+    <text class="b c" x={x0 + 150} y={yc - 114}>주기 T = 1ms</text>
+    <!-- 최대값 -->
+    <path d={`M${x0 + 250} ${yc}V${yc - A + 2}`} stroke="var(--ink)" stroke-width="2" marker-end="url(#sn-a)"/>
+    <text class="s" x={x0 + 262} y={yc - A - 14}>최대값 Vp = 1V</text>
+    <!-- Vpp -->
+    <path d={`M${x0 + 526} ${yc - A}V${yc + A}`} stroke="var(--ink)" stroke-width="2" marker-start="url(#sn-a)" marker-end="url(#sn-a)"/>
+    <text class="b" x={x0 + 536} y={yc + 5}>Vpp</text>
+    <text class="s" x={x0 + 536} y={yc + 23}>= 2V</text>
+
+    <text class="s" x="40" y="306" style="fill:var(--ok)">··· 초록 점선 = 실효값 Vrms ≈ 0.707 × Vp (최대값의 약 70%)</text>
+    <text class="b" x="40" y="327">주파수 f = 1 ÷ T = 1 ÷ 0.001초 = 1000Hz = 1kHz</text>
+    <text class="s" x="40" y="347">1초에 1000번 흔들리면 1kHz. 멀티미터의 교류(V~)는 보통 실효값(rms)을 보여 줍니다.</text>
+  </svg>
+  <figcaption>그림 1. 사인파 한 가지를 부르는 이름들. 최대값·위아래 폭·주기·실효값은 모두 같은 파형의 다른 표현입니다.</figcaption>
+</figure>

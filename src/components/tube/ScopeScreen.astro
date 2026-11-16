@@ -1,0 +1,46 @@
+---
+const sx = 30, sy = 20, dx = 50, dy = 40; // 한 칸 = 50 x 40
+const cx = sx + 5 * dx, cy = sy + 4 * dy;
+const pts = Array.from({ length: 201 }, (_, i) => {
+  const x = sx + (i * 10 * dx) / 200;
+  return `${i ? 'L' : 'M'}${x.toFixed(1)} ${(cy - 2 * dy * Math.sin((2 * Math.PI * (x - sx)) / (2 * dx))).toFixed(1)}`;
+}).join('');
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 830 400" role="img" aria-labelledby="sc2-t sc2-d">
+    <title id="sc2-t">오실로스코프 화면 읽는 법</title>
+    <desc id="sc2-d">화면은 가로 10칸, 세로 8칸. 세로 칸당 0.5V, 가로 칸당 0.5ms로 맞췄을 때 사인파의 위아래 폭이 4칸이면 2V, 한 주기가 가로 2칸이면 1ms, 주파수 1kHz.</desc>
+    <defs>
+      <marker id="sc2-a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto-start-reverse"><path class="mk" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <rect x={sx - 10} y={sy - 10} width={10 * dx + 20} height={8 * dy + 20} rx="10" fill="#1d2630"/>
+    <rect x={sx} y={sy} width={10 * dx} height={8 * dy} fill="#0f1a14"/>
+    {Array.from({ length: 11 }, (_, i) => <line x1={sx + i * dx} y1={sy} x2={sx + i * dx} y2={sy + 8 * dy} stroke="#2f6b47" stroke-width={i === 5 ? 1.8 : 0.8}/>)}
+    {Array.from({ length: 9 }, (_, i) => <line x1={sx} y1={sy + i * dy} x2={sx + 10 * dx} y2={sy + i * dy} stroke="#2f6b47" stroke-width={i === 4 ? 1.8 : 0.8}/>)}
+    <path d={pts} stroke="#7dffa8" stroke-width="3" fill="none" stroke-linejoin="round"/>
+    <text x={sx + 6} y={cy + 18} style="font-size:12px; fill:#7dffa8">0V</text>
+
+    <!-- 위아래 폭 -->
+    <path d={`M556 ${cy - 2 * dy}V${cy + 2 * dy}`} stroke="var(--ink)" stroke-width="2.5" marker-start="url(#sc2-a)" marker-end="url(#sc2-a)"/>
+    <text x="566" y={cy - 4} style="font-size:13px; font-weight:700; fill:var(--ink)">4칸</text>
+    <text x="566" y={cy + 14} style="font-size:13px; fill:var(--ink)">= 2V</text>
+    <!-- 주기 -->
+    <path d={`M${sx + 0.5 * dx} ${sy + 0.8 * dy}V${cy - 2 * dy - 3}M${sx + 2.5 * dx} ${sy + 0.8 * dy}V${cy - 2 * dy - 3}`} stroke="#ffd166" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path d={`M${sx + 0.5 * dx} ${sy + 0.7 * dy}H${sx + 2.5 * dx}`} stroke="#ffd166" stroke-width="2.5" marker-start="url(#sc2-a)" marker-end="url(#sc2-a)"/>
+    <text x={sx + 1.5 * dx} y={sy + 0.45 * dy} text-anchor="middle" style="font-size:13px; font-weight:700; fill:#ffd166">가로 2칸 = 한 주기</text>
+
+    <!-- 설정과 계산 -->
+    <text class="b" x="620" y="40" style="font-size:16px">화면 설정</text>
+    <text class="s" x="620" y="64">세로: 0.5V / 칸</text>
+    <text class="s" x="620" y="84">가로: 0.5ms / 칸</text>
+    <text class="b" x="620" y="130" style="font-size:16px">읽어서 계산하기</text>
+    <text class="s" x="620" y="154">Vpp = 4칸 × 0.5V = 2V</text>
+    <text class="s" x="620" y="176">주기 = 2칸 × 0.5ms = 1ms</text>
+    <text class="s" x="620" y="198">주파수 = 1 ÷ 1ms = 1kHz</text>
+    <text class="s" x="620" y="244" style="font-size:12px">※ 칸당 값은 기기에서</text>
+    <text class="s" x="620" y="262" style="font-size:12px">돌려 바꿀 수 있고, 화면에</text>
+    <text class="s" x="620" y="280" style="font-size:12px">표시된 값을 그대로 씁니다.</text>
+    <text class="s c" x="280" y="382">화면: 가로 10칸 × 세로 8칸 (일반적인 구성, 기기마다 다를 수 있음)</text>
+  </svg>
+  <figcaption>그림 2. 오실로스코프 화면. 칸 수를 세고 "칸당 값"을 곱하면 전압과 시간을 읽을 수 있습니다.</figcaption>
+</figure>

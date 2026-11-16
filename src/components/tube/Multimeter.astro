@@ -1,0 +1,66 @@
+---
+// 다이얼 눈금: 각도(0=위, 시계 방향)와 이름
+const cx = 300, cy = 215, r = 78;
+const marks = [
+  { a: 0, t: 'OFF', dx: 0, dy: -14, anchor: 'middle' },
+  { a: 50, t: 'V⎓ (직류 전압)', dx: 12, dy: -6, anchor: 'start' },
+  { a: 100, t: 'V~ (교류 전압)', dx: 14, dy: 4, anchor: 'start' },
+  { a: 150, t: 'Ω (저항)', dx: 12, dy: 12, anchor: 'start' },
+  { a: 210, t: '통전·다이오드', dx: -12, dy: 12, anchor: 'end' },
+  { a: 260, t: 'A (전류)', dx: -14, dy: 4, anchor: 'end' },
+].map((m) => {
+  const rad = (m.a * Math.PI) / 180;
+  return { ...m, x1: cx + Math.sin(rad) * (r + 4), y1: cy - Math.cos(rad) * (r + 4), x2: cx + Math.sin(rad) * (r + 14), y2: cy - Math.cos(rad) * (r + 14) };
+});
+const px = cx + Math.sin((50 * Math.PI) / 180) * 52;
+const py = cy - Math.cos((50 * Math.PI) / 180) * 52;
+---
+<figure class="tl__fig">
+  <svg class="sv" viewBox="0 0 620 485" role="img" aria-labelledby="mm-t mm-d">
+    <title id="mm-t">멀티미터의 각 부분</title>
+    <desc id="mm-d">숫자가 표시되는 화면, 측정 종류를 고르는 다이얼, 리드선을 꽂는 단자(COM, VΩ). 빨간 리드는 VΩ, 검은 리드는 COM에 꽂는다.</desc>
+
+    <rect x="200" y="10" width="200" height="445" rx="26" fill="#d9dce1" stroke="#8a8f98" stroke-width="2"/>
+    <rect x="222" y="30" width="156" height="64" rx="6" fill="#cfe3d2" stroke="#6b7078" stroke-width="2"/>
+    <text x="366" y="82" text-anchor="end" style="font-size:32px; font-weight:700; fill:#243a2a; font-family:ui-monospace,Menlo,monospace">1.52</text>
+    <text x="232" y="52" style="font-size:12px; fill:#243a2a">DC</text>
+    <text x="368" y="48" style="font-size:12px; fill:#243a2a" text-anchor="end">V</text>
+
+    <circle cx={cx} cy={cy} r={r + 2} fill="#eceef1" stroke="#8a8f98" stroke-width="2"/>
+    <circle cx={cx} cy={cy} r="30" fill="#4b5a74"/>
+    <line x1={cx} y1={cy} x2={px} y2={py} stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+    {marks.map((m) => <line x1={m.x1} y1={m.y1} x2={m.x2} y2={m.y2} stroke="#6b7078" stroke-width="2"/>)}
+
+    <g class="s">
+      <text x="300" y="118" class="c">OFF</text>
+      <text x="402" y="150">V⎓</text>
+      <text x="402" y="232">V~</text>
+      <text x="400" y="298">Ω</text>
+      <text x="196" y="296" text-anchor="end">•))) ▷|</text>
+      <text x="196" y="236" text-anchor="end">A</text>
+    </g>
+
+    <!-- 단자 -->
+    <g>
+      <circle cx="248" cy="372" r="15" fill="#33363c"/><circle cx="300" cy="372" r="15" fill="#33363c"/><circle cx="352" cy="372" r="15" fill="#33363c"/>
+      <text class="s c" x="248" y="346">10A</text>
+      <text class="s c b" x="300" y="346">COM</text>
+      <text class="s c b" x="352" y="346">VΩ</text>
+    </g>
+    <!-- 리드 -->
+    <path d="M352 387C352 430 440 410 470 440" fill="none" stroke="#d63a2e" stroke-width="5" stroke-linecap="round"/>
+    <path d="M300 387C300 440 190 410 150 440" fill="none" stroke="#2b2b2b" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- 설명 -->
+    <path d="M222 62H110" stroke="var(--ink2)" stroke-width="1.5"/>
+    <text class="b" x="20" y="58">화면</text><text class="s" x="20" y="76">숫자가 나오는 곳</text>
+    <text class="b" x="470" y="40">다이얼</text><text class="s" x="470" y="58">측정 종류를 고름</text>
+    <path d="M520 66L378 168" stroke="var(--ink2)" stroke-width="1.5"/>
+    <text class="b" x="428" y="372" style="fill:#d63a2e">빨간 리드</text>
+    <text class="s" x="428" y="390">→ VΩ 단자</text>
+    <text class="b" x="30" y="372">검은 리드</text>
+    <text class="s" x="30" y="390">→ COM 단자</text>
+    <text class="s c" x="300" y="474">※ 모델마다 모양과 배치가 다릅니다</text>
+  </svg>
+  <figcaption>그림 2. 멀티미터의 구조(일반적인 모양). 지금 쓰는 기기의 설명서와 비교해 같은 이름을 찾아봅니다.</figcaption>
+</figure>
