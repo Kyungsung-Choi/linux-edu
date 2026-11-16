@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import MeterScene from '../../../../components/tube/MeterScene.astro';
 import AudioScene from '../../../../components/tube/AudioScene.astro';
 import Step from '../../../../components/tube/Step.astro';
@@ -20,6 +21,16 @@ import TrsPlug from '../../../../components/tube/TrsPlug.astro';
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'speaker', label: '소형 스피커 8Ω', sub: '1개' },
+      { k: 'aa', label: 'AA 건전지', sub: '1개 (집에 있는 것)' },
+      { k: 'jackmod', label: '3.5mm 잭 모듈', sub: '1개' },
+      { k: 'jumper', label: '점퍼선', sub: '몇 개' },
+      { k: 'clips', label: '악어 클립 리드선', sub: '있으면 편리' },
+      { k: 'phone', label: '스마트폰', sub: '톤 발생 앱 또는 영상' },
+      { k: 'cable', label: '오디오 케이블', sub: '3.5mm 3극' },
+      { k: 'aos02', label: 'ANENG AOS02', sub: '저항 측정' }
+    ]} />
     <ul>
       <li>소형 스피커 8Ω 1개, AA 건전지 1개(집에 있는 것)</li>
       <li>3.5mm 오디오 잭 브레이크아웃 모듈, 점퍼선, 악어 클립 리드선(있으면 편리)</li>

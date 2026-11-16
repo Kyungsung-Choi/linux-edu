@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import Flow from '../../../../components/tube/Flow.astro';
 
 const road = [
@@ -81,6 +82,12 @@ const blocks = [
   </div>
 
   <h2>4. 준비물</h2>
+  <PrepKit items={[
+      { k: 'aos02', label: '멀티미터 + 스코프', sub: 'ANENG AOS02 (보유)' },
+      { k: 'bb', label: '브레드보드', sub: '보유' },
+      { k: 'phone', label: '스마트폰', sub: '소리를 내는 음원' },
+      { k: 'speaker', label: '작은 스피커', sub: '또는 이어폰' }
+    ]} />
   <ul>
     <li>브레드보드와 멀티미터, 오실로스코프 기능 (이미 있음)</li>
     <li>부품은 단계별로 나눠서 구매합니다. 처음에는 1~2부 부품만 있으면 됩니다. 자세한 목록은 0-3 회차에서 설명합니다.</li>

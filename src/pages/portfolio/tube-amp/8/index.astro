@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import AudioScene from '../../../../components/tube/AudioScene.astro';
 import Step from '../../../../components/tube/Step.astro';
 import SineLabels from '../../../../components/tube/SineLabels.astro';
@@ -20,6 +21,16 @@ import Aos02Scope from '../../../../components/tube/Aos02Scope.astro';
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'aos02', label: 'ANENG AOS02', sub: '오실로스코프 모드' },
+      { k: 'probe', label: 'BNC 프로브', sub: '1X/10X 스위치 · 구성품' },
+      { k: 'phone', label: '스마트폰', sub: '주파수 톤 발생 앱' },
+      { k: 'jackmod', label: '3.5mm 잭 모듈', sub: '1개' },
+      { k: 'cable', label: '오디오 케이블', sub: '3.5mm 3극' },
+      { k: 'jumper', label: '점퍼선', sub: '몇 개' },
+      { k: 'dio', label: '다이오드 1N4148', sub: '선택 실습', small: true },
+      { k: 'r10k', label: '저항 10kΩ', sub: '선택 실습' }
+    ]} />
     <ul>
       <li>ANENG AOS02 (오실로스코프 모드)와 BNC 프로브(1X/10X 스위치가 있는 것, 구성품)</li>
       <li>스마트폰(주파수 톤 발생 앱), 3.5mm 오디오 잭 브레이크아웃, 점퍼선</li>

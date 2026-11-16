@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import BbStep from '../../../../components/tube/BbStep.astro';
 import Step from '../../../../components/tube/Step.astro';
 import CapStructure from '../../../../components/tube/CapStructure.astro';
@@ -25,6 +26,18 @@ const WB5 = { t: 'wire', from: 'a9', to: '-9', color: 'black' };
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'capEl', label: '전해 커패시터', sub: '1000µF · 25V 이상 1개' },
+      { k: 'r10k', label: '저항 10kΩ', sub: '1개' },
+      { k: 'r1k', label: '저항 1kΩ', sub: '1개' },
+      { k: 'r470', label: '저항 470Ω', sub: '1개' },
+      { k: 'led', label: 'LED', sub: '1개' },
+      { k: 'v9', label: '9V 건전지 + 스냅', sub: '1세트' },
+      { k: 'bb', label: '브레드보드', sub: '1개' },
+      { k: 'jumper', label: '점퍼선', sub: '몇 개' },
+      { k: 'aos02', label: 'ANENG AOS02', sub: '전압 측정' },
+      { k: 'stopwatch', label: '시계(초시계)', sub: '스마트폰도 가능' }
+    ]} />
     <ul>
       <li>전해 커패시터 1000µF (내압 25V 이상) 1개</li>
       <li>저항 10kΩ, 1kΩ, 470Ω 각 1개, LED 1개</li>

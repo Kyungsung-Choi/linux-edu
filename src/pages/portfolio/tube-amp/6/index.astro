@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import BbStep from '../../../../components/tube/BbStep.astro';
 import MeterScene from '../../../../components/tube/MeterScene.astro';
 import Step from '../../../../components/tube/Step.astro';
@@ -24,6 +25,16 @@ const WB = { t: 'wire', from: 'b12', to: '-12', color: 'black' };
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'dio', label: '다이오드 1N4007', sub: '2개 (전원용)' },
+      { k: 'dio', label: '다이오드 1N4148', sub: '2개 (작은 신호용)', small: true },
+      { k: 'r470', label: '저항 470Ω', sub: '1개' },
+      { k: 'led', label: 'LED', sub: '1개' },
+      { k: 'v9', label: '9V 건전지 + 스냅', sub: '1세트' },
+      { k: 'bb', label: '브레드보드', sub: '1개' },
+      { k: 'jumper', label: '점퍼선', sub: '몇 개' },
+      { k: 'aos02', label: 'ANENG AOS02', sub: '다이오드 테스트' }
+    ]} />
     <ul>
       <li>다이오드 1N4007, 1N4148 각 2개</li>
       <li>저항 470Ω, LED 1개, 9V 건전지와 스냅, 브레드보드, 점퍼선, 멀티미터</li>

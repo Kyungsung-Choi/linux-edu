@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import BbStep from '../../../../components/tube/BbStep.astro';
 import Step from '../../../../components/tube/Step.astro';
 import BreadboardRules from '../../../../components/tube/BreadboardRules.astro';
@@ -23,6 +24,14 @@ const rows = [1, 10];
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'bb', label: '브레드보드', sub: '1개' },
+      { k: 'jumper', label: '점퍼선', sub: '2개' },
+      { k: 'v9', label: '9V 건전지 + 스냅', sub: '1세트' },
+      { k: 'r470', label: '저항 470Ω', sub: '노랑·보라·갈색·금색' },
+      { k: 'led', label: 'LED', sub: '1개' },
+      { k: 'aos02', label: 'ANENG AOS02', sub: '통전·전압 측정' }
+    ]} />
     <ul>
       <li>브레드보드, 점퍼선 2개, 9V 건전지와 스냅 클립</li>
       <li>저항 470Ω (노랑·보라·갈색·금색), LED 1개</li>

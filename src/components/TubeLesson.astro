@@ -77,6 +77,9 @@ const { num, title, desc, prev, next } = Astro.props;
   .tl__tag.red{color:var(--danger); border-color:var(--danger)}
   .tl__tag.green{color:var(--ok); border-color:var(--ok)}
 
+  .tl__fig--prep{margin:8px 0 12px}
+  .tl__fig--prep svg{max-width:640px; border:0; background:transparent}
+  .tl__box .tl__fig--prep svg{margin:0 auto}
   /* 실습 단계 카드 */
   .tl__step{display:grid; grid-template-columns:34px minmax(0,1fr); gap:12px; padding:18px 0; border-top:1px solid var(--rule)}
   .tl__steps-start{border-top:0}

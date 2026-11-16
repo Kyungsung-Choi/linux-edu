@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import BbStep from '../../../../components/tube/BbStep.astro';
 import Step from '../../../../components/tube/Step.astro';
 import ColorCode from '../../../../components/tube/ColorCode.astro';
@@ -24,6 +25,16 @@ const rows = [1, 10];
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'bb', label: '브레드보드', sub: '2회에서 만든 회로' },
+      { k: 'v9', label: '9V 건전지 + 스냅', sub: '1세트' },
+      { k: 'led', label: 'LED', sub: '2회 회로의 것' },
+      { k: 'r470', label: '470Ω', sub: '노랑·보라·갈색' },
+      { k: 'r1k', label: '1kΩ', sub: '갈색·검정·빨강' },
+      { k: 'r47k', label: '4.7kΩ', sub: '노랑·보라·빨강' },
+      { k: 'r10k', label: '10kΩ', sub: '갈색·검정·주황' },
+      { k: 'aos02', label: 'ANENG AOS02', sub: '전압·전류 측정' }
+    ]} />
     <ul>
       <li>2회에서 만든 LED 회로 (9V 건전지, 브레드보드, LED)</li>
       <li>저항: 470Ω, 1kΩ, 4.7kΩ, 10kΩ 각 1개 이상</li>

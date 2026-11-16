@@ -1,5 +1,6 @@
 ---
 import TubeLesson from '../../../../components/TubeLesson.astro';
+import PrepKit from '../../../../components/tube/PrepKit.astro';
 import BbStep from '../../../../components/tube/BbStep.astro';
 import Step from '../../../../components/tube/Step.astro';
 import Divider from '../../../../components/tube/Divider.astro';
@@ -28,6 +29,15 @@ const POT = { t: 'pot', pins: ['c4', 'c5', 'c6'], label: 'B103' };
   </p>
   <div class="tl__box">
     <b class="h">준비물</b>
+    <PrepKit items={[
+      { k: 'v9', label: '9V 건전지 + 스냅', sub: '1세트' },
+      { k: 'bb', label: '브레드보드', sub: '1개' },
+      { k: 'jumper', label: '점퍼선', sub: '몇 개' },
+      { k: 'r10k', label: '저항 10kΩ', sub: '3개' },
+      { k: 'r47k', label: '저항 4.7kΩ', sub: '1개' },
+      { k: 'pot', label: '가변저항 B103', sub: '10kΩ B타입 1개' },
+      { k: 'aos02', label: 'ANENG AOS02', sub: '전압·저항 측정' }
+    ]} />
     <ul>
       <li>9V 건전지와 스냅, 브레드보드, 점퍼선</li>
       <li>저항 10kΩ 3개, 4.7kΩ 1개</li>
