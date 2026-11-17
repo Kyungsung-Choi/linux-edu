@@ -16,6 +16,10 @@ SEC 공시(8-K 보도자료, 10-Q)와 11월 10일 컨퍼런스콜 전사본, 언
 
 숫자의 의미, 컨퍼런스콜에서 오간 질문과 답변, AI 인프라 전망을 이어서 봅니다.
 
+<div class="yt"><iframe src="https://www.youtube-nocookie.com/embed/q5ccDmDm-38" title="코어위브의 진짜 숙제는 이자 (5분 53초 영상)" allow="encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+
+<p class="yt-note">5분 53초 영상으로 먼저 보셔도 됩니다. 영상의 음성은 AI 음성이며, 투자 권유가 아닙니다. 영상의 주가는 11월 16일 종가 기준이라 글의 숫자와 다를 수 있습니다. <a href="https://youtu.be/q5ccDmDm-38" target="_blank" rel="noopener">유튜브에서 보기</a></p>
+
 **한눈에 보기**
 
 - 3분기 매출 **36.6억 달러**(+168%), 시장 예상 약 35.5억 달러를 넘었습니다
